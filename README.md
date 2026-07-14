@@ -6,6 +6,7 @@
 [![PyPI version](https://img.shields.io/pypi/v/whoosh3)](https://pypi.org/project/whoosh3/)
 [![Python versions](https://img.shields.io/pypi/pyversions/whoosh3)](https://pypi.org/project/whoosh3/)
 [![License](https://img.shields.io/badge/license-BSD--2--Clause-blue)](LICENSE.txt)
+[![Downloads](https://img.shields.io/pypi/dm/whoosh3)](https://pypi.org/project/whoosh3/)
 
 Whoosh lets you add real search — ranked results, a query language, faceting,
 highlighting, "did you mean?" spell-correction — to any Python program, with
