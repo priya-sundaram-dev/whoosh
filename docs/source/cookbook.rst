@@ -232,6 +232,36 @@ A complete, runnable version of this pattern lives in
 ``examples/resource_management.py``.
 
 
+A command-line folder search tool
+=================================
+
+``examples/search_cli.py`` — a tiny, dependency-free command-line program that
+indexes a folder of text, Markdown, reStructuredText, or source files and lets
+you search it straight from your terminal. No server, no external service::
+
+    # Index the current directory (creates ./.whoosh_index/)
+    python examples/search_cli.py index .
+
+    # Search it, with highlighted snippets
+    python examples/search_cli.py search "full text search"
+
+    # Re-index only changed/new files and drop deleted ones (fast; uses mtimes)
+    python examples/search_cli.py index . --update
+
+    # Choose which extensions to index, or emit HTML <mark> highlights
+    python examples/search_cli.py index ~/notes --ext .md,.txt
+    python examples/search_cli.py search "ranking" --html
+
+It demonstrates several everyday patterns in one place: a
+:class:`~whoosh.fields.Schema` with a ``unique`` :class:`~whoosh.fields.ID`
+path, ``writer.update_document`` for idempotent upserts,
+``writer.delete_by_term`` to prune deleted files, incremental indexing driven by
+a stored :class:`~whoosh.fields.NUMERIC` ``mtime``, field-boosted
+:class:`~whoosh.qparser.MultifieldParser` queries, and result highlighting with
+:class:`~whoosh.highlight.ContextFragmenter`. It is a single file you can copy
+into your own project and adapt.
+
+
 Migrating from Whoosh 2.x / whoosh-reloaded
 ===========================================
 

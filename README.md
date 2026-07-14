@@ -97,8 +97,10 @@ faceting, and highlighting — every snippet is runnable
   [search-as-you-type / autocomplete example](examples/autocomplete.py), a
   [faceted-navigation / filter-sidebar recipe](examples/faceted_search.py), a
   [highlighting / search-snippets recipe](examples/highlighting.py), and a
-  [custom-analyzers recipe](examples/custom_analyzers.py), and a
-  [custom scoring & sorting recipe](examples/scoring_and_sorting.py)
+  [custom-analyzers recipe](examples/custom_analyzers.py), a
+  [custom scoring & sorting recipe](examples/scoring_and_sorting.py), and a
+  [command-line folder-search tool](examples/search_cli.py) that indexes and
+  searches a directory of files in one command
 - **Roadmap:** [ROADMAP.md](ROADMAP.md)
 - **Changelog:** [CHANGELOG.md](CHANGELOG.md)
 

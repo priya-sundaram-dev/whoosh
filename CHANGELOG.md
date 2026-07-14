@@ -6,6 +6,13 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Added
+- New runnable example `examples/search_cli.py`: a tiny, dependency-free
+  command-line tool that indexes a folder of text/markdown/source files and
+  searches it from the terminal, with highlighted snippets, title boosting,
+  and fast incremental re-indexing (`--update`, mtime-based). A single file you
+  can copy into your own project. Documented in the docs cookbook.
+
 ## [3.0.3] - 2026-07-14
 
 ### Added
