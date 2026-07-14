@@ -63,6 +63,35 @@ jobs:
           VERSION="$(python -c 'import whoosh; print(whoosh.__version_str__)')"
           sed -i -E "s#(\"softwareVersion\": \")[^\"]*(\")#\1${VERSION}\2#" _site/index.html
 
+      - name: Self-heal sitemap (append any built docs pages not yet listed)
+        run: |
+          python - <<'PY'
+          import pathlib, re, datetime
+          base = "https://priya-sundaram-dev.github.io/whoosh"
+          site = pathlib.Path("_site")
+          sm = site / "sitemap.xml"
+          text = sm.read_text()
+          today = datetime.date.today().isoformat()
+          # Collect every built docs HTML page.
+          pages = sorted(p.name for p in (site / "docs").glob("*.html"))
+          missing = [f"docs/{p}" for p in pages if f"{base}/docs/{p}" not in text]
+          if missing:
+              entries = "".join(
+                  f"  <url>\n"
+                  f"    <loc>{base}/{path}</loc>\n"
+                  f"    <lastmod>{today}</lastmod>\n"
+                  f"    <changefreq>monthly</changefreq>\n"
+                  f"    <priority>0.6</priority>\n"
+                  f"  </url>\n"
+                  for path in missing
+              )
+              text = text.replace("</urlset>", entries + "</urlset>")
+              sm.write_text(text)
+              print(f"Added {len(missing)} missing sitemap entries: {missing}")
+          else:
+              print("Sitemap already complete.")
+          PY
+
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
