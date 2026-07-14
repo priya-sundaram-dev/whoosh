@@ -6,6 +6,22 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.3.0] - 2026-07-14
+
+### Added
+- **`whoosh` command-line tool.** Installing `whoosh3` now also installs a
+  `whoosh` console script for indexing and searching a folder of files from
+  your terminal — a pure-Python, ranked, stemmed alternative to `grep` for
+  notes/docs/source trees. `whoosh index PATH` builds an on-disk index (with
+  `--update` for incremental re-indexing that also drops deleted files, and
+  `--ext .md,.txt` to filter by extension); `whoosh search "QUERY" PATH`
+  returns BM25-ranked results with highlighted snippets and supports the full
+  query language (`AND`/`OR`/`NOT`, `"phrases"`, `field:term`), plus `--limit`
+  and `--html` (emit `<mark>` highlights). The implementation lives in the new
+  `whoosh.cli` module and uses only the public API, so it doubles as a
+  copy-pasteable example ([`examples/search_cli.py`](examples/search_cli.py)
+  now re-exports it). Covered by a new `tests/test_cli.py` suite.
+
 ## [3.2.0] - 2026-07-14
 
 ### Added
