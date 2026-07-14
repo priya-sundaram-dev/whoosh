@@ -22,7 +22,7 @@
   "description": "Whoosh 3.0.0 — a maintained, pure-Python full-text search library. Zero runtime dependencies, modern packaging, bug fixes, a live browser demo, and a one-line migration path.",
   "author": { "@type": "Person", "name": "Priya Sundaram" },
   "datePublished": "2026-07-14",
-  "dateModified": "2026-07-14",
+  "dateModified": "2026-07-15",
   "mainEntityOfPage": "https://priya-sundaram-dev.github.io/whoosh/blog.html",
   "about": ["full-text search", "Python", "information retrieval", "Whoosh"]
 }
@@ -83,6 +83,18 @@
   <p>It was widely used, then went unmaintained. It was revived once as
   <code>whoosh-reloaded</code>, then went quiet again. I'm picking it back up,
   and this is the first release under new maintenance.</p>
+
+  <p><strong>Update (3.3.0) — search a folder from your terminal.</strong>
+  Whoosh now installs a <code>whoosh</code> command, so you can index and
+  search a directory of notes, docs, or code without writing any Python:
+  <code>whoosh index ~/notes</code> then <code>whoosh search "ranked query"</code>.
+  Think of it as a <em>ranked</em> grep — BM25-scored results with highlighted
+  snippets, incremental re-indexing (only changed files are touched), file-type
+  filters, and optional HTML output. It's a small, fully-tested wrapper over the
+  same public API, so anything the CLI does you can also script.
+  <code>pip install -U whoosh3</code>, then <code>whoosh --help</code>. See the
+  <a href="https://priya-sundaram-dev.github.io/whoosh/docs/cli.html">command-line
+  reference</a>.</p>
 
   <p><strong>Update (3.0.3):</strong> the natural-language date parser now
   accepts ISO-8601 dates (e.g. <code>created:2023-05-17</code>) instead of
@@ -154,6 +166,12 @@ w = ix.writer(); w.add_document(path="/a", body="the quick brown fox"); w.commit
 with ix.searcher() as s:
     q = QueryParser("body", ix.schema).parse("quick fox")
     print([hit["path"] for hit in s.search(q)])   # ['/a']</code></pre>
+
+  <p>Prefer the terminal? Search a folder of files with the bundled
+  <code>whoosh</code> command — no Python required:</p>
+  <pre><code>pip install whoosh3
+whoosh index ~/notes          # build an index (incremental on re-run)
+whoosh search "ranked query"  # BM25-scored hits with highlighted snippets</code></pre>
 
   <p>Install it with <code>pip install whoosh3</code>. Or don't install anything
   and <a href="./">run the live browser demo</a> first.</p>
