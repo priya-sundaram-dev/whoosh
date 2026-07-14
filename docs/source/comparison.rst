@@ -102,6 +102,59 @@ It reports build time, index size and average query latency for both engines on
 the same synthetic corpus. It is written to be honest about where Whoosh sits,
 not to make Whoosh "win".
 
+Which Whoosh package should I install?
+======================================
+
+If you have decided Whoosh is the right *kind* of tool, one more question
+comes up a lot: **there are several Whoosh distributions on PyPI -- which one
+should I depend on?** Here is an honest map of the lineage so you can choose
+with open eyes. (All of these share the same ``import whoosh`` API, so moving
+between them is usually a one-line change in your requirements; see the
+`migration guide
+<https://github.com/priya-sundaram-dev/whoosh/blob/main/MIGRATING.md>`_.)
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 20 30 28
+
+   * - PyPI name
+     - Import as
+     - Lineage
+     - Status
+   * - ``Whoosh``
+     - ``whoosh``
+     - Original library by Matt Chaput.
+     - Last release **2.7.4 (2016)**. Historically important, no longer
+       updated. Great to read; not where new fixes land.
+   * - ``Whoosh-Reloaded``
+     - ``whoosh``
+     - Community revival by Sygil-Dev and contributors.
+     - Last PyPI release **2.7.5 (Feb 2024)**; the upstream README marks it
+       *no longer maintained*. Deserves credit for keeping the project alive.
+   * - ``whoosh3`` *(this project)*
+     - ``whoosh``
+     - Continuation that builds on both of the above.
+     - Actively maintained: **3.x releases in 2026**, CI green across current
+       CPython versions, a ``py.typed`` marker, a ``whoosh`` command-line
+       search tool, and ongoing issue triage.
+
+How to read that table:
+
+* If you are **reading old tutorials or reproducing a paper**, the original
+  ``Whoosh`` is exactly what those examples were written against and will
+  behave identically for the features it shipped.
+* If you have an **existing project already pinned to** ``Whoosh`` or
+  ``Whoosh-Reloaded`` and it works, there is no urgency to move -- your code
+  will not break by leaving it. Switch when you want fixes on current Python
+  versions or the newer conveniences.
+* If you are **starting something new in 2026**, install ``whoosh3`` so you are
+  on a distribution that is still cutting releases and answering issues.
+
+None of this is a knock on the earlier work -- ``whoosh3`` exists *because* of
+it, preserves the original BSD license and copyright, and thanks both prior
+maintainers. The goal here is simply that you do not end up pinned to a package
+that has gone quiet without realising it.
+
 A decision checklist
 ====================
 
