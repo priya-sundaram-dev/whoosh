@@ -75,18 +75,37 @@ class MemPerDocWriter(base.PerDocWriterWithColumns):
         self._storage = storage
         self._segment = segment
         self.is_closed = False
-        self._colwriters = {}
+        # Maps fieldname -> the persistent {docnum: value} dict on the segment
+        self._colvalues = {}
         self._doccount = 0
 
     def _has_column(self, fieldname):
-        return fieldname in self._colwriters
+        return fieldname in self._colvalues
 
     def _create_column(self, fieldname, column):
-        colfile = self._storage.create_file(f"{fieldname}.c")
-        self._colwriters[fieldname] = (colfile, column.writer(colfile))
+        # Remember the column object so we can (re)write the full column file
+        # for the whole segment on close(). See close() for why we can't just
+        # append to the existing file: a BufferedWriter opens a fresh per-doc
+        # writer for every add_document() call, and column files are written
+        # densely from docnum 0, so appending would clobber earlier docs'
+        # values. We keep the raw values on the persistent MemSegment instead.
+        self._segment._colobjs[fieldname] = column
+        self._colvalues[fieldname] = self._segment._colvalues.setdefault(
+            fieldname, {}
+        )
 
     def _get_column(self, fieldname):
-        return self._colwriters[fieldname][1]
+        # Return a tiny shim exposing add(docnum, value) that records the value
+        # against the persistent segment, matching the ColumnWriter interface
+        # used by PerDocWriterWithColumns.add_column_value().
+        values = self._colvalues[fieldname]
+
+        class _Recorder:
+            @staticmethod
+            def add(docnum, value):
+                values[docnum] = value
+
+        return _Recorder
 
     def start_doc(self, docnum):
         self._doccount += 1
@@ -112,10 +131,22 @@ class MemPerDocWriter(base.PerDocWriterWithColumns):
             self._segment._vectors[docnum] = self._vectors
 
     def close(self):
-        colwriters = self._colwriters
-        for fieldname in colwriters:
-            colfile, colwriter = colwriters[fieldname]
-            colwriter.finish(self._doccount)
+        # Rewrite the complete column file for every column touched so far in
+        # the whole segment. Because BufferedWriter reuses this codec/segment
+        # across many short-lived per-doc writer sessions, we must always emit
+        # a file covering all docnums [0, doc_count_all()) -- not just the docs
+        # added in this session -- or the reader (which reads doc_count_all()
+        # entries) will fill the missing docs with the column default value.
+        segment = self._segment
+        doccount = segment.doc_count_all()
+        for fieldname in self._colvalues:
+            column = segment._colobjs[fieldname]
+            values = segment._colvalues[fieldname]
+            colfile = self._storage.create_file(f"{fieldname}.c")
+            colwriter = column.writer(colfile)
+            for docnum in sorted(values):
+                colwriter.add(docnum, values[docnum])
+            colwriter.finish(doccount)
             colfile.close()
         self.is_closed = True
 
@@ -304,6 +335,10 @@ class MemSegment(base.Segment):
         self._vectors = {}
         self._invindex = {}
         self._terminfos = {}
+        # Persistent column state so column values survive across the many
+        # short-lived per-doc writer sessions a BufferedWriter creates.
+        self._colobjs = {}
+        self._colvalues = {}
         self._lock = Lock()
 
     def codec(self):

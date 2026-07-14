@@ -6,6 +6,20 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Fixed
+- Sorting or faceting by a sortable/column field returned **scrambled** results
+  after documents were added through a `BufferedWriter` (the quasi-real-time
+  writer). Root cause: `BufferedWriter` opens a fresh short-lived per-document
+  writer for every `add_document()` call, and the in-memory `MemoryCodec`
+  recreated (truncated) each column file per session — so the reader, which
+  reads `doc_count_all()` entries, filled every doc except the last-written one
+  with the column's *default* value. Sorting on those near-identical default
+  values produced an effectively random order (most visible with a reverse
+  sort). Column values are now kept on the persistent in-memory segment and the
+  complete column file is rewritten for the whole segment, so both quasi-real-
+  time (pre-commit) and on-disk (post-commit) reads sort correctly. Verified for
+  numeric and text sortable fields with a new regression test.
+
 ## [3.0.1] - 2026-07-14
 
 ### Fixed

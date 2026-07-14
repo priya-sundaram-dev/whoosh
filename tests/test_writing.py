@@ -157,6 +157,55 @@ def test_buffered_search():
         w.close()
 
 
+def test_buffered_sortable_columns():
+    # Regression test for a bug where sorting by a sortable/column field
+    # returned scrambled results after adding documents with a BufferedWriter.
+    # Root cause: BufferedWriter opens a fresh per-doc writer for every
+    # add_document() call, and the MemoryCodec recreated (truncated) each
+    # column file per session, so the reader filled all but the last-written
+    # docs with the column default value.
+    schema = fields.Schema(
+        id=fields.STORED, text=fields.TEXT, num=fields.NUMERIC(sortable=True)
+    )
+    with TempIndex(schema, "bufferedsortcol") as ix:
+        w = writing.BufferedWriter(ix, period=None, limit=3)
+        for i in range(10):
+            w.add_document(id=i, text=f"word{i % 3}", num=i * 10)
+
+        # Quasi-real-time: some docs flushed to disk, some still buffered.
+        with w.searcher() as s:
+            asc = [h["id"] for h in s.search(query.Every(), sortedby="num")]
+            desc = [
+                h["id"]
+                for h in s.search(query.Every(), sortedby="num", reverse=True)
+            ]
+            assert asc == list(range(10))
+            assert desc == list(range(9, -1, -1))
+
+        w.close()
+
+        # After commit, the on-disk column must also be correct.
+        with ix.searcher() as s:
+            asc = [h["id"] for h in s.search(query.Every(), sortedby="num")]
+            assert asc == list(range(10))
+            # Every stored doc must carry its own column value.
+            cr = s.reader().column_reader("num")
+            assert [cr[dn] for dn in range(10)] == [i * 10 for i in range(10)]
+
+    # Also verify a sortable TEXT column round-trips correctly.
+    schema2 = fields.Schema(id=fields.ID(stored=True), name=fields.TEXT(sortable=True))
+    with TempIndex(schema2, "bufferedsorttext") as ix:
+        names = ["delta", "alpha", "charlie", "bravo", "echo"]
+        w = writing.BufferedWriter(ix, period=None, limit=2)
+        for i, n in enumerate(names):
+            w.add_document(id=str(i), name=n)
+        w.close()
+        with ix.searcher() as s:
+            got = [h["id"] for h in s.search(query.Every(), sortedby="name")]
+            expected = [str(i) for i in sorted(range(5), key=lambda k: names[k])]
+            assert got == expected
+
+
 def test_buffered_update():
     schema = fields.Schema(
         id=fields.ID(stored=True, unique=True), payload=fields.STORED
