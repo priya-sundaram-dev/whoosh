@@ -7,6 +7,13 @@ All notable changes to this project are documented here. This project follows
 ## [Unreleased]
 
 ### Added
+- **Typed field constructors (gh#3).** The field types you write in every
+  `Schema` — `TEXT`, `ID`, `IDLIST`, `KEYWORD`, `NUMERIC`, `DATETIME`,
+  `BOOLEAN`, `STORED`, and `COLUMN` — now carry parameter and return
+  annotations on their constructors. Editors autocomplete kwargs like
+  `stored=`, `unique=`, `phrase=`, `commas=`, and type checkers verify your
+  field definitions. Hints use `from __future__ import annotations` (no runtime
+  cost or behavior change) and are guarded by a regression test.
 - **More public typing (gh#3).** `whoosh.fields.Schema` — the class every user
   imports first — now carries type hints on its common methods (`copy`,
   `items`, `names`, `add`, `remove`, `indexable_fields`, `stored_names`,

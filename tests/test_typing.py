@@ -62,3 +62,29 @@ def test_schema_public_methods_are_annotated():
         assert sig.return_annotation is not inspect.Signature.empty, (
             f"Schema.{name} is missing a return annotation"
         )
+
+
+def test_field_type_constructors_are_annotated():
+    """The field-type constructors users write in every ``Schema`` (TEXT,
+    ID, KEYWORD, NUMERIC, DATETIME, BOOLEAN, STORED, IDLIST, COLUMN) carry
+    parameter and return annotations, so editors autocomplete their kwargs
+    and type checkers verify field definitions (gh#3)."""
+    for name in (
+        "TEXT",
+        "ID",
+        "IDLIST",
+        "KEYWORD",
+        "NUMERIC",
+        "DATETIME",
+        "BOOLEAN",
+        "STORED",
+        "COLUMN",
+    ):
+        cls = getattr(fields, name)
+        sig = inspect.signature(cls.__init__)
+        for pname, param in sig.parameters.items():
+            if pname == "self":
+                continue
+            assert param.annotation is not inspect.Parameter.empty, (
+                f"{name}.__init__: parameter {pname!r} is missing an annotation"
+            )

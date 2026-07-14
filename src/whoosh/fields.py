@@ -488,8 +488,13 @@ class ID(FieldType):
     """
 
     def __init__(
-        self, stored=False, unique=False, field_boost=1.0, sortable=False, analyzer=None
-    ):
+        self,
+        stored: bool = False,
+        unique: bool = False,
+        field_boost: float = 1.0,
+        sortable: bool = False,
+        analyzer: analysis.Analyzer | None = None,
+    ) -> None:
         """
         :param stored: Whether the value of this field is stored with the
             document.
@@ -509,7 +514,13 @@ class IDLIST(FieldType):
     and/or punctuation (or anything else, using the expression param).
     """
 
-    def __init__(self, stored=False, unique=False, expression=None, field_boost=1.0):
+    def __init__(
+        self,
+        stored: bool = False,
+        unique: bool = False,
+        expression: re.Pattern[str] | None = None,
+        field_boost: float = 1.0,
+    ) -> None:
         """
         :param stored: Whether the value of this field is stored with the
             document.
@@ -562,17 +573,17 @@ class NUMERIC(FieldType):
 
     def __init__(
         self,
-        numtype=int,
-        bits=32,
-        stored=False,
-        unique=False,
-        field_boost=1.0,
-        decimal_places=0,
-        shift_step=4,
-        signed=True,
-        sortable=False,
-        default=None,
-    ):
+        numtype: type | str = int,
+        bits: int = 32,
+        stored: bool = False,
+        unique: bool = False,
+        field_boost: float = 1.0,
+        decimal_places: int = 0,
+        shift_step: int = 4,
+        signed: bool = True,
+        sortable: bool = False,
+        default: object | None = None,
+    ) -> None:
         """
         :param numtype: the type of numbers that can be stored in this field,
             either ``int``, ``float``. If you use ``Decimal``,
@@ -836,7 +847,9 @@ class DATETIME(NUMERIC):
     >>> w.commit()
     """
 
-    def __init__(self, stored=False, unique=False, sortable=False):
+    def __init__(
+        self, stored: bool = False, unique: bool = False, sortable: bool = False
+    ) -> None:
         """
         :param stored: Whether the value of this field is stored with the
             document.
@@ -958,7 +971,7 @@ class BOOLEAN(FieldType):
     trues = frozenset("t true yes 1".split())
     falses = frozenset("f false no 0".split())
 
-    def __init__(self, stored=False, field_boost=1.0):
+    def __init__(self, stored: bool = False, field_boost: float = 1.0) -> None:
         """
         :param stored: Whether the value of this field is stored with the
             document.
@@ -1019,7 +1032,7 @@ class STORED(FieldType):
     indexed = False
     stored = True
 
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
 
@@ -1032,7 +1045,7 @@ class COLUMN(FieldType):
     indexed = False
     stored = False
 
-    def __init__(self, columnobj=None):
+    def __init__(self, columnobj: columns.Column | None = None) -> None:
         if columnobj is None:
             columnobj = columns.VarBytesColumn()
         if not isinstance(columnobj, columns.Column):
@@ -1056,16 +1069,16 @@ class KEYWORD(FieldType):
 
     def __init__(
         self,
-        stored=False,
-        lowercase=False,
-        commas=False,
-        scorable=False,
-        unique=False,
-        field_boost=1.0,
-        sortable=False,
-        vector=None,
-        analyzer=None,
-    ):
+        stored: bool = False,
+        lowercase: bool = False,
+        commas: bool = False,
+        scorable: bool = False,
+        unique: bool = False,
+        field_boost: float = 1.0,
+        sortable: bool = False,
+        vector: formats.Format | bool | None = None,
+        analyzer: analysis.Analyzer | None = None,
+    ) -> None:
         """
         :param stored: Whether to store the value of the field with the
             document.
@@ -1104,18 +1117,18 @@ class TEXT(FieldType):
 
     def __init__(
         self,
-        analyzer=None,
-        phrase=True,
-        chars=False,
-        stored=False,
-        field_boost=1.0,
-        multitoken_query="default",
-        spelling=False,
-        sortable=False,
-        lang=None,
-        vector=None,
-        spelling_prefix="spell_",
-    ):
+        analyzer: analysis.Analyzer | None = None,
+        phrase: bool = True,
+        chars: bool = False,
+        stored: bool = False,
+        field_boost: float = 1.0,
+        multitoken_query: str = "default",
+        spelling: bool = False,
+        sortable: bool | columns.Column = False,
+        lang: str | None = None,
+        vector: formats.Format | bool | None = None,
+        spelling_prefix: str = "spell_",
+    ) -> None:
         """
         :param analyzer: The analysis.Analyzer to use to index the field
             contents. See the analysis module for more information. If you omit
