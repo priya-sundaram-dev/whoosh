@@ -40,13 +40,15 @@ About section of the README.)*
 
 - [ ] Triage the inherited issue backlog; label, reproduce, close stale. Two
       long-standing bugs already fixed (gh#99, gh#116); more to review.
-- [x] `py.typed` marker + `Typing :: Typed` classifier shipped in **3.1.0**, plus
-      annotations on the most-used public entry points (`index.create_in`,
-      `open_dir`, `exists_in`, `exists`, `versionstring`). Type coverage of the
-      rest of the public API (`fields`, `qparser`, `searching`) will expand
-      incrementally, one reviewed module at a time — correct types only, never
-      fabricated. Coordinating with community typing work rather than
-      duplicating it (see whoosh-reloaded#114 / de-odex/whoosh-novo).
+- [x] `py.typed` marker + `Typing :: Typed` classifier shipped in **3.1.0**;
+      the most-used public API is now annotated end-to-end (gh#3): `index`
+      entry points (`create_in`, `open_dir`, `exists_in`, `exists`), the
+      `fields.Schema` methods and field-type constructors, `qparser.QueryParser`,
+      and the `searching` layer (`Searcher`, `search`, `search_page`). A CI
+      `mypy` smoke job guards the public surface against regressions. Types are
+      correct only, never fabricated. Deeper coverage of *internal* modules can
+      follow incrementally as needed; coordinating with community typing work
+      rather than duplicating it (see whoosh-reloaded#114 / de-odex/whoosh-novo).
 - [ ] Resource-lifecycle hardening: readers/searchers as context managers with
       explicit `close()` (shipped) — document and test the Windows file-lock
       path end-to-end for downstreams like paperless-ngx and MoinMoin.
