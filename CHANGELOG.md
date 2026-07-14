@@ -6,6 +6,13 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Added
+- New example `examples/fastapi_app.py`: a small, production-shaped full-text
+  search REST API built with FastAPI, with idempotent upsert/delete/search
+  endpoints, pagination, BM25F ranking, highlighted snippets, and clean
+  startup/shutdown of the index. The search logic is in a framework-free
+  `SearchIndex` class so it is easy to test. Documented in the cookbook.
+
 ## [3.1.0] - 2026-07-14
 
 ### Added

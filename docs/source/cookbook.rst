@@ -262,6 +262,35 @@ a stored :class:`~whoosh.fields.NUMERIC` ``mtime``, field-boosted
 into your own project and adapt.
 
 
+A full-text search API with FastAPI
+====================================
+
+``examples/fastapi_app.py`` — a small, production-shaped REST API that adds
+full-text search to a web service. It exposes ``PUT /documents/{id}`` (an
+idempotent upsert), ``DELETE /documents/{id}``, and ``GET /search`` with
+pagination and highlighted snippets::
+
+    pip install "whoosh3" fastapi "uvicorn[standard]"
+    uvicorn fastapi_app:app --reload
+
+    curl -X PUT localhost:8000/documents/1 \
+        -H 'content-type: application/json' \
+        -d '{"title": "Getting started with Whoosh", "body": "pure-python search"}'
+
+    curl 'localhost:8000/search?q=python&page=1&page_size=10'
+
+The search logic lives in a small, framework-free ``SearchIndex`` class so it
+is easy to unit-test without an HTTP server (run ``python fastapi_app.py`` for a
+self-contained demo). It shows the pattern you actually need in a service: a
+persistent on-disk index opened once at startup and
+:meth:`closed <whoosh.index.Index.close>` at shutdown (so file handles are
+released — important on Windows), ``writer.update_document`` upserts keyed on a
+unique :class:`~whoosh.fields.ID`, BM25F ranking, ``searcher.search_page`` for
+pagination, and highlighted snippets via
+:class:`~whoosh.highlight.HtmlFormatter`. See :doc:`integrations` for the
+broader "adding search to your app" guide, including a Django variant.
+
+
 Migrating from Whoosh 2.x / whoosh-reloaded
 ===========================================
 

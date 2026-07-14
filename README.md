@@ -102,6 +102,8 @@ faceting, and highlighting — every snippet is runnable
   [highlighting / search-snippets recipe](examples/highlighting.py), and a
   [custom-analyzers recipe](examples/custom_analyzers.py), a
   [custom scoring & sorting recipe](examples/scoring_and_sorting.py), and a
+  [FastAPI search API](examples/fastapi_app.py) with upsert/delete/search
+  endpoints, and a
   [command-line folder-search tool](examples/search_cli.py) that indexes and
   searches a directory of files in one command
 - **Roadmap:** [ROADMAP.md](ROADMAP.md)
