@@ -25,11 +25,21 @@
 # those of the authors and should not be interpreted as representing official
 # policies, either expressed or implied, of Matt Chaput.
 
+from __future__ import annotations
+
 import sys
+from typing import TYPE_CHECKING
 
 from whoosh import query
 from whoosh.qparser import syntax
 from whoosh.qparser.common import QueryParserError, print_debug
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from whoosh.fields import Schema
+    from whoosh.qparser.plugins import Plugin
+    from whoosh.qparser.syntax import GroupNode
 
 # Query parser object
 
@@ -53,13 +63,13 @@ class QueryParser:
 
     def __init__(
         self,
-        fieldname,
-        schema,
-        plugins=None,
-        termclass=query.Term,
-        phraseclass=query.Phrase,
-        group=syntax.AndGroup,
-    ):
+        fieldname: str | None,
+        schema: Schema | None,
+        plugins: Sequence[Plugin | type[Plugin]] | None = None,
+        termclass: type[query.Query] = query.Term,
+        phraseclass: type[query.Query] = query.Phrase,
+        group: type[GroupNode] = syntax.AndGroup,
+    ) -> None:
         """
         :param fieldname: the default field -- the parser uses this as the
             field for any terms without an explicit field.
@@ -261,7 +271,7 @@ class QueryParser:
 
         return self._priorized("filters")
 
-    def tag(self, text, pos=0, debug=False):
+    def tag(self, text: str, pos: int = 0, debug: bool = False) -> GroupNode:
         """Returns a group of syntax nodes corresponding to the given text,
         created by matching the Taggers provided by the parser's plugins.
 
@@ -341,7 +351,7 @@ class QueryParser:
                 raise Exception(f"Filter {f!r} did not return anything")
         return nodes
 
-    def process(self, text, pos=0, debug=False):
+    def process(self, text: str, pos: int = 0, debug: bool = False) -> GroupNode:
         """Returns a group of syntax nodes corresponding to the given text,
         tagged by the plugin Taggers and filtered by the plugin filters.
 
@@ -353,7 +363,7 @@ class QueryParser:
         nodes = self.filterize(nodes, debug=debug)
         return nodes
 
-    def parse(self, text, normalize=True, debug=False):
+    def parse(self, text: str, normalize: bool = True, debug: bool = False) -> query.Query:
         """Parses the input string and returns a :class:`whoosh.query.Query`
         object/tree.
 
@@ -383,14 +393,19 @@ class QueryParser:
                 print_debug(debug, f"Normalized query: {q!r}")
         return q
 
-    def parse_(self, text, normalize=True):
+    def parse_(self, text: str, normalize: bool = True) -> query.Query:
         pass
 
 
 # Premade parser configurations
 
 
-def MultifieldParser(fieldnames, schema, fieldboosts=None, **kwargs):
+def MultifieldParser(
+    fieldnames: Sequence[str],
+    schema: Schema | None,
+    fieldboosts: dict[str, float] | None = None,
+    **kwargs,
+) -> QueryParser:
     """Returns a QueryParser configured to search in multiple fields.
 
     Instead of assigning unfielded clauses to a default field, this parser
@@ -412,7 +427,7 @@ def MultifieldParser(fieldnames, schema, fieldboosts=None, **kwargs):
     return p
 
 
-def SimpleParser(fieldname, schema, **kwargs):
+def SimpleParser(fieldname: str | None, schema: Schema | None, **kwargs) -> QueryParser:
     """Returns a QueryParser configured to support only +, -, and phrase
     syntax.
     """
@@ -424,7 +439,12 @@ def SimpleParser(fieldname, schema, **kwargs):
     return QueryParser(fieldname, schema, plugins=pins, group=orgroup, **kwargs)
 
 
-def DisMaxParser(fieldboosts, schema, tiebreak=0.0, **kwargs):
+def DisMaxParser(
+    fieldboosts: dict[str, float],
+    schema: Schema | None,
+    tiebreak: float = 0.0,
+    **kwargs,
+) -> QueryParser:
     """Returns a QueryParser configured to support only +, -, and phrase
     syntax, and which converts individual terms into DisjunctionMax queries
     across a set of fields.

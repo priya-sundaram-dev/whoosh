@@ -7,6 +7,14 @@ All notable changes to this project are documented here. This project follows
 ## [Unreleased]
 
 ### Added
+- **Typed query parser (gh#3).** `whoosh.qparser.QueryParser` — the class you
+  use to turn user input into queries — now carries type hints on its
+  constructor and core methods (`parse`, `parse_`, `process`, `tag`), plus the
+  premade factory functions `MultifieldParser`, `SimpleParser`, and
+  `DisMaxParser`. Editors autocomplete `parse(text, normalize=..., debug=...)`
+  and type checkers verify that `parse()` returns a `whoosh.query.Query`. Hints
+  use `from __future__ import annotations` (no runtime cost or behavior change)
+  and are guarded by a regression test.
 - **Typed field constructors (gh#3).** The field types you write in every
   `Schema` — `TEXT`, `ID`, `IDLIST`, `KEYWORD`, `NUMERIC`, `DATETIME`,
   `BOOLEAN`, `STORED`, and `COLUMN` — now carry parameter and return

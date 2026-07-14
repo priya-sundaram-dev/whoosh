@@ -88,3 +88,28 @@ def test_field_type_constructors_are_annotated():
             assert param.annotation is not inspect.Parameter.empty, (
                 f"{name}.__init__: parameter {pname!r} is missing an annotation"
             )
+
+
+def test_qparser_entry_points_are_annotated():
+    """QueryParser and the premade parser factories carry type hints so
+    editors and type checkers can assist when building queries (gh#3)."""
+    from whoosh.qparser import default as qpdefault
+
+    # QueryParser core methods.
+    for name in ("__init__", "parse", "parse_", "process", "tag"):
+        method = getattr(qpdefault.QueryParser, name)
+        sig = inspect.signature(method)
+        for pname, param in sig.parameters.items():
+            if pname == "self":
+                continue
+            assert param.annotation is not inspect.Parameter.empty, (
+                f"QueryParser.{name}: parameter {pname!r} is missing an annotation"
+            )
+
+    # Premade parser factory functions.
+    for name in ("MultifieldParser", "SimpleParser", "DisMaxParser"):
+        func = getattr(qpdefault, name)
+        sig = inspect.signature(func)
+        assert sig.return_annotation is not inspect.Signature.empty, (
+            f"{name}: missing a return annotation"
+        )
