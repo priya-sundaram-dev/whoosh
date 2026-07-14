@@ -6,6 +6,15 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Added
+- Downstream-compatibility test suite (`tests/test_downstream_compat.py`) that
+  exercises the exact public API surface used by
+  [paperless-ngx](https://github.com/paperless-ngx/paperless-ngx) — mixed
+  `TEXT`/`KEYWORD`/`DATETIME`/`NUMERIC`/`BOOLEAN` schema, `AsyncWriter`,
+  `MultifieldParser` + `DateParserPlugin` date ranges, `TF_IDF` scoring, and
+  `HtmlFormatter` highlighting — so drop-in compatibility is guarded in CI.
+  `MIGRATING.md` documents this.
+
 ### Fixed
 - ISO-8601 dates such as `2023-05-17`, `2023-05`, `2023-05-17 14:30`, and
   `2023-05-17T14:30:00` were **not recognized** by the natural-language date

@@ -132,6 +132,19 @@ recommended long-term; prefer moving to `whoosh3`.
 
 ---
 
+## Tested against real downstream usage
+
+whoosh3's CI includes a `test_downstream_compat.py` suite that exercises the
+exact API surface a large real-world dependent —
+[paperless-ngx](https://github.com/paperless-ngx/paperless-ngx) — relies on:
+an `AsyncWriter`, a mixed `TEXT`/`KEYWORD`/`DATETIME`/`NUMERIC`/`BOOLEAN`
+schema, `MultifieldParser` with the `DateParserPlugin` for date-range queries,
+`TF_IDF` scoring, and `HtmlFormatter` highlighting. If any of those break, our
+build goes red before a release ships. Migrating a project of that shape is
+expected to be a one-line dependency change.
+
+---
+
 If something *did* break when you migrated, that's a bug we want to know
 about — please
 [open an issue](https://github.com/priya-sundaram-dev/whoosh/issues) with a minimal
