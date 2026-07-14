@@ -39,6 +39,26 @@ jobs:
       - name: Run tests
         run: python -m pytest tests/ -q
 
+  future-proof:
+    name: Future-proof (warnings as errors)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          allow-prereleases: true
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+          python -m pip install pytest
+      - name: Run tests with DeprecationWarning promoted to error
+        # Guards the "runs clean on modern Python" promise: if a future
+        # CPython deprecates something Whoosh relies on, this job fails
+        # loudly here instead of silently breaking downstream users.
+        run: python -m pytest tests/ -q -W error::DeprecationWarning -W error::PendingDeprecationWarning
+
   lint:
     name: Lint (ruff)
     runs-on: ubuntu-latest

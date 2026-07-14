@@ -7,6 +7,12 @@ All notable changes to this project are documented here. This project follows
 ## [Unreleased]
 
 ### Added
+- New CI job "Future-proof (warnings as errors)" that runs the full test suite
+  on Python 3.13 with `DeprecationWarning`/`PendingDeprecationWarning` promoted
+  to errors. The whole suite (624 tests) passes clean, so the "runs on modern
+  Python with no deprecation noise" promise is now continuously verified and
+  will fail loudly the moment a future CPython deprecates something Whoosh
+  relies on — rather than silently breaking downstream users.
 - New cookbook section "Closing indexes cleanly (and avoiding Windows file-lock
   errors)" plus a runnable `examples/resource_management.py`, documenting how to
   use readers/searchers as context managers and `Index.close()` so index files
