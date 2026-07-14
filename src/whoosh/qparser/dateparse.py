@@ -636,7 +636,9 @@ class DateParser:
             simple_second,
             simple_usec,
         )
-        simple_seq = Sequence(tup, sep="[- .:/]*", name="simple", progressive=True)
+        # Accept ISO-8601 style separators, including the "T" that separates the
+        # date and time parts (e.g. "2023-05-17T14:30:00").
+        simple_seq = Sequence(tup, sep="[- .:/tT]*", name="simple", progressive=True)
         self.simple = Sequence((simple_seq, "(?=(\\s|$))"), sep="")
 
         self.setup()
@@ -774,7 +776,11 @@ class English(DateParser):
         )
 
         self.datetime = Bag((self.time, self.dmy), name="datetime")
-        self.bundle = Choice((self.plusdate, self.datetime, self.simple), name="bundle")
+        # Try the "simple" ISO-8601 parser (e.g. "2023-05-17", "2023-05-17T14:30")
+        # before the natural-language ``datetime`` parser. Otherwise the ``year``
+        # regex in ``datetime`` greedily matches just the leading "2023" of an ISO
+        # date and the overall (ToEnd-wrapped) parse fails on the remaining text.
+        self.bundle = Choice((self.plusdate, self.simple, self.datetime), name="bundle")
         self.torange = Combo((self.bundle, "to", self.bundle), name="torange")
 
         self.all = Choice((self.torange, self.bundle), name="all")

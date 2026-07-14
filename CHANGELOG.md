@@ -6,6 +6,17 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Fixed
+- ISO-8601 dates such as `2023-05-17`, `2023-05`, `2023-05-17 14:30`, and
+  `2023-05-17T14:30:00` were **not recognized** by the natural-language date
+  parser (`DateParserPlugin` / `English`), which returned `None` for them.
+  The natural-language branch greedily matched only the leading four-digit
+  *year* of an ISO date, so the overall (end-anchored) parse failed on the rest
+  of the string. The "simple" ISO parser is now tried before the
+  natural-language branch, and the `T` date/time separator is accepted, so
+  ISO-8601 dates parse correctly. Natural-language forms (`may 17 2023`,
+  `next monday`, `-1 day`, …) are unaffected. Added regression tests.
+
 ## [3.0.2] - 2026-07-14
 
 ### Fixed

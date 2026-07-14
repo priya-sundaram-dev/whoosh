@@ -96,6 +96,45 @@ def test_simple_dateparse(t=english.simple):
     assert t.date_from("2005-13-32", basedate) is None
 
 
+def test_iso8601_through_full_parser(t=english):
+    # Regression: ISO-8601 dates must parse through the *full* English parser
+    # (previously the natural-language branch matched only the leading year and
+    # the overall parse failed, returning None).
+    assert_datespan(
+        t.date_from("2023-05-17", basedate),
+        datetime(2023, 5, 17, 0, 0, 0, 0, tzinfo=timezone.utc),
+        datetime(2023, 5, 17, 23, 59, 59, 999999, tzinfo=timezone.utc),
+    )
+    assert_datespan(
+        t.date_from("2023-05-17 14:30", basedate),
+        datetime(2023, 5, 17, 14, 30, 0, 0, tzinfo=timezone.utc),
+        datetime(2023, 5, 17, 14, 30, 59, 999999, tzinfo=timezone.utc),
+    )
+    # ISO "T" separator between date and time.
+    assert_datespan(
+        t.date_from("2023-05-17T14:30", basedate),
+        datetime(2023, 5, 17, 14, 30, 0, 0, tzinfo=timezone.utc),
+        datetime(2023, 5, 17, 14, 30, 59, 999999, tzinfo=timezone.utc),
+    )
+    assert_datespan(
+        t.date_from("2023-05-17T14:30:00", basedate),
+        datetime(2023, 5, 17, 14, 30, 0, 0, tzinfo=timezone.utc),
+        datetime(2023, 5, 17, 14, 30, 0, 999999, tzinfo=timezone.utc),
+    )
+    # Year-month only.
+    assert_datespan(
+        t.date_from("2023-05", basedate),
+        datetime(2023, 5, 1, 0, 0, 0, 0, tzinfo=timezone.utc),
+        datetime(2023, 5, 31, 23, 59, 59, 999999, tzinfo=timezone.utc),
+    )
+    # Natural-language forms must still work after the reorder.
+    assert_datespan(
+        t.date_from("may 17 2023", basedate),
+        datetime(2023, 5, 17, 0, 0, 0, 0, tzinfo=timezone.utc),
+        datetime(2023, 5, 17, 23, 59, 59, 999999, tzinfo=timezone.utc),
+    )
+
+
 def test_time(t=english.time):
     assert_adatetime(t.date_from("13:05", basedate), hour=13, minute=5)
     assert t.date_from("28:91", basedate) is None
