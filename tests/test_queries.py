@@ -649,6 +649,110 @@ def test_numeric_filter():
         assert r.scored_length() == 0
 
 
+def test_numeric_range_open_lower_bound():
+    # whoosh-community/whoosh#583: a NumericRange with an open lower bound whose
+    # upper bound is close to zero in the sortable value space (as happens for
+    # *unsigned* NUMERIC fields, and for signed fields near their minimum) used
+    # to match every document -- the trie-range splitter underflowed and emitted
+    # a coarse TermRange covering the whole value space. The filter therefore
+    # appeared to be "completely ignored", especially noticeable with reverse
+    # sorting since the extra docs shifted the top result.
+    for signed in (False, True):
+        schema = fields.Schema(
+            text=fields.TEXT,
+            msgid=fields.NUMERIC(
+                unique=True, stored=True, signed=signed, sortable=True
+            ),
+        )
+        ix = RamStorage().create_index(schema)
+        with ix.writer() as w:
+            for i in range(1, 6):
+                w.add_document(text="apple", msgid=i)
+
+        with ix.searcher() as s:
+            # msgid < 3 -> only 1 and 2 should match
+            rangeq = query.NumericRange("msgid", None, 3, endexcl=True)
+
+            # The range query on its own must not match everything.
+            got = sorted(h["msgid"] for h in s.search(rangeq, limit=None))
+            assert got == [1, 2], (signed, got)
+
+            # ...and it must still constrain a filtered search, including when
+            # results are reverse-sorted (the scenario from the bug report).
+            q = query.Term("text", "apple")
+            fwd = [
+                h["msgid"]
+                for h in s.search(
+                    q, limit=None, sortedby="msgid", reverse=False, filter=rangeq
+                )
+            ]
+            rev = [
+                h["msgid"]
+                for h in s.search(
+                    q, limit=None, sortedby="msgid", reverse=True, filter=rangeq
+                )
+            ]
+            assert fwd == [1, 2], (signed, fwd)
+            assert rev == [2, 1], (signed, rev)
+
+
+def test_tiered_ranges_exhaustive():
+    # Exhaustive correctness check for the trie-range splitter across signed and
+    # unsigned integers, all boundary combinations, and inclusive/exclusive
+    # edges. Regression guard for whoosh-community/whoosh#583.
+    from whoosh.util.numeric import tiered_ranges, to_sortable
+
+    def covered(ranges):
+        s = set()
+        for st, en, shift in ranges:
+            for top in range(st >> shift, (en >> shift) + 1):
+                base = top << shift
+                for off in range(1 << shift):
+                    s.add(base + off)
+        return s
+
+    for intsize, step in [(8, 2), (8, 4), (16, 4)]:
+        maxv = (1 << intsize) - 1
+        for signed in (False, True):
+            lo_b = -(1 << (intsize - 1)) if signed else 0
+            hi_b = (1 << (intsize - 1)) - 1 if signed else maxv
+            vals = sorted(
+                {v for v in [lo_b, lo_b + 1, 0, 3, hi_b - 1, hi_b] if lo_b <= v <= hi_b}
+            )
+            for start in [None] + vals:
+                for end in [None] + vals:
+                    for sx in (False, True):
+                        for ex in (False, True):
+                            ss = (
+                                0
+                                if start is None
+                                else to_sortable(int, intsize, signed, start)
+                                + (1 if sx else 0)
+                            )
+                            se = (
+                                maxv
+                                if end is None
+                                else to_sortable(int, intsize, signed, end)
+                                - (1 if ex else 0)
+                            )
+                            expected = set(range(ss, se + 1)) if ss <= se else set()
+                            r = list(
+                                tiered_ranges(
+                                    int, intsize, signed, start, end, step, sx, ex
+                                )
+                            )
+                            got = {x for x in covered(r) if 0 <= x <= maxv}
+                            assert got == expected, (
+                                intsize,
+                                signed,
+                                start,
+                                end,
+                                sx,
+                                ex,
+                                r,
+                            )
+
+
 def test_andnot_reverse():
     # Bitbucket issue 419
     docs = ["ruby", "sapphire", "ruby + sapphire"]

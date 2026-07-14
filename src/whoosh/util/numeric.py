@@ -208,10 +208,20 @@ def split_ranges(intsize, step, start, end):
         hasupper = (end & mask) != mask
 
         not_mask = ~mask & ((1 << intsize + 1) - 1)
+        # Compute the next (higher-shift) middle range. ``end - diff`` can go
+        # negative when ``end < diff`` (e.g. a range with an open lower bound
+        # near zero, common for *unsigned* NUMERIC fields). Masking a negative
+        # value with ``not_mask`` wraps it to a large positive number, which
+        # defeated the ``nextstart > nextend`` termination check and produced a
+        # coarse-resolution TermRange covering the whole value space -- i.e. the
+        # range filter matched every document. Detect the underflow explicitly
+        # and treat it as an exhausted (empty) middle range.
+        # See whoosh-community/whoosh#583.
+        raw_nextend = (end - diff) if hasupper else end
         nextstart = (start + diff if haslower else start) & not_mask
-        nextend = (end - diff if hasupper else end) & not_mask
+        nextend = raw_nextend & not_mask
 
-        if shift + step >= intsize or nextstart > nextend:
+        if shift + step >= intsize or raw_nextend < 0 or nextstart > nextend:
             yield (start, setbits(end), shift)
             break
 

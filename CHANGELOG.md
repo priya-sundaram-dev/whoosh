@@ -6,6 +6,19 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Fixed
+- `NumericRange` (and therefore range `filter=`/query-parser range searches) with
+  an open lower bound could match **every** document instead of the intended
+  range. The trie-range splitter underflowed when the range's upper bound was
+  near zero in the sortable-value space — which happens for **unsigned** NUMERIC
+  fields and for signed fields near their minimum — emitting a coarse `TermRange`
+  covering the whole value space. The filter then appeared to be "completely
+  ignored", most visibly when combined with reverse sorting. Fixed with an
+  explicit underflow guard in `whoosh.util.numeric.split_ranges`; verified with
+  an exhaustive test across signed/unsigned integers, all boundary combinations,
+  and inclusive/exclusive edges. Reported upstream as
+  [whoosh-community/whoosh#583](https://github.com/whoosh-community/whoosh/issues/583).
+
 ### Added
 - New CI job "Future-proof (warnings as errors)" that runs the full test suite
   on Python 3.13 with `DeprecationWarning`/`PendingDeprecationWarning` promoted
