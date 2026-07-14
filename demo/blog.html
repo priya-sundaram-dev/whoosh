@@ -75,6 +75,14 @@
   <code>whoosh-reloaded</code>, then went quiet again. I'm picking it back up,
   and this is the first release under new maintenance.</p>
 
+  <p><strong>Update (3.0.3):</strong> the natural-language date parser now
+  accepts ISO-8601 dates (e.g. <code>created:2023-05-17</code>) instead of
+  choking on the <code>-</code> separators, so <code>DateParserPlugin</code>
+  works with the date format most apps already store. This release also adds a
+  compatibility test suite that guards the exact API surface downstream
+  projects rely on, so future changes can't silently break them.
+  <code>pip install -U whoosh3</code>.</p>
+
   <p><strong>Update (3.0.2):</strong> another patch release, fixing two real
   correctness bugs. First: a <code>filter=</code>/<code>mask=</code> set was
   silently ignored whenever a search also had a time limit, so a filtered,

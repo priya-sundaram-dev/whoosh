@@ -113,7 +113,7 @@ async function main(){
   await pyodide.loadPackage("micropip");
   const micropip = pyodide.pyimport("micropip");
   // Install the wheel shipped alongside this page.
-  await micropip.install("./whoosh3-3.0.2-py2.py3-none-any.whl");
+  await micropip.install("./whoosh3-3.0.3-py2.py3-none-any.whl");
 
   pyodide.globals.set("CORPUS_JSON", JSON.stringify(CORPUS));
   await pyodide.runPythonAsync(`
