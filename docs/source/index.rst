@@ -16,6 +16,7 @@ Contents
 
     releases/index
     quickstart
+    integrations
     cookbook
     intro
     glossary
