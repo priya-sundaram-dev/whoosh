@@ -26,7 +26,7 @@
   "url": "https://priya-sundaram-dev.github.io/whoosh/",
   "downloadUrl": "https://pypi.org/project/whoosh3/",
   "codeRepository": "https://github.com/priya-sundaram-dev/whoosh",
-  "softwareVersion": "3.1.0",
+  "softwareVersion": "3.3.0",
   "license": "https://github.com/priya-sundaram-dev/whoosh/blob/main/LICENSE.txt",
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
   "keywords": "full-text search, pure python search, BM25, indexing, information retrieval, whoosh, Flask search, Django search, SQLite FTS alternative",
@@ -136,7 +136,7 @@ async function main(){
   await pyodide.loadPackage("micropip");
   const micropip = pyodide.pyimport("micropip");
   // Install the wheel shipped alongside this page.
-  await micropip.install("./whoosh3-3.1.0-py2.py3-none-any.whl");
+  await micropip.install("./whoosh3-3.3.0-py2.py3-none-any.whl");
 
   pyodide.globals.set("CORPUS_JSON", JSON.stringify(CORPUS));
   await pyodide.runPythonAsync(`
