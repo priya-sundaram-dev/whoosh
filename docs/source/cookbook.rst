@@ -186,6 +186,52 @@ Pass any weighting model to the searcher::
 See also :doc:`api/scoring` and :doc:`facets` for the full reference.
 
 
+Closing indexes cleanly (and avoiding Windows file-lock errors)
+===============================================================
+
+Whoosh keeps an index's on-disk files open while a reader or searcher is
+alive, so it can answer queries without re-opening files each time. If you
+let those objects be cleaned up by the garbage collector instead of closing
+them, the files stay open until the object is actually collected.
+
+On POSIX systems that is usually harmless. On **Windows**, an open file
+handle prevents the file from being deleted or replaced, so deleting or
+rebuilding an index while a reader is still open surfaces as
+``PermissionError: [WinError 32] The process cannot access the file because
+it is being used by another process``. The robust fix is not to sprinkle
+``gc.collect()`` calls around — it is to close what you open.
+
+Every reader and searcher is a context manager, so a ``with`` block releases
+the handles deterministically as soon as the block exits, even on error::
+
+    from whoosh.qparser import QueryParser
+
+    qp = QueryParser("body", ix.schema)
+    q = qp.parse("pure AND search")
+
+    with ix.searcher() as searcher:          # searcher closes on exit
+        results = searcher.search(q, limit=10)
+        titles = [hit["title"] for hit in results]
+
+    with ix.reader() as reader:              # readers are context managers too
+        total = reader.doc_count()
+
+When you are completely finished with an index object, call ``ix.close()`` to
+release any cached readers it is holding on your behalf::
+
+    ix.close()
+
+After everything is closed, the index directory can be deleted or rebuilt
+immediately — including on Windows — with no ``gc.collect()`` workaround.
+
+If you use :class:`~whoosh.writing.AsyncWriter`, remember that its background
+thread must finish (via ``commit()``) before the segment's files are released.
+Track any writers you create and join them before tearing down the index.
+
+A complete, runnable version of this pattern lives in
+``examples/resource_management.py``.
+
+
 Migrating from Whoosh 2.x / whoosh-reloaded
 ===========================================
 

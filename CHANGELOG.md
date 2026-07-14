@@ -6,6 +6,14 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Added
+- New cookbook section "Closing indexes cleanly (and avoiding Windows file-lock
+  errors)" plus a runnable `examples/resource_management.py`, documenting how to
+  use readers/searchers as context managers and `Index.close()` so index files
+  are released deterministically — no `gc.collect()` workaround — which prevents
+  `PermissionError: [WinError 32]` when deleting or rebuilding an index on
+  Windows.
+
 ## [3.0.0] - 2026-07-14
 
 ### Changed
