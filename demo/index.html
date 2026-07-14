@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Whoosh — full-text search running in your browser</title>
+<style>
+  :root { --fg:#1a1a1a; --muted:#666; --accent:#2a6df4; --bg:#fbfbfd; --card:#fff; --border:#e4e4e7; }
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+         margin: 0; color: var(--fg); background: var(--bg); line-height: 1.5; }
+  header { text-align: center; padding: 2.5rem 1rem 1rem; }
+  h1 { margin: 0 0 .25rem; font-size: 2rem; }
+  .tag { color: var(--muted); font-size: 1.05rem; }
+  main { max-width: 760px; margin: 0 auto; padding: 1rem; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+          padding: 1.25rem; margin: 1rem 0; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+  #status { font-size: .9rem; color: var(--muted); margin-bottom: .75rem; }
+  #q { width: 100%; padding: .75rem 1rem; font-size: 1.1rem; border: 1px solid var(--border);
+       border-radius: 10px; outline: none; }
+  #q:focus { border-color: var(--accent); }
+  .examples { font-size: .85rem; color: var(--muted); margin-top: .5rem; }
+  .examples code { background:#f2f2f5; padding:.1rem .35rem; border-radius:5px; cursor:pointer; }
+  .hit { padding: .75rem 0; border-bottom: 1px solid var(--border); }
+  .hit:last-child { border-bottom: none; }
+  .hit .title { font-weight: 600; }
+  .hit .score { float: right; color: var(--muted); font-size: .8rem; }
+  .hit .snippet { color: #333; font-size: .95rem; margin-top: .15rem; }
+  .hit .snippet b { background: #fff3b0; padding: 0 .1rem; border-radius: 3px; }
+  a { color: var(--accent); }
+  footer { text-align:center; color: var(--muted); font-size:.8rem; padding: 2rem 1rem 3rem; }
+  .spin { display:inline-block; width:.9em; height:.9em; border:2px solid #ccc;
+          border-top-color: var(--accent); border-radius:50%; animation: sp 0.8s linear infinite;
+          vertical-align:-2px; margin-right:.4rem; }
+  @keyframes sp { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<header>
+  <h1>🔍 Whoosh</h1>
+  <div class="tag">Pure-Python full-text search — <strong>running entirely in your browser</strong>.</div>
+</header>
+
+<main>
+  <div class="card">
+    <div id="status"><span class="spin"></span>Booting Python (Pyodide) and installing Whoosh…</div>
+    <input id="q" type="search" placeholder="Search the demo corpus…" disabled autocomplete="off" />
+    <div class="examples">
+      Try:
+      <code class="ex">python</code>
+      <code class="ex">search AND pure</code>
+      <code class="ex">index*</code>
+      <code class="ex">"full text"</code>
+    </div>
+  </div>
+
+  <div id="results" class="card" style="display:none"></div>
+
+  <div class="card">
+    <p style="margin:.2rem 0"><strong>What is this?</strong> This page loads
+    <a href="https://pyodide.org">Pyodide</a> (CPython compiled to WebAssembly),
+    installs the real Whoosh wheel with <code>pip</code>, builds an in-memory index
+    from a small corpus, and runs your queries — with BM25 ranking and result
+    highlighting — <em>with no server</em>. That's the whole point of Whoosh:
+    it's an embedded, pure-Python search library.</p>
+    <p style="margin:.2rem 0">Because Whoosh is pure Python, the same code runs on
+    your laptop, your server, PyPy, and (as you can see) the browser.</p>
+    <p style="margin:.6rem 0 0"><a href="https://github.com/priya-sundaram-dev/whoosh">⭐ Star Whoosh on GitHub</a>
+    &nbsp;·&nbsp; <a href="https://github.com/priya-sundaram-dev/whoosh#quickstart">Quickstart</a></p>
+  </div>
+</main>
+
+<footer>
+  Maintained by Priya Sundaram. Fine print: the maintainer is an AI agent operating
+  autonomously; see the repository README. Whoosh is BSD-2-Clause licensed,
+  © Matt Chaput and contributors.
+</footer>
+
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js"></script>
+<script>
+const CORPUS = [
+  {title:"Pure-Python indexing", body:"Whoosh is a fast, featureful full-text indexing and searching library implemented in pure Python."},
+  {title:"No compiler required", body:"Because Whoosh is pure Python, installing it needs no C compiler and produces no binary wheels that break across platforms."},
+  {title:"Query language", body:"Whoosh has a powerful query language: boolean AND OR NOT, phrase queries, wildcard and prefix matching like index*, ranges, and fuzzy search."},
+  {title:"BM25F ranking", body:"Results are ranked with BM25F by default, and the scoring algorithm is pluggable if you want something else."},
+  {title:"Highlighting", body:"Whoosh can highlight the matching terms in search results so you can show users why a document matched their query."},
+  {title:"Spell checking", body:"Whoosh includes a pure-Python spell checker and can suggest corrections for misspelled search terms."},
+  {title:"Embedded, not a server", body:"The index is just files in a directory. There is no daemon to run and no port to open, which makes Whoosh great for desktop apps and static sites."},
+  {title:"Fielded search", body:"Documents can have multiple fields such as title, path and content, and you can search and filter on each field independently."},
+];
+
+const statusEl = document.getElementById("status");
+const qEl = document.getElementById("q");
+const resultsEl = document.getElementById("results");
+
+function esc(s){ return s.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+
+async function main(){
+  const pyodide = await loadPyodide();
+  statusEl.innerHTML = '<span class="spin"></span>Installing Whoosh with pip…';
+  await pyodide.loadPackage("micropip");
+  const micropip = pyodide.pyimport("micropip");
+  // Install the wheel shipped alongside this page.
+  await micropip.install("./whoosh3-3.0.0-py2.py3-none-any.whl");
+
+  pyodide.globals.set("CORPUS_JSON", JSON.stringify(CORPUS));
+  await pyodide.runPythonAsync(`
+import json
+from whoosh.fields import Schema, TEXT
+from whoosh.filedb.filestore import RamStorage
+from whoosh.qparser import QueryParser
+
+corpus = json.loads(CORPUS_JSON)
+schema = Schema(title=TEXT(stored=True), body=TEXT(stored=True))
+storage = RamStorage()
+ix = storage.create_index(schema)
+w = ix.writer()
+for d in corpus:
+    w.add_document(title=d["title"], body=d["body"])
+w.commit()
+parser = QueryParser("body", ix.schema)
+
+def run_query(qstr):
+    out = []
+    with ix.searcher() as s:
+        try:
+            q = parser.parse(qstr)
+        except Exception as e:
+            return json.dumps({"error": str(e)})
+        for hit in s.search(q, limit=10):
+            out.append({
+                "title": hit["title"],
+                "score": round(hit.score, 3),
+                "snippet": hit.highlights("body") or hit["body"][:160],
+            })
+    return json.dumps({"results": out})
+`);
+
+  const runQuery = pyodide.globals.get("run_query");
+  statusEl.textContent = "Ready — Whoosh is running in your browser. Type a query above.";
+  qEl.disabled = false;
+  qEl.focus();
+
+  function search(){
+    const val = qEl.value.trim();
+    if(!val){ resultsEl.style.display="none"; return; }
+    const data = JSON.parse(runQuery(val));
+    resultsEl.style.display = "block";
+    if(data.error){ resultsEl.innerHTML = '<em>Query error: '+esc(data.error)+'</em>'; return; }
+    if(!data.results.length){ resultsEl.innerHTML = '<em>No matches for “'+esc(val)+'”.</em>'; return; }
+    resultsEl.innerHTML = data.results.map(r =>
+      '<div class="hit"><span class="score">score '+r.score+'</span>'+
+      '<div class="title">'+esc(r.title)+'</div>'+
+      '<div class="snippet">'+r.snippet+'</div></div>'
+    ).join("");
+  }
+  qEl.addEventListener("input", search);
+  document.querySelectorAll(".ex").forEach(el =>
+    el.addEventListener("click", () => { qEl.value = el.textContent; qEl.dispatchEvent(new Event("input")); }));
+}
+main().catch(e => { statusEl.textContent = "Failed to start: " + e; console.error(e); });
+</script>
+</body>
+</html>

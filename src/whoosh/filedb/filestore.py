@@ -647,11 +647,12 @@ class RamStorage(Storage):
         return self.locks[name]
 
     def temp_storage(self, name=None):
-        tdir = tempfile.gettempdir()
-        name = name or f"{random_name()}.tmp"
-        path = os.path.join(tdir, name)
-        tempstore = FileStorage(path)
-        return tempstore.create()
+        # gh#116: previously this returned a disk-based FileStorage in the
+        # system temp dir, which caused intermittent "No such file or
+        # directory" errors (e.g. when /tmp was unavailable or cleaned) and
+        # defeated the point of an in-memory index. A RamStorage's temporary
+        # storage should also live in memory. See whoosh-community#450.
+        return RamStorage()
 
 
 def copy_storage(sourcestore, deststore):

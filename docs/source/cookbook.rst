@@ -1,0 +1,196 @@
+========
+Cookbook
+========
+
+This page collects short, runnable recipes for common search tasks. Each one
+maps to a self-contained script in the `examples/ directory
+<https://github.com/priya-sundaram-dev/whoosh/tree/main/examples>`_ of the repository,
+so you can run it end to end::
+
+    git clone https://github.com/priya-sundaram-dev/whoosh
+    cd whoosh
+    pip install -e .
+    python examples/quickstart.py
+
+All recipes use only the standard library plus Whoosh itself — there are no
+extra runtime dependencies.
+
+
+Quick start
+===========
+
+``examples/quickstart.py`` — the shortest path from an empty directory to a
+working search: define a :class:`~whoosh.fields.Schema`, add a couple of
+documents, parse a user query with :class:`~whoosh.qparser.QueryParser`, and
+print results with keyword highlighting.
+
+
+A guided tour
+=============
+
+``examples/tutorial.py`` — a longer, commented walk-through that builds a small
+product catalogue in an in-memory index. It covers:
+
+* an in-memory index with :class:`~whoosh.filedb.filestore.RamStorage`
+* upserting records with ``writer.update_document``
+* single-field and multi-field parsing
+  (:class:`~whoosh.qparser.QueryParser` /
+  :class:`~whoosh.qparser.MultifieldParser`)
+* combining a parsed query with an exact-term filter
+* sorting results by a numeric field
+* grouping results with a :class:`~whoosh.sorting.FieldFacet`
+* highlighting matched terms in stored text
+
+The prose version of the same material lives in ``TUTORIAL.md`` at the repo root.
+
+
+"Did you mean …?" spelling correction
+======================================
+
+``examples/did_you_mean.py`` — Whoosh has spelling correction built in, with no
+external dependencies. The recipe shows both single-word suggestions via
+``searcher.suggest`` and whole-query correction via
+``searcher.correct_query``, and prints both a plain-text and an HTML
+"did you mean" prompt. See also :doc:`spelling`.
+
+
+Autocomplete / search-as-you-type
+==================================
+
+``examples/autocomplete.py`` — three pure-Python approaches to
+search-as-you-type:
+
+* term completion with ``reader.expand_prefix``
+* prefix matching with :class:`whoosh.query.Prefix`
+* "matches anywhere" fuzzy completion with an n-gram analyzer
+  (see :doc:`ngrams`)
+
+Pick the one that fits your latency and index-size budget.
+
+
+Whoosh vs. SQLite FTS5
+======================
+
+``examples/benchmark_vs_sqlite.py`` — an honest, reproducible micro-benchmark
+comparing build time, on-disk size, and average query latency against SQLite's
+FTS5 extension over the same corpus. Use it to decide when Whoosh's pure-Python,
+zero-dependency, deeply programmable model is the right trade-off for your
+project, and when an embedded C engine is a better fit.
+
+
+Faceted navigation (filter sidebar with counts)
+===============================================
+
+``examples/faceted_search.py`` — the pattern behind the "filter sidebar" on
+almost every shopping or catalogue site. Alongside the results you show each
+facet (brand, category, price band…) with a count of how many matching
+documents fall into each bucket, and clicking a bucket narrows the result set.
+
+Whoosh does this natively: pass a facet — or a dict of them — as the
+``groupedby`` argument to ``Searcher.search`` and read the per-bucket counts
+from ``Results.groups()``. The counts come from the same search call that
+produces your results, so they always reflect the current query. The recipe
+covers:
+
+* :class:`~whoosh.sorting.FieldFacet` for single-valued fields
+* :class:`~whoosh.sorting.FieldFacet` with ``allow_overlap=True`` for
+  multi-valued ``KEYWORD`` fields
+* :class:`~whoosh.sorting.RangeFacet` for numeric buckets
+* "drill down" by AND-ing a chosen facet value onto the current query
+
+See also :doc:`facets` for the full faceting reference.
+
+
+Highlighting and snippets
+=========================
+
+``examples/highlighting.py`` — turn raw matches into the "keyword in context"
+snippets you see on a real search-results page. Call ``Hit.highlights(fieldname)``
+and Whoosh finds the best-scoring passages, trims them to a readable length,
+and wraps each matched term in markup. The recipe covers:
+
+* the one-liner: ``hit.highlights("body")`` off a stored field
+* choosing *where* snippets are cut —
+  :class:`~whoosh.highlight.ContextFragmenter` (a window around each match)
+  vs :class:`~whoosh.highlight.SentenceFragmenter` (whole sentences)
+* choosing *how* matches are marked —
+  :class:`~whoosh.highlight.HtmlFormatter` with your own tag and CSS class,
+  or :class:`~whoosh.highlight.UppercaseFormatter` for plain text
+* fast "pinpoint" highlighting: index the field with ``chars=True`` and use
+  :class:`~whoosh.highlight.PinpointFragmenter` so long documents are
+  highlighted *without* being re-tokenized
+* highlighting a field you did **not** store, by passing the original text to
+  ``hit.highlights("body", text=...)``
+
+See also :doc:`highlight` for the full highlighting reference.
+
+
+Custom analyzers (build your own text pipeline)
+===============================================
+
+``examples/custom_analyzers.py`` — the feature that sets Whoosh apart: instead
+of a fixed set of "language modes", you compose your own text-processing
+pipeline from a tokenizer and a chain of filters using the ``|`` operator::
+
+    from whoosh.analysis import RegexTokenizer, LowercaseFilter, StopFilter
+    analyzer = RegexTokenizer() | LowercaseFilter() | StopFilter()
+
+The first item must be a tokenizer; everything after it is a filter. Attach the
+analyzer to a field (``TEXT(analyzer=analyzer)``) and Whoosh runs the *same*
+pipeline at index time and query time, so the two always agree. The recipe
+covers:
+
+* watching a pipeline take shape one stage at a time — tokenize, lowercase,
+  drop stop words, then stem with :class:`~whoosh.analysis.StemFilter`
+* accent folding with :class:`~whoosh.analysis.CharsetFilter` and the bundled
+  ``accent_map`` so ``cafe`` matches ``café``
+* normalising tokens with :class:`~whoosh.analysis.SubstitutionFilter` so
+  ``wi-fi``, ``wi_fi`` and ``wifi`` collapse to one term
+* character :class:`~whoosh.analysis.NgramFilter` for substring / "matches
+  anywhere" search
+* wiring a custom analyzer onto a field and confirming, with a real index, that
+  ``run`` finds ``running``/``runner``/``ran`` and ``ZURICH`` finds ``Zürich``
+
+See also :doc:`analysis` for the full analysis reference.
+
+
+Custom scoring & sorting (control the ranking)
+==============================================
+
+``examples/scoring_and_sorting.py`` — ranking is where a search library earns
+its keep. Whoosh gives you several independent levers, and this recipe runs each
+one against a real index so you can see the ranking change:
+
+* **tuning the default** :class:`~whoosh.scoring.BM25F` model — ``B`` controls
+  document-length normalisation and ``K1`` controls term-frequency saturation;
+  per-field values use a ``<field>_B`` keyword (for example
+  ``BM25F(B=0.75, body_B=0.2)``)
+* **swapping the model entirely** for :class:`~whoosh.scoring.TF_IDF` or
+  :class:`~whoosh.scoring.Frequency`
+* **mixing models per field** with :class:`~whoosh.scoring.MultiWeighting`
+  (for example ``TF_IDF`` for titles, ``BM25F`` everywhere else)
+* **scoring with your own function** via
+  :class:`~whoosh.scoring.FunctionWeighting`, which receives
+  ``(searcher, fieldname, text, matcher)`` and returns a float — ideal for
+  experiments and business rules
+* **skipping relevance altogether** and sorting by a stored, sortable field
+  with ``search(q, sortedby="views", reverse=True)`` — faster than scoring and
+  often exactly what "newest first" / "most viewed" UIs need
+
+Pass any weighting model to the searcher::
+
+    from whoosh import scoring
+    with ix.searcher(weighting=scoring.BM25F(B=0.0, K1=2.0)) as s:
+        results = s.search(q)
+
+See also :doc:`api/scoring` and :doc:`facets` for the full reference.
+
+
+Migrating from Whoosh 2.x / whoosh-reloaded
+===========================================
+
+Already using the original ``Whoosh`` or ``Whoosh-Reloaded``? The
+``MIGRATING.md`` guide at the repo root explains what changed: the import
+package is still ``whoosh``, the on-disk index format is unchanged, and the
+public API is the same. In most cases the only change you make is the package
+you install.

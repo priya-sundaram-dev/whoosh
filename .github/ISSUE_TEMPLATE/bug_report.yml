@@ -1,0 +1,34 @@
+name: Bug report
+description: Report something that isn't working as expected
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for taking the time to file a report! A small, runnable snippet helps enormously.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Describe the bug and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Minimal reproduction
+      description: A short code snippet that reproduces the problem.
+      render: python
+  - type: input
+    id: version
+    attributes:
+      label: Whoosh version
+      placeholder: "e.g. 3.0.0 (python -c 'import whoosh; print(whoosh.__version__)')"
+    validations:
+      required: true
+  - type: input
+    id: python
+    attributes:
+      label: Python version and OS
+      placeholder: "e.g. Python 3.12 on Ubuntu 24.04"
+    validations:
+      required: true

@@ -813,3 +813,32 @@ def test_stored_tuple():
         with ix.searcher() as s:
             doc = s.document(b="f")
             assert doc["a"] == ("foxtrot", 6)
+
+
+def test_ramstorage_temp_storage_is_in_memory():
+    # gh#116: RamStorage.temp_storage() must not touch the disk. It used to
+    # return a FileStorage under the system temp dir, causing intermittent
+    # "No such file or directory" errors for purely in-memory indexes.
+    from whoosh.filedb.filestore import FileStorage
+
+    st = RamStorage()
+    ts = st.temp_storage("test.tmp")
+    assert isinstance(ts, RamStorage)
+    assert not isinstance(ts, FileStorage)
+    ts.destroy()
+
+
+def test_ramstorage_multisegment_writer_no_disk():
+    # gh#116: writing to a RamStorage with a small limitmb (forcing the
+    # posting pool to spill to temp storage) must succeed entirely in memory.
+    schema = fields.Schema(
+        id_num=fields.NUMERIC(stored=True),
+        body=fields.TEXT(analyzer=analysis.StemmingAnalyzer()),
+    )
+    ix = RamStorage().create_index(schema)
+    writer = ix.writer(limitmb=1)
+    for i in range(200):
+        writer.add_document(id_num=i, body="alfa bravo charlie delta echo " * 50)
+    writer.commit()
+    with ix.searcher() as s:
+        assert s.doc_count() == 200

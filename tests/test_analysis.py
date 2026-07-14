@@ -99,6 +99,17 @@ def test_multifilter():
     assert [t.text for t in ana(text, mode="b")] == ["ALFA", "BRAVO", "CHARLIE"]
 
 
+def test_multifilter_empty_tokens():
+    # gh#99: MultiFilter used to raise StopIteration on an empty token stream
+    # (e.g. a null query with a custom tokenizer). It should yield nothing.
+    f1 = analysis.LowercaseFilter()
+    f2 = analysis.PassFilter()
+    mf = analysis.MultiFilter(a=f1, b=f2)
+    ana = analysis.RegexTokenizer(r"\S+") | mf
+    assert [t.text for t in ana("", mode="a")] == []
+    assert [t.text for t in ana("   ", mode="b")] == []
+
+
 def test_tee_filter():
     target = "Alfa Bravo Charlie"
     f1 = analysis.LowercaseFilter()

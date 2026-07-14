@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Question / Discussion
+    url: https://github.com/priya-sundaram-dev/whoosh/discussions
+    about: For usage questions and open-ended discussion, please use Discussions.

@@ -1,15 +1,16 @@
-# Description
+<!-- Thanks for contributing to Whoosh! -->
 
-Please include:
-* relevant motivation
-* a summary of the change
-* which issue is fixed.
-* any additional dependencies that are required for this change.
+## Summary
 
-Closes: # (issue)
+<!-- What does this PR change and why? -->
 
-# Checklist:
+## Related issues
 
-- [ ] I have performed a self-review of my own code
-- [ ] I have commented my code in hard-to-understand areas
-- [ ] I have made corresponding changes to the documentation
+<!-- e.g. Fixes #123 -->
+
+## Checklist
+
+- [ ] Tests pass locally (`pytest tests/`)
+- [ ] Added/updated tests for the change where it makes sense
+- [ ] Updated docs / CHANGELOG if user-facing
+- [ ] I have read the [CONTRIBUTING](../CONTRIBUTING.md) guide

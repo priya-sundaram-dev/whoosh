@@ -33,7 +33,10 @@ from bisect import bisect_right
 from heapq import heapify, heappop, heapreplace, nlargest
 from math import log
 
-from cached_property import cached_property
+try:
+    from functools import cached_property
+except ImportError:  # pragma: no cover - Python < 3.8 fallback
+    from cached_property import cached_property
 
 from whoosh import columns
 from whoosh.filedb.filestore import OverlayStorage

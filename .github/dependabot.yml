@@ -10,9 +10,9 @@ updates:
     directory: '/'
     # Check the npm registry for updates once a week (Monday)
     schedule:
-      interval: 'daily'
+      interval: 'weekly'
 
   - package-ecosystem: 'github-actions'
     directory: '/'
     schedule:
-      interval: 'daily'
+      interval: 'weekly'

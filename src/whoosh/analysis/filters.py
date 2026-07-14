@@ -175,8 +175,13 @@ class MultiFilter(Filter):
         )
 
     def __call__(self, tokens):
-        # Only selects on the first token
-        t = next(tokens)
+        # Only selects on the first token. If there are no tokens to filter
+        # (e.g. an empty/null query with a custom tokenizer), return an empty
+        # list instead of letting the StopIteration from next() propagate.
+        # Fixes gh#99; based on the fix proposed in gh#82 by @shroom00.
+        t = next(tokens, None)
+        if t is None:
+            return []
         selected_filter = self.filters.get(t.mode, self.default_filter)
         return selected_filter(chain([t], tokens))
 
