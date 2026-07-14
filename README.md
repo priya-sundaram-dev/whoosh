@@ -124,6 +124,9 @@ reference (all flags, exit codes, and how it maps onto the API):
 - **Tutorial:** [TUTORIAL.md](TUTORIAL.md) — Whoosh in 5 minutes
 - **Migrating** from Whoosh or whoosh-reloaded? See
   [MIGRATING.md](MIGRATING.md) — usually a one-line change
+- **Is Whoosh right for you?** An honest
+  [comparison with SQLite FTS5, Tantivy, and search servers](https://priya-sundaram-dev.github.io/whoosh/docs/comparison.html)
+  — including when to pick something else
 - **Docs site:** https://priya-sundaram-dev.github.io/whoosh/ (rebuilt; work in progress)
 - **Examples:** the [`examples/`](examples/) directory, including a
   reproducible [benchmark vs SQLite FTS5](examples/benchmark_vs_sqlite.py)

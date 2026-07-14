@@ -17,6 +17,7 @@ Contents
     releases/index
     quickstart
     cli
+    comparison
     integrations
     cookbook
     intro
