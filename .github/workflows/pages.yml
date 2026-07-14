@@ -45,12 +45,23 @@ jobs:
         run: |
           sphinx-build -b html docs/source docs/_build/html
 
+      - name: Build current wheel for the browser demo
+        run: |
+          python -m pip install build
+          python -m build --wheel
+          # The demo installs "./whoosh3-latest-py2.py3-none-any.whl" via micropip,
+          # so the live demo always runs the current release with no committed binary.
+          cp dist/whoosh3-*-py2.py3-none-any.whl demo/whoosh3-latest-py2.py3-none-any.whl
+
       - name: Assemble site (demo at root, docs under /docs)
         run: |
           mkdir -p _site
           cp -r demo/. _site/
           mkdir -p _site/docs
           cp -r docs/_build/html/. _site/docs/
+          # Keep the demo's JSON-LD softwareVersion in sync with the shipped release.
+          VERSION="$(python -c 'import whoosh; print(whoosh.__version_str__)')"
+          sed -i -E "s#(\"softwareVersion\": \")[^\"]*(\")#\1${VERSION}\2#" _site/index.html
 
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

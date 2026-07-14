@@ -19,3 +19,4 @@ eggs/
 /.codiumai.local.toml
 docs/_build/
 .venv/
+demo/whoosh3-*-py2.py3-none-any.whl
