@@ -7,6 +7,15 @@ All notable changes to this project are documented here. This project follows
 ## [Unreleased]
 
 ### Added
+- **CI type-checking smoke job (gh#3).** A new `types` job in CI runs `mypy`
+  against `tests/typing_smoke.py` — a realistic downstream-usage snippet
+  (create an index, build a `Schema` from the field constructors, add a
+  document, parse a query, run `searcher.search(...)`, iterate results). This
+  guards that the annotations on the public API stay present and correct for
+  users' editors and `mypy`/`pyright` runs, failing loudly in CI if a change
+  regresses them. Configured under `[tool.mypy]` in `pyproject.toml` with
+  `follow_imports = "silent"` so the still-untyped internals don't produce
+  noise while the public-facing surface is genuinely checked.
 - **Typed searching layer (gh#3).** The search-and-results API you use on every
   query now carries type hints: `Searcher` (`__init__`, `search`, `search_page`,
   `search_with_collector`) and the result containers `Results`, `Hit`, and

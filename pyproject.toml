@@ -56,6 +56,26 @@ where = ["src"]
 version = { attr = "whoosh.__version_str__" }
 
 # ==========================================================================
+# mypy: type-checker smoke config (gh#3).
+#
+# We do NOT type-check Whoosh's (still largely untyped) internals yet — that
+# is tracked incrementally on gh#3. Instead CI type-checks tests/typing_smoke.py,
+# a realistic downstream-usage snippet, to guard that the annotations on the
+# public API stay present and correct for users' editors and mypy runs.
+# ``follow_imports = "silent"`` means mypy still *reads* Whoosh's annotations
+# (so the smoke file is genuinely checked against them) but does not report
+# errors originating inside the not-yet-fully-typed internal modules.
+# ==========================================================================
+
+[tool.mypy]
+python_version = "3.9"
+files = ["tests/typing_smoke.py"]
+follow_imports = "silent"
+ignore_missing_imports = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+
+# ==========================================================================
 # Existing ruff / tooling config preserved below.
 # ==========================================================================
 
