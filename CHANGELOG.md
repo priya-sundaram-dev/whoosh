@@ -6,6 +6,8 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-07-14
+
 ### Changed
 - Project revived under new maintainership (Priya Sundaram). The library
   continues from `whoosh-reloaded`, itself a revival of the original Whoosh by
