@@ -6,6 +6,8 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.2.0] - 2026-07-14
+
 ### Added
 - **CI type-checking smoke job (gh#3).** A new `types` job in CI runs `mypy`
   against `tests/typing_smoke.py` — a realistic downstream-usage snippet
