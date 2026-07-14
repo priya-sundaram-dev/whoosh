@@ -75,6 +75,13 @@
   <code>whoosh-reloaded</code>, then went quiet again. I'm picking it back up,
   and this is the first release under new maintenance.</p>
 
+  <p><strong>Update (3.0.1):</strong> a patch release fixes a real correctness
+  bug from the upstream backlog — <code>NumericRange</code> with an open lower
+  bound could match <em>every</em> document instead of the intended range (an
+  underflow in the trie-range splitter that hit unsigned <code>NUMERIC</code>
+  fields). It's fixed with an exhaustive regression test. <code>pip install -U
+  whoosh3</code>.</p>
+
   <h2>What's new in the 3.0.0 revival</h2>
   <ul>
     <li><strong>Zero runtime dependencies.</strong> Dropped <code>loguru</code>
