@@ -29,17 +29,23 @@
 an index.
 """
 
+from __future__ import annotations
 
 import os.path
 import pickle
 import re
 import sys
 from time import sleep, time
+from typing import TYPE_CHECKING, Optional
 
 from whoosh import __version__
 from whoosh.fields import ensure_schema
 from whoosh.legacy import toc_loaders
 from whoosh.system import _FLOAT_SIZE, _INT_SIZE, _LONG_SIZE
+
+if TYPE_CHECKING:
+    from whoosh.fields import Schema
+    from whoosh.filedb.filestore import Storage
 
 _DEF_INDEX_NAME = "MAIN"
 _CURRENT_TOC_VERSION = -111
@@ -82,7 +88,9 @@ class EmptyIndexError(IndexError):
 # Convenience functions
 
 
-def create_in(dirname, schema, indexname=None):
+def create_in(
+    dirname: str, schema: Schema, indexname: Optional[str] = None
+) -> FileIndex:
     """Convenience function to create an index in a directory. Takes care of
     creating a FileStorage object for you.
 
@@ -104,7 +112,12 @@ def create_in(dirname, schema, indexname=None):
     return FileIndex.create(storage, schema, indexname)
 
 
-def open_dir(dirname, indexname=None, readonly=False, schema=None):
+def open_dir(
+    dirname: str,
+    indexname: Optional[str] = None,
+    readonly: bool = False,
+    schema: Optional[Schema] = None,
+) -> FileIndex:
     """Convenience function for opening an index in a directory. Takes care of
     creating a FileStorage object for you. dirname is the filename of the
     directory in containing the index. indexname is the name of the index to
@@ -125,7 +138,7 @@ def open_dir(dirname, indexname=None, readonly=False, schema=None):
     return FileIndex(storage, schema=schema, indexname=indexname)
 
 
-def exists_in(dirname, indexname=None):
+def exists_in(dirname: str, indexname: Optional[str] = None) -> bool:
     """Returns True if dirname contains a Whoosh index.
 
     :param dirname: the file path of a directory.
@@ -143,7 +156,7 @@ def exists_in(dirname, indexname=None):
     return False
 
 
-def exists(storage, indexname=None):
+def exists(storage: Storage, indexname: Optional[str] = None) -> bool:
     """Deprecated; use ``storage.index_exists()``.
 
     :param storage: a store.Storage object.

@@ -32,6 +32,9 @@ go. If you can open a file, you can build an index.
   pure-Python spell checker.
 - **Extensible everywhere.** Scoring, analysis, storage, and posting formats are
   all pluggable.
+- **Typed (PEP 561).** Ships a `py.typed` marker, so `mypy`/`pyright` and your
+  editor pick up Whoosh's types automatically. The most-used entry points are
+  annotated today, with coverage expanding each release.
 
 **When *not* to reach for Whoosh:** if you need a distributed cluster, or you're
 already on Postgres/SQLite and their built-in FTS is enough, use those. Whoosh

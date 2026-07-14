@@ -25,11 +25,13 @@
 # those of the authors and should not be interpreted as representing official
 # policies, either expressed or implied, of Matt Chaput.
 
-__version__ = (3, 0, 3)
-__version_str__ = "3.0.3"
+from typing import Tuple
+
+__version__: Tuple[int, ...] = (3, 1, 0)
+__version_str__: str = "3.1.0"
 
 
-def versionstring(build=True, extra=True):
+def versionstring(build: bool = True, extra: bool = True) -> str:
     """Returns the version number of Whoosh as a string.
 
     :param build: Whether to include the build number in the string.

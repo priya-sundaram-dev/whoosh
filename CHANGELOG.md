@@ -6,7 +6,21 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.1.0] - 2026-07-14
+
 ### Added
+- **PEP 561 typing support (gh#3).** Whoosh now ships a `py.typed` marker and
+  is advertised as a typed package (`Typing :: Typed` classifier), so type
+  checkers (`mypy`, `pyright`) and editors pick up its types automatically —
+  no more `# type: ignore` or missing-stub warnings when you import Whoosh.
+  As a first, correct pass, the convenience entry points people call first are
+  fully annotated: `whoosh.index.create_in`, `open_dir`, `exists_in`,
+  `exists`, and `whoosh.versionstring`. Annotations use
+  `from __future__ import annotations`, so there is **no runtime import cost
+  or behavior change** — heavier types (e.g. `Schema`, `Storage`) are resolved
+  only by static checkers. Type coverage of the remaining public modules will
+  expand incrementally in later releases (see the roadmap). A regression test
+  (`tests/test_typing.py`) guards the marker and the annotated entry points.
 - New runnable example `examples/search_cli.py`: a tiny, dependency-free
   command-line tool that indexes a folder of text/markdown/source files and
   searches it from the terminal, with highlighted snippets, title boosting,
