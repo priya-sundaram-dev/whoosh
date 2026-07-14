@@ -115,7 +115,9 @@ $ whoosh search "full text search" ~/notes
   deleted ones); `--ext .md,.txt` limits which files are picked up.
 
 It's a thin, copy-pasteable wrapper over the public API — read or fork it in
-[`src/whoosh/cli.py`](src/whoosh/cli.py) to build your own tool.
+[`src/whoosh/cli.py`](src/whoosh/cli.py) to build your own tool. Full command
+reference (all flags, exit codes, and how it maps onto the API):
+[Command-line search docs](https://priya-sundaram-dev.github.io/whoosh/docs/cli.html).
 
 ## Documentation
 
