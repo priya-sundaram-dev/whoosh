@@ -6,6 +6,8 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.0.3] - 2026-07-14
+
 ### Added
 - Downstream-compatibility test suite (`tests/test_downstream_compat.py`) that
   exercises the exact public API surface used by
