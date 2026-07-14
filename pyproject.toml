@@ -36,6 +36,9 @@ classifiers = [
 [project.optional-dependencies]
 dev = ["pytest>=7", "pytest-cov", "ruff", "pre-commit"]
 
+[project.scripts]
+whoosh = "whoosh.cli:main"
+
 [project.urls]
 Homepage = "https://github.com/priya-sundaram-dev/whoosh"
 Documentation = "https://priya-sundaram-dev.github.io/whoosh/"

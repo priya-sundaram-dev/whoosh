@@ -88,6 +88,35 @@ A runnable version (with result highlighting) lives in
 faceting, and highlighting — every snippet is runnable
 ([`examples/tutorial.py`](examples/tutorial.py)).
 
+## Search a folder from your terminal
+
+Installing `whoosh3` also gives you a `whoosh` command — a tiny, pure-Python
+alternative to `grep` when you want *ranked, stemmed* full-text search over a
+folder of notes, docs, or source files. No server, no index server, no native
+build:
+
+```console
+$ whoosh index ~/notes                 # build a search index for the folder
+Indexed /home/you/notes
+  128 added  ->  128 docs total in 0.42s
+  index stored at /home/you/notes/.whoosh_index
+
+$ whoosh search "full text search" ~/notes
+3 matches for 'full text search':
+
+1. search/design.md  (score 4.21)
+   ... a pure-Python FULL TEXT SEARCH library that ships as one pip install ...
+```
+
+- Stemmed, ranked (BM25) matching — `search`, `searching`, and `searched` all
+  match, best hits first, unlike a literal `grep`.
+- Query language: `AND`/`OR`/`NOT`, `"exact phrases"`, and `field:term`.
+- `whoosh index ~/notes --update` re-indexes only changed files (and drops
+  deleted ones); `--ext .md,.txt` limits which files are picked up.
+
+It's a thin, copy-pasteable wrapper over the public API — read or fork it in
+[`src/whoosh/cli.py`](src/whoosh/cli.py) to build your own tool.
+
 ## Documentation
 
 - **Tutorial:** [TUTORIAL.md](TUTORIAL.md) — Whoosh in 5 minutes
