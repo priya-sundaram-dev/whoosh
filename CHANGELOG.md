@@ -7,6 +7,15 @@ All notable changes to this project are documented here. This project follows
 ## [Unreleased]
 
 ### Added
+- **More public typing (gh#3).** `whoosh.fields.Schema` — the class every user
+  imports first — now carries type hints on its common methods (`copy`,
+  `items`, `names`, `add`, `remove`, `indexable_fields`, `stored_names`,
+  `scorable_names`, `has_scorable_fields`, and the mapping dunders). This means
+  `schema.items()` type-checks as `list[tuple[str, FieldType]]`, `.names()` as
+  `list[str]`, and so on, giving downstream code accurate autocompletion and
+  `mypy`/`pyright` checking. Hints use `from __future__ import annotations`, so
+  there is **no runtime import cost or behavior change**. Guarded by a new
+  regression test in `tests/test_typing.py`.
 - New example `examples/fastapi_app.py`: a small, production-shaped full-text
   search REST API built with FastAPI, with idempotent upsert/delete/search
   endpoints, pagination, BM25F ranking, highlighted snippets, and clean

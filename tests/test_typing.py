@@ -12,7 +12,7 @@ import inspect
 import os
 
 import whoosh
-from whoosh import index
+from whoosh import fields, index
 
 
 def test_py_typed_marker_ships_with_package():
@@ -41,3 +41,24 @@ def test_public_entry_points_are_annotated():
 def test_versionstring_is_annotated():
     sig = inspect.signature(whoosh.versionstring)
     assert sig.return_annotation is not inspect.Signature.empty
+
+
+def test_schema_public_methods_are_annotated():
+    """``Schema`` is the most-imported public class; its common methods
+    carry annotations so downstream code type-checks (gh#3)."""
+    for name in (
+        "copy",
+        "items",
+        "names",
+        "add",
+        "remove",
+        "stored_names",
+        "scorable_names",
+        "indexable_fields",
+        "has_scorable_fields",
+    ):
+        func = getattr(fields.Schema, name)
+        sig = inspect.signature(func)
+        assert sig.return_annotation is not inspect.Signature.empty, (
+            f"Schema.{name} is missing a return annotation"
+        )

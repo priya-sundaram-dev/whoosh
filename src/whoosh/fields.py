@@ -29,6 +29,8 @@
  Contains functions and classes related to fields.
 """
 
+from __future__ import annotations
+
 import datetime
 import fnmatch
 import re
@@ -36,6 +38,12 @@ import struct
 import sys
 from array import array
 from decimal import Decimal
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Iterator
+
+    FieldSpec = "FieldType | type[FieldType]"
 
 from whoosh import analysis, columns, formats
 from whoosh.system import emptybytes, pack_byte
@@ -1388,7 +1396,7 @@ class Schema:
     field name, field number, and field object itself.
     """
 
-    def __init__(self, **fields):
+    def __init__(self, **fields: FieldSpec):
         """
         All keyword arguments to the constructor are treated as fieldname =
         fieldtype pairs. The fieldtype can be an instantiated FieldType object,
@@ -1409,7 +1417,7 @@ class Schema:
         for name in sorted(fields.keys()):
             self.add(name, fields[name])
 
-    def copy(self):
+    def copy(self) -> Schema:
         """
         Returns a shallow copy of the schema. The field instances are not
         deep copied, so they are shared between schema copies.
@@ -1417,25 +1425,25 @@ class Schema:
 
         return self.__class__(**self._fields)
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         return other.__class__ is self.__class__ and list(self.items()) == list(
             other.items()
         )
 
-    def __ne__(self, other):
+    def __ne__(self, other: object) -> bool:
         return not (self.__eq__(other))
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<{self.__class__.__name__}: {self.names()!r}>"
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[FieldType]:
         """
         Returns the field objects in this schema.
         """
 
         return iter(self._fields.values())
 
-    def __getitem__(self, name):
+    def __getitem__(self, name: str) -> FieldType:
         """
         Returns the field associated with the given field name.
         """
@@ -1451,14 +1459,14 @@ class Schema:
 
         raise KeyError(f"No field named {name!r}")
 
-    def __len__(self):
+    def __len__(self) -> int:
         """
         Returns the number of fields in this schema.
         """
 
         return len(self._fields)
 
-    def __contains__(self, fieldname):
+    def __contains__(self, fieldname: str) -> bool:
         """
         Returns True if a field by the given name is in this schema.
         """
@@ -1476,10 +1484,10 @@ class Schema:
             state["_subfields"] = {}
         self.__dict__.update(state)
 
-    def to_bytes(self, fieldname, value):
+    def to_bytes(self, fieldname: str, value):
         return self[fieldname].to_bytes(value)
 
-    def items(self):
+    def items(self) -> list[tuple[str, FieldType]]:
         """
         Returns a list of ("fieldname", field_object) pairs for the fields
         in this schema.
@@ -1487,7 +1495,7 @@ class Schema:
 
         return sorted(self._fields.items())
 
-    def names(self, check_names=None):
+    def names(self, check_names: Iterable[str] | None = None) -> list[str]:
         """
         Returns a list of the names of the fields in this schema.
 
@@ -1507,11 +1515,11 @@ class Schema:
             )
         return sorted(fieldnames)
 
-    def clean(self):
+    def clean(self) -> None:
         for field in self:
             field.clean()
 
-    def add(self, name, fieldtype, glob=False):
+    def add(self, name: str, fieldtype: FieldSpec, glob: bool = False) -> None:
         """
         Adds a field to this schema.
 
@@ -1558,7 +1566,7 @@ class Schema:
                 fieldtype.on_add(self, fname)
                 self._fields[fname] = subfield
 
-    def remove(self, fieldname):
+    def remove(self, fieldname: str) -> None:
         if fieldname in self._fields:
             self._fields[fieldname].on_remove(self, fieldname)
             del self._fields[fieldname]
@@ -1575,7 +1583,9 @@ class Schema:
         else:
             raise KeyError(f"No field named {fieldname!r}")
 
-    def indexable_fields(self, fieldname):
+    def indexable_fields(
+        self, fieldname: str
+    ) -> Iterator[tuple[str, FieldType]]:
         if fieldname in self._subfields:
             for subname in self._subfields[fieldname]:
                 yield subname, self._fields[subname]
@@ -1584,17 +1594,17 @@ class Schema:
             # because it might be a glob
             yield fieldname, self[fieldname]
 
-    def has_scorable_fields(self):
+    def has_scorable_fields(self) -> bool:
         return any(ftype.scorable for ftype in self)
 
-    def stored_names(self):
+    def stored_names(self) -> list[str]:
         """
         Returns a list of the names of fields that are stored.
         """
 
         return [name for name, field in self.items() if field.stored]
 
-    def scorable_names(self):
+    def scorable_names(self) -> list[str]:
         """
         Returns a list of the names of fields that store field
         lengths.
