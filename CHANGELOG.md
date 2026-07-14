@@ -7,6 +7,13 @@ All notable changes to this project are documented here. This project follows
 ## [Unreleased]
 
 ### Added
+- **Typed searching layer (gh#3).** The search-and-results API you use on every
+  query now carries type hints: `Searcher` (`__init__`, `search`, `search_page`,
+  `search_with_collector`) and the result containers `Results`, `Hit`, and
+  `ResultsPage`. Editors autocomplete `search(q, limit=..., ...)` and type
+  checkers verify that `search()` returns a `Results` and `search_page()` a
+  `ResultsPage`. Hints use `from __future__ import annotations` (no runtime cost
+  or behavior change) and are guarded by a regression test.
 - **Typed query parser (gh#3).** `whoosh.qparser.QueryParser` — the class you
   use to turn user input into queries — now carries type hints on its
   constructor and core methods (`parse`, `parse_`, `process`, `tag`), plus the

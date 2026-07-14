@@ -28,14 +28,22 @@
 """This module contains classes and functions related to searching the index.
 """
 
+from __future__ import annotations
 
 import copy
 import weakref
 from math import ceil
+from typing import TYPE_CHECKING, Any
 
 from whoosh import classify, highlight, query, scoring
 from whoosh.idsets import BitSet, DocIdSet
 from whoosh.reading import TermNotFound
+
+if TYPE_CHECKING:
+    from whoosh.collectors import Collector
+    from whoosh.query import Query
+    from whoosh.reading import IndexReader
+    from whoosh.scoring import WeightingModel
 
 
 class NoTermsException(Exception):
@@ -103,12 +111,12 @@ class Searcher:
 
     def __init__(
         self,
-        reader,
-        weighting=scoring.BM25F,
-        closereader=True,
-        fromindex=None,
-        parent=None,
-    ):
+        reader: IndexReader,
+        weighting: WeightingModel | type = scoring.BM25F,
+        closereader: bool = True,
+        fromindex: Any = None,
+        parent: Searcher | None = None,
+    ) -> None:
         """
         :param reader: An :class:`~whoosh.reading.IndexReader` object for
             the index to search.
@@ -614,7 +622,13 @@ class Searcher:
 
         return self.search(q, limit=top, filter=filter, mask={docnum})
 
-    def search_page(self, query, pagenum, pagelen=10, **kwargs):
+    def search_page(
+        self,
+        query: Query,
+        pagenum: int,
+        pagelen: int = 10,
+        **kwargs: Any,
+    ) -> ResultsPage:
         """This method is Like the :meth:`Searcher.search` method, but returns
         a :class:`ResultsPage` object. This is a convenience function for
         getting a certain "page" of the results for the given query, which is
@@ -771,7 +785,7 @@ class Searcher:
             c = collectors.FilterCollector(c, filter, mask)
         return c
 
-    def search(self, q, **kwargs):
+    def search(self, q: Query, **kwargs: Any) -> Results:
         """Runs a :class:`whoosh.query.Query` object on this searcher and
         returns a :class:`Results` object. See :doc:`/searching` for more
         information.
@@ -829,7 +843,9 @@ class Searcher:
         # Return the results object from the collector
         return c.results()
 
-    def search_with_collector(self, q, collector, context=None):
+    def search_with_collector(
+        self, q: Query, collector: Collector, context: Any = None
+    ) -> None:
         """Low-level method: runs a :class:`whoosh.query.Query` object on this
         searcher using the given :class:`whoosh.collectors.Collector` object
         to collect the results::
@@ -990,14 +1006,14 @@ class Results:
 
     def __init__(
         self,
-        searcher,
-        q,
-        top_n,
-        docset=None,
-        facetmaps=None,
-        runtime=0,
-        highlighter=None,
-    ):
+        searcher: Searcher,
+        q: Query,
+        top_n: list,
+        docset: Any = None,
+        facetmaps: Any = None,
+        runtime: float = 0,
+        highlighter: Any = None,
+    ) -> None:
         """
         :param searcher: the :class:`Searcher` object that produced these
             results.
@@ -1418,7 +1434,13 @@ class Hit:
     ["title"]
     """
 
-    def __init__(self, results, docnum, pos=None, score=None):
+    def __init__(
+        self,
+        results: Results,
+        docnum: int,
+        pos: int | None = None,
+        score: float | None = None,
+    ) -> None:
         """
         :param results: the Results object this hit belongs to.
         :param pos: the position in the results list of this hit, for example
@@ -1654,7 +1676,9 @@ class ResultsPage:
 
     """
 
-    def __init__(self, results, pagenum, pagelen=10):
+    def __init__(
+        self, results: Results, pagenum: int, pagelen: int = 10
+    ) -> None:
         """
         :param results: a :class:`~whoosh.searching.Results` object.
         :param pagenum: which page of the results to use, numbered from ``1``.

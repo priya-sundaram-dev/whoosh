@@ -113,3 +113,31 @@ def test_qparser_entry_points_are_annotated():
         assert sig.return_annotation is not inspect.Signature.empty, (
             f"{name}: missing a return annotation"
         )
+
+
+def test_searching_layer_entry_points_are_annotated():
+    """The searching layer's public API (Searcher, Results, Hit, ResultsPage)
+    carries type hints so editors and type checkers can assist when running
+    queries and reading results (gh#3)."""
+    from whoosh import searching
+
+    # Searcher public query methods.
+    for name in ("__init__", "search", "search_page", "search_with_collector"):
+        method = getattr(searching.Searcher, name)
+        sig = inspect.signature(method)
+        for pname, param in sig.parameters.items():
+            if pname in ("self", "kwargs"):
+                continue
+            assert param.annotation is not inspect.Parameter.empty, (
+                f"Searcher.{name}: parameter {pname!r} is missing an annotation"
+            )
+
+    # Result container constructors.
+    for cls in (searching.Results, searching.Hit, searching.ResultsPage):
+        sig = inspect.signature(cls.__init__)
+        for pname, param in sig.parameters.items():
+            if pname == "self":
+                continue
+            assert param.annotation is not inspect.Parameter.empty, (
+                f"{cls.__name__}.__init__: parameter {pname!r} missing annotation"
+            )
