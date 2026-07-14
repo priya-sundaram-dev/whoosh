@@ -6,6 +6,8 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.0.2] - 2026-07-14
+
 ### Fixed
 - A `filter=`/`mask=` (allow/restrict) set was **silently ignored** when a
   search also had a time limit — i.e. whenever a `TimeLimitCollector` wrapped a
