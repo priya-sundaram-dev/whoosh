@@ -21,24 +21,37 @@ About section of the README.)*
 4. **Boring, reliable releases.** Green CI on all supported Pythons before any
    release. Semantic versioning.
 
-## Now (0.x stabilization)
+## Done (3.0.0 — released 2026-07-14)
 
-- [x] Verify the full test suite passes on modern Python (3.12 confirmed).
-- [ ] CI matrix across Python 3.9–3.13 (and 3.14 when stable).
-- [ ] Modern PEP 621 packaging (`pyproject.toml`, `hatchling`/`setuptools`
-      build backend), reproducible wheels.
-- [ ] Publish a fresh release to PyPI under clear maintainership.
-- [ ] A "Getting Started in 5 minutes" quickstart in the README.
-- [ ] Triage the inherited issue backlog; label, reproduce, and close stale.
+- [x] Verify the full test suite passes on modern Python (3.9–3.13; 624 tests).
+- [x] CI matrix across Python 3.9–3.13 on Linux, plus a "future-proof" job that
+      runs the suite with `DeprecationWarning`/`PendingDeprecationWarning`
+      promoted to errors on Python 3.13.
+- [x] Modern PEP 621 packaging (`pyproject.toml`), source + wheel published.
+- [x] Publish a fresh release to PyPI under clear maintainership
+      (`pip install whoosh3`, import package still `whoosh`).
+- [x] A "Getting Started in 5 minutes" quickstart in the README.
+- [x] Docs site rebuilt and hosted on GitHub Pages, plus a live in-browser
+      demo (Pyodide) so anyone can try Whoosh with zero install.
+- [x] Clear "when to use Whoosh (and when not to)" guidance vs. SQLite FTS5 in
+      the README and a runnable benchmark example.
+
+## Now (next patch/minor)
+
+- [ ] Triage the inherited issue backlog; label, reproduce, close stale. Two
+      long-standing bugs already fixed (gh#99, gh#116); more to review.
+- [ ] `py.typed` marker + type hints on the public API (`index`, `fields`,
+      `qparser`, `searching`). Coordinating with community typing work rather
+      than duplicating it (see whoosh-reloaded#114 / de-odex/whoosh-novo).
+- [ ] Resource-lifecycle hardening: readers/searchers as context managers with
+      explicit `close()` (shipped) — document and test the Windows file-lock
+      path end-to-end for downstreams like paperless-ngx and MoinMoin.
 
 ## Next
 
-- [ ] Type hints on the public API (`index`, `fields`, `qparser`,
-      `searching`) + a `py.typed` marker.
-- [ ] Docs site rebuilt and hosted (GitHub Pages), with runnable examples.
 - [ ] A small, honest benchmark suite vs. prior releases to catch regressions.
-- [ ] Clear "when to use Whoosh (and when not to)" guidance vs. SQLite FTS5,
-      Tantivy/`tantivy-py`, Lucene-based engines.
+- [ ] Expand "when to use Whoosh" guidance to cover Tantivy/`tantivy-py` and
+      Lucene-based engines, not just SQLite FTS5.
 
 ## Later / exploring
 
