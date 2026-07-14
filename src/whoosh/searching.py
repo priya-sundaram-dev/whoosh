@@ -1519,6 +1519,10 @@ class Hit:
         :param top: the maximum number of fragments to return.
         :param minscore: the minimum score for fragments to appear in the
             highlights.
+        :param strict_phrase: if the query contains phrase queries, setting this
+            to ``True`` highlights only the terms that are part of an actual
+            phrase match, instead of highlighting every occurrence of the
+            individual words. Defaults to ``False`` for backwards compatibility.
         """
 
         hliter = self.results.highlighter

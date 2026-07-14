@@ -6,6 +6,16 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Documentation
+
+- Documented the `strict_phrase=True` option of `Hit.highlights()` /
+  `Highlighter.highlight_hit()`, which highlights only the terms that form an
+  actual phrase match instead of every occurrence of the individual words. This
+  answers a long-standing user question (whoosh-community#486). Added a
+  "Phrase-accurate highlighting" section to the highlighting guide, a cookbook
+  note, and the missing `:param strict_phrase:` entry in the API docstring, plus
+  a regression test.
+
 ## [3.3.0] - 2026-07-14
 
 ### Added

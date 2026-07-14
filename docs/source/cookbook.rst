@@ -121,6 +121,8 @@ and wraps each matched term in markup. The recipe covers:
   highlighted *without* being re-tokenized
 * highlighting a field you did **not** store, by passing the original text to
   ``hit.highlights("body", text=...)``
+* highlighting *only* real phrase matches (not stray occurrences of the
+  individual words) with ``hit.highlights("body", strict_phrase=True)``
 
 See also :doc:`highlight` for the full highlighting reference.
 

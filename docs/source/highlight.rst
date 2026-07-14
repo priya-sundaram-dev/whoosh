@@ -129,6 +129,40 @@ and end of a fragment::
     results.fragmenter.surround = 50
 
 
+Phrase-accurate highlighting
+----------------------------
+
+By default the highlighter marks *every* occurrence of each individual word in
+a phrase query, even words that are not part of an actual phrase match. For
+example, searching for the phrase ``"python library"`` in a document that also
+mentions ``python`` and ``library`` far apart will highlight all of those stray
+words, not just the phrase.
+
+If you only want to highlight the words that form a real phrase match, pass
+``strict_phrase=True``::
+
+    # Only highlight terms that are part of an actual phrase match
+    print(hit.highlights("content", strict_phrase=True))
+
+For example::
+
+    >>> from whoosh import fields, query
+    >>> from whoosh.filedb.filestore import RamStorage
+    >>> ix = RamStorage().create_index(fields.Schema(body=fields.TEXT(stored=True)))
+    >>> w = ix.writer()
+    >>> w.add_document(body="a python here " + "x " * 30 + "the python library there")
+    >>> w.commit()
+    >>> q = query.Phrase("body", ["python", "library"])
+    >>> with ix.searcher() as s:
+    ...     hit = s.search(q, terms=True)[0]
+    ...     hit.highlights("body")                      # highlights both "python"s
+    ...     hit.highlights("body", strict_phrase=True)  # highlights only the phrase
+
+``strict_phrase`` defaults to ``False`` for backwards compatibility. It applies
+to phrase queries (including phrases nested inside larger boolean queries); the
+highlighting of non-phrase terms is unaffected.
+
+
 Fragmenter
 ----------
 

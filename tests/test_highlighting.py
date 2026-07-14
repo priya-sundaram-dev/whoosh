@@ -83,6 +83,30 @@ def test_phrase_strict():
         assert outputs == ["phrase highlights PHRASE TERMS but not INDIVIDUAL terms"]
 
 
+def test_phrase_strict_ignores_stray_terms():
+    # Regression for whoosh-community#486: a document containing the phrase
+    # AND stray occurrences of the individual words should, under
+    # strict_phrase=True, highlight only the words that form the phrase match.
+    schema = fields.Schema(body=fields.TEXT(stored=True))
+    ix = RamStorage().create_index(schema)
+    w = ix.writer()
+    w.add_document(body="a python here " + "x " * 30 + "the python library there")
+    w.commit()
+
+    q = query.Phrase("body", ["python", "library"])
+    with ix.searcher() as s:
+        hit = s.search(q, terms=True)[0]
+
+        # Non-strict highlights every occurrence of the individual words.
+        loose = hit.highlights("body")
+        assert loose.count('class="match') > 2
+
+        # Strict highlights only the two words that form the phrase match.
+        strict = hit.highlights("body", strict_phrase=True)
+        assert strict.count('class="match') == 2
+        assert "python</b> <b" in strict or "python</b>\u00a0<b" in strict
+
+
 def test_sentence_fragment():
     text = (
         "This is the first sentence. This one doesn't have the word. "
