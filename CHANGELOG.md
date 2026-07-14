@@ -7,6 +7,15 @@ All notable changes to this project are documented here. This project follows
 ## [Unreleased]
 
 ### Fixed
+- A `filter=`/`mask=` (allow/restrict) set was **silently ignored** when a
+  search also had a time limit — i.e. whenever a `TimeLimitCollector` wrapped a
+  `FilterCollector`. `TimeLimitCollector.collect_matches()` iterates its
+  child's `matches()` and calls `collect()` itself, which bypassed the
+  filtering that `FilterCollector` only did in its own `collect_matches()`
+  override, so *every* matching document came back regardless of the filter.
+  The allow/restrict logic (and `filtered_count` bookkeeping) now lives in
+  `FilterCollector.matches()`, so the filter is honored no matter what outer
+  collector wraps it. Added a regression test.
 - Sorting or faceting by a sortable/column field returned **scrambled** results
   after documents were added through a `BufferedWriter` (the quasi-real-time
   writer). Root cause: `BufferedWriter` opens a fresh short-lived per-document

@@ -728,26 +728,41 @@ class FilterCollector(WrappingCollector):
         else:
             return ilen(self.all_ids())
 
-    def collect_matches(self):
+    def matches(self):
+        # Apply the allow/restrict filter here (rather than only in
+        # collect_matches) so that the filtering is honored even when an
+        # *outer* wrapping collector iterates our matches directly. For
+        # example, TimeLimitCollector.collect_matches() walks child.matches()
+        # and calls child.collect() itself, bypassing any collect_matches()
+        # override on the collector it wraps; filtering in matches() keeps the
+        # allow/restrict sets effective in that case (see issue: filter
+        # ignored when combined with a time limit).
         child = self.child
         _allow = self._allow
         _restrict = self._restrict
 
-        if _allow is not None or _restrict is not None:
-            filtered_count = self.filtered_count
-            for sub_docnum in child.matches():
-                global_docnum = self.offset + sub_docnum
-                if (_allow is not None and global_docnum not in _allow) or (
-                    _restrict is not None and global_docnum in _restrict
-                ):
-                    filtered_count += 1
-                    continue
-                child.collect(sub_docnum)
-            self.filtered_count = filtered_count
-        else:
-            # If there was no allow or restrict set, don't do anything special,
-            # just forward the call to the child collector
-            child.collect_matches()
+        if _allow is None and _restrict is None:
+            # No filtering to do; forward matches unchanged.
+            yield from child.matches()
+            return
+
+        offset = self.offset
+        for sub_docnum in child.matches():
+            global_docnum = offset + sub_docnum
+            if (_allow is not None and global_docnum not in _allow) or (
+                _restrict is not None and global_docnum in _restrict
+            ):
+                self.filtered_count += 1
+                continue
+            yield sub_docnum
+
+    def collect_matches(self):
+        # matches() already applies the allow/restrict filter and updates
+        # filtered_count, so we can simply collect whatever it yields.
+        child = self.child
+        collect = child.collect
+        for sub_docnum in self.matches():
+            collect(sub_docnum)
 
     def results(self):
         r = self.child.results()

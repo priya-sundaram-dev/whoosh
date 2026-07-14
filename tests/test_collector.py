@@ -34,6 +34,55 @@ def test_filter_that_matches_no_document():
         assert len(r) == 0
 
 
+def test_filter_honored_inside_timelimit():
+    # Regression: a FilterCollector's allow/restrict set must still be honored
+    # when it is wrapped by a TimeLimitCollector. TimeLimitCollector iterates
+    # its child's matches() and calls collect() itself, bypassing any
+    # collect_matches() override on the collector it wraps -- so the filtering
+    # has to happen in FilterCollector.matches() to survive that.
+    schema = fields.Schema(id=fields.STORED, text=fields.TEXT)
+    ix = RamStorage().create_index(schema)
+    w = ix.writer()
+    for i in range(20):
+        w.add_document(id=i, text="fruit")
+    w.commit()
+
+    allow = query.Or([query.Term("text", "fruit")])  # matches everything
+    # Restrict to even ids by allowing an explicit doc set.
+    even = set(range(0, 20, 2))
+
+    with ix.searcher() as s:
+        q = query.Term("text", "fruit")
+
+        # Baseline: FilterCollector alone.
+        base = s.collector(limit=None)
+        fc = collectors.FilterCollector(base, allow=even)
+        s.search_with_collector(q, fc)
+        r_filter = fc.results()
+        ids_filter = sorted(hit["id"] for hit in r_filter)
+        assert ids_filter == sorted(even)
+        assert r_filter.filtered_count == 10
+
+        # Wrapped by a TimeLimitCollector with a generous limit (never fires):
+        # the filter must still apply.
+        base2 = s.collector(limit=None)
+        fc2 = collectors.FilterCollector(base2, allow=even)
+        tlc = collectors.TimeLimitCollector(fc2, timelimit=30.0)
+        s.search_with_collector(q, tlc)
+        r_tl = tlc.results()
+        ids_tl = sorted(hit["id"] for hit in r_tl)
+        assert ids_tl == sorted(even)
+        assert r_tl.filtered_count == 10
+
+        # restrict= should behave the same way inside a time limit.
+        base3 = s.collector(limit=None)
+        fc3 = collectors.FilterCollector(base3, restrict=even)
+        tlc3 = collectors.TimeLimitCollector(fc3, timelimit=30.0)
+        s.search_with_collector(q, tlc3)
+        ids_restrict = sorted(hit["id"] for hit in tlc3.results())
+        assert ids_restrict == sorted(set(range(20)) - even)
+
+
 def test_timelimit():
     schema = fields.Schema(text=fields.TEXT)
     ix = RamStorage().create_index(schema)
