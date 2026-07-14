@@ -25,8 +25,8 @@
 # those of the authors and should not be interpreted as representing official
 # policies, either expressed or implied, of Matt Chaput.
 
-__version__ = (3, 0, 0)
-__version_str__ = "3.0.0"
+__version__ = (3, 0, 1)
+__version_str__ = "3.0.1"
 
 
 def versionstring(build=True, extra=True):

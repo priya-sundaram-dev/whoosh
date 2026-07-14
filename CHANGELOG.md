@@ -6,6 +6,8 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.0.1] - 2026-07-14
+
 ### Fixed
 - `NumericRange` (and therefore range `filter=`/query-parser range searches) with
   an open lower bound could match **every** document instead of the intended
