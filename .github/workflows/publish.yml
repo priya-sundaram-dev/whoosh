@@ -33,8 +33,6 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-    permissions:
-      id-token: write  # trusted publishing (OIDC), no API token stored
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -42,3 +40,6 @@ jobs:
           path: dist/
       - name: Publish
         uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          skip-existing: true
