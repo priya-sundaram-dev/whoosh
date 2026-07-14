@@ -17,3 +17,5 @@ eggs/
 /coverage.xml
 /lcov.info
 /.codiumai.local.toml
+docs/_build/
+.venv/

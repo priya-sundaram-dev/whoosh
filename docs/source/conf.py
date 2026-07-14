@@ -42,8 +42,11 @@ source_suffix = ".rst"
 master_doc = "index"
 
 # General information about the project.
-project = "Whoosh-Reloaded"
-copyright = "2007-2012 Matt Chaput"
+project = "Whoosh"
+copyright = "2007-2012 Matt Chaput and contributors; maintained continuation by Priya Sundaram"
+
+# Canonical base URL for the published docs (helps search-engine indexing).
+html_baseurl = "https://priya-sundaram-dev.github.io/whoosh/docs/"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
