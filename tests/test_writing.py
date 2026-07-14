@@ -236,13 +236,22 @@ def test_buffered_threads():
     with TempIndex(schema, "buffthreads") as ix:
         w = writing.BufferedWriter(ix, limit=10)
 
+        # Give each thread its own word from the domain so that, regardless of
+        # thread interleaving, every word is written exactly by one thread.
+        # (The previous version used random.choice, which occasionally never
+        # picked one of the words -- leaving fewer than four unique documents
+        # and making the doc_count()/names assertions flaky.)
         class SimWriter(threading.Thread):
+            def __init__(self, word):
+                super().__init__()
+                self.word = word
+
             def run(self):
                 for _ in range(5):
-                    w.update_document(name=random.choice(domain))
+                    w.update_document(name=self.word)
                     time.sleep(random.uniform(0.01, 0.1))
 
-        threads = [SimWriter() for _ in range(5)]
+        threads = [SimWriter(word) for word in domain]
         for thread in threads:
             thread.start()
         for thread in threads:

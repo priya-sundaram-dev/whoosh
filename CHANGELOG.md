@@ -31,6 +31,12 @@ All notable changes to this project are documented here. This project follows
   time (pre-commit) and on-disk (post-commit) reads sort correctly. Verified for
   numeric and text sortable fields with a new regression test.
 
+### Internal
+- Made `test_buffered_threads` deterministic. It previously used
+  `random.choice` to pick which of four words each thread wrote, so a run
+  could leave fewer than four unique documents and fail intermittently (seen
+  on CI). Each thread now owns a distinct word.
+
 ## [3.0.1] - 2026-07-14
 
 ### Fixed
