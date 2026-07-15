@@ -6,6 +6,8 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.6.0] - 2026-07-15
+
 ### Added
 
 - **`whoosh --version` / `-V`.** The CLI now has a top-level `--version` (and
