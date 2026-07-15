@@ -6,6 +6,15 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Added
+
+- **`whoosh search --json`.** The `whoosh search` command can now emit a
+  machine-readable JSON array of results (path, score, snippet, and title when
+  present) instead of the human-readable text output, making it easy to pipe
+  results into `jq` or other tooling. The flag is mutually exclusive with
+  `--html`. Thanks to [@Krshs90](https://github.com/Krshs90) for the
+  contribution (#6, #7).
+
 ## [3.3.1] - 2026-07-14
 
 ### Fixed
