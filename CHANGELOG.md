@@ -6,6 +6,8 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.7.0] - 2026-07-15
+
 ### Added
 
 - **`whoosh stats` subcommand.** Print a summary of an existing index without
