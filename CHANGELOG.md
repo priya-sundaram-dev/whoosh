@@ -6,6 +6,16 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Added
+
+- **`whoosh search` match summary.** In the default text output mode, `whoosh
+  search` now prints a short summary line to **stderr** — `N matches.` when
+  everything is shown, or `Showing X of Y matches.` when results are truncated
+  by `--limit`. Because it goes to stderr, stdout stays clean for piping, and
+  the line is suppressed entirely under `--json`, `--html`, and `--count`.
+  Thanks to [@Krshs90](https://github.com/Krshs90) for the contribution
+  (#13, #14).
+
 ## [3.5.0] - 2026-07-15
 
 ### Added
