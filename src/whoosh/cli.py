@@ -242,7 +242,9 @@ def cmd_search(args: argparse.Namespace) -> int:
             return 0
 
         print(f"{n} match{'es' if n != 1 else ''} for {args.query!r}:\n")
+        shown = 0
         for i, hit in enumerate(results, 1):
+            shown += 1
             if fields_to_show:
                 fields_str = ", ".join(f"{f}: {hit[f]}" for f in fields_to_show if f in hit)
                 print(f"{i}. {fields_str}\n")
@@ -251,6 +253,14 @@ def cmd_search(args: argparse.Namespace) -> int:
                 snippet = " ".join(snippet.split())  # collapse whitespace
                 print(f"{i}. {hit['path']}  (score {hit.score:.2f})")
                 print(f"   {snippet}\n")
+        
+        if getattr(args, "count", False) or getattr(args, "json", False) or getattr(args, "html", False):
+            pass
+        else:
+            if n > shown:
+                print(f"Showing {shown} of {n} matches.", file=sys.stderr)
+            else:
+                print(f"{n} match{'es' if n != 1 else ''}.", file=sys.stderr)
     return 0
 
 

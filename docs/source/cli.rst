@@ -65,6 +65,8 @@ short highlighted snippet of the surrounding text::
     1. search/design.md  (score 4.21)
        ... a pure-Python FULL TEXT SEARCH library that ships as one pip install ...
 
+A brief summary line indicating how many matches were found is also printed to stderr.
+
 Because matching is **stemmed**, a search for ``search`` also matches
 ``searching`` and ``searched`` — something a literal ``grep`` will not do.
 

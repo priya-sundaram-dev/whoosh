@@ -209,3 +209,23 @@ def test_search_mutually_exclusive_count_json_html(corpus, capsys):
     assert "not allowed with argument" in err.lower()
 
 
+def test_search_summary_all_shown(corpus, capsys):
+    assert run(["index", corpus]) == 0
+    capsys.readouterr()
+    rc = run(["search", "search", corpus])
+    assert rc == 0
+    out, err = capsys.readouterr()
+    assert "2 matches." in err
+    assert "Showing" not in err
+    assert "matches for" in out
+    assert "match." not in out
+
+def test_search_summary_truncated(corpus, capsys):
+    assert run(["index", corpus]) == 0
+    capsys.readouterr()
+    rc = run(["search", "search", corpus, "--limit", "1"])
+    assert rc == 0
+    out, err = capsys.readouterr()
+    assert "Showing 1 of 2 matches." in err
+    assert "matches for" in out
+    assert "Showing" not in out
