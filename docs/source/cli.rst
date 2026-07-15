@@ -93,6 +93,17 @@ Useful options::
     $ whoosh search "index writer" ~/notes --html        # <mark>...</mark> snippets
     $ whoosh search "index writer" ~/notes --json        # JSON array output
     $ whoosh search "index writer" ~/notes --count       # output just the number of matches
+    $ whoosh search "index writer" ~/notes --field title # search titles only
+
+Repeat ``--field`` to search more than one selected field with equal weighting.
+When it is omitted, Whoosh searches ``title`` and ``body`` with the usual title
+boost::
+
+    $ whoosh search "index writer" ~/notes --field title --field body
+
+``--field`` controls which fields are searched. The similarly named
+``--fields`` option accepts a comma-separated list of stored fields to include
+in the output instead.
 
 ``--html`` emits ``<mark>...</mark>`` around matched terms instead of the
 default UPPERCASE highlighting, which is handy when piping results into a web
@@ -151,8 +162,9 @@ How it works
 ``whoosh index`` defines a small schema (``title``, ``path``, ``body``), walks
 the directory, and writes each file into a Whoosh index using the same
 :doc:`indexing` and :doc:`schema` APIs documented here. ``whoosh search``
-opens that index and runs a :doc:`MultifieldParser <parsing>` query across
-``title`` and ``body``, then renders :doc:`highlighted <highlight>` snippets.
+opens that index and runs a :doc:`MultifieldParser <parsing>` query across the
+selected ``--field`` values (``title`` and ``body`` by default), then renders
+:doc:`highlighted <highlight>` snippets.
 ``whoosh stats`` opens the index read-only and reports counts and metadata from
 the reader and the on-disk files.
 
