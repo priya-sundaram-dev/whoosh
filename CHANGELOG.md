@@ -6,6 +6,12 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Added
+
+- Added repeatable `whoosh search --field NAME` options for restricting a
+  query to equally weighted index fields while preserving the existing
+  defaults when the option is omitted.
+
 ### Changed
 
 - Clarified the package description so PyPI search results make it obvious this

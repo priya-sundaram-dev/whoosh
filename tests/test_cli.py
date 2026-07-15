@@ -147,6 +147,35 @@ def test_search_limit(corpus, capsys):
     assert "2." not in out
 
 
+def test_search_field_restricts_query(corpus, capsys):
+    assert run(["index", corpus]) == 0
+    capsys.readouterr()
+
+    assert run(["search", "whoosh", corpus]) == 0
+    assert "beta.md" in capsys.readouterr().out
+
+    assert run(["search", "whoosh", corpus, "--field", "title"]) == 1
+    assert "no matches" in capsys.readouterr().out.lower()
+
+    assert run(["search", "whoosh", corpus, "--field", "body"]) == 0
+    assert "beta.md" in capsys.readouterr().out
+
+    assert run([
+        "search", "whoosh", corpus,
+        "--field", "title", "--field", "body",
+    ]) == 0
+    assert "beta.md" in capsys.readouterr().out
+
+
+def test_search_field_invalid(corpus, capsys):
+    assert run(["index", corpus]) == 0
+    capsys.readouterr()
+    rc = run(["search", "whoosh", corpus, "--field", "badfield"])
+    assert rc == 2
+    err = capsys.readouterr().err
+    assert "unknown field" in err.lower()
+
+
 def test_search_fields_invalid(corpus, capsys):
     assert run(["index", corpus]) == 0
     capsys.readouterr()

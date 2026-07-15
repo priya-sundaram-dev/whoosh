@@ -206,9 +206,22 @@ def cmd_search(args: argparse.Namespace) -> int:
         return 2
 
     ix = index.open_dir(index_dir)
-    # Search title + body; title matches are weighted higher.
-    parser = MultifieldParser(["title", "body"], schema=ix.schema,
-                              fieldboosts={"title": 2.0, "body": 1.0})
+    search_fields = args.field or ["title", "body"]
+    for field in search_fields:
+        if field not in ix.schema.names():
+            print(
+                f"whoosh search: error: unknown field {field!r}. "
+                f"Valid fields: {', '.join(ix.schema.names())}",
+                file=sys.stderr,
+            )
+            return 2
+
+    if args.field:
+        parser = MultifieldParser(search_fields, schema=ix.schema)
+    else:
+        # Preserve the existing title/body weighting when no fields are selected.
+        parser = MultifieldParser(search_fields, schema=ix.schema,
+                                  fieldboosts={"title": 2.0, "body": 1.0})
     query = parser.parse(args.query)
 
     with ix.searcher() as s:
@@ -396,6 +409,8 @@ def build_parser() -> argparse.ArgumentParser:
                     help="max results (default: 10)")
     ps.add_argument("--fields",
                     help="comma-separated list of stored fields to include in output")
+    ps.add_argument("--field", action="append", metavar="NAME",
+                    help="field to search (repeatable; default: title and body)")
 
     group = ps.add_mutually_exclusive_group()
     group.add_argument("--html", action="store_true",
