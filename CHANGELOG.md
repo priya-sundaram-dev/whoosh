@@ -8,6 +8,11 @@ All notable changes to this project are documented here. This project follows
 
 ### Added
 
+- **`whoosh --version` / `-V`.** The CLI now has a top-level `--version` (and
+  short `-V`) flag that prints the installed Whoosh version and exits. Thanks
+  to [@abhiramvsmg](https://github.com/abhiramvsmg) for the contribution
+  (#6, #8).
+
 - **`whoosh search` match summary.** In the default text output mode, `whoosh
   search` now prints a short summary line to **stderr** — `N matches.` when
   everything is shown, or `Showing X of Y matches.` when results are truncated
