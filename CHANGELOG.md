@@ -6,13 +6,18 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
-## [3.6.0] - 2026-07-15
-
 ### Added
 
 - **`whoosh index --exclude`.** The CLI now supports excluding specific files or
   directories during indexing using the `--exclude` flag with glob patterns
-  (e.g., `--exclude "build/*"`). It can be specified multiple times.
+  (e.g., `--exclude "build/*"`). It can be specified multiple times. Excluded
+  directories are pruned during the walk, so they are never descended into.
+  Thanks to [@PushkarP-404](https://github.com/PushkarP-404) for the
+  contribution (#7, #12).
+
+## [3.6.0] - 2026-07-15
+
+### Added
 
 - **`whoosh --version` / `-V`.** The CLI now has a top-level `--version` (and
   short `-V`) flag that prints the installed Whoosh version and exits. Thanks
