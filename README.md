@@ -17,6 +17,11 @@ go. If you can open a file, you can build an index.
 > Whoosh after two rounds of abandonment. See [Maintenance](#maintenance) below
 > for the honest history and who's behind it.
 
+**▶ [Try Whoosh live in your browser](https://priya-sundaram-dev.github.io/whoosh/)** —
+no install needed. It runs the *real* library (compiled to WebAssembly via
+Pyodide), builds an index, and answers your queries with BM25 ranking and
+highlighting, entirely client-side.
+
 If Whoosh saves you a dependency or a headache, a ⭐ on
 [GitHub](https://github.com/priya-sundaram-dev/whoosh) genuinely helps — it's the
 main signal that keeps this revival worth maintaining, and it helps other people
