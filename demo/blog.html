@@ -4,25 +4,25 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Whoosh is back: reviving pure-Python full-text search in 2026</title>
-<meta name="description" content="Whoosh, the pure-Python full-text search library, is maintained again. Whoosh 3.0.0 ships zero runtime dependencies, modern packaging, bug fixes with regression tests, a live browser demo, and a one-line migration path." />
+<meta name="description" content="Whoosh, the pure-Python full-text search library, is actively maintained again. Zero runtime dependencies, modern packaging, a bundled `whoosh` command-line search tool, bug fixes with regression tests, a live browser demo, and a one-line migration path." />
 <link rel="canonical" href="https://priya-sundaram-dev.github.io/whoosh/blog.html" />
 <meta name="author" content="Priya Sundaram" />
 <meta property="og:type" content="article" />
 <meta property="og:title" content="Whoosh is back: reviving pure-Python full-text search" />
-<meta property="og:description" content="Whoosh 3.0.0 — a maintained, pure-Python full-text search library. Zero runtime deps, modern packaging, bug fixes, a live browser demo, and a one-line migration path." />
+<meta property="og:description" content="Whoosh — an actively maintained, pure-Python full-text search library. Zero runtime deps, modern packaging, a bundled CLI, bug fixes, a live browser demo, and a one-line migration path." />
 <meta property="og:url" content="https://priya-sundaram-dev.github.io/whoosh/blog.html" />
 <meta name="twitter:card" content="summary" />
 <meta name="twitter:title" content="Whoosh is back: reviving pure-Python full-text search" />
-<meta name="twitter:description" content="Whoosh 3.0.0 — a maintained, pure-Python full-text search library. Zero runtime deps, live browser demo, one-line migration." />
+<meta name="twitter:description" content="Whoosh — an actively maintained, pure-Python full-text search library. Zero runtime deps, a bundled CLI, live browser demo, one-line migration." />
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "TechArticle",
   "headline": "Whoosh is back: reviving pure-Python full-text search",
-  "description": "Whoosh 3.0.0 — a maintained, pure-Python full-text search library. Zero runtime dependencies, modern packaging, bug fixes, a live browser demo, and a one-line migration path.",
+  "description": "Whoosh — an actively maintained, pure-Python full-text search library. Zero runtime dependencies, modern packaging, a bundled command-line search tool, bug fixes, a live browser demo, and a one-line migration path.",
   "author": { "@type": "Person", "name": "Priya Sundaram" },
   "datePublished": "2026-07-14",
-  "dateModified": "2026-07-15",
+  "dateModified": "2026-07-15T16:05:00Z",
   "mainEntityOfPage": "https://priya-sundaram-dev.github.io/whoosh/blog.html",
   "about": ["full-text search", "Python", "information retrieval", "Whoosh"]
 }
@@ -89,6 +89,30 @@
   <p>It was widely used, then went unmaintained. It was revived once as
   <code>whoosh-reloaded</code>, then went quiet again. I'm picking it back up,
   and this is the first release under new maintenance.</p>
+
+  <p><strong>Update (3.5.0) — the CLI grew up.</strong> The bundled
+  <code>whoosh</code> command now speaks to your shell scripts as fluently as to
+  you. <code>whoosh search --json</code> emits a machine-readable array (path,
+  score, snippet, title) you can pipe straight into <code>jq</code>;
+  <code>--count</code> prints just the number of matches for
+  <code>if</code>-tests and pipelines; <code>--fields</code> trims the output to
+  the stored fields you care about; and <code>--limit</code> now rejects
+  nonsensical values with a clear error instead of silently misbehaving. There's
+  also a new <a href="https://priya-sundaram-dev.github.io/whoosh/docs/cookbook.html">static-site
+  search example</a> that indexes a folder of Markdown/RST/text files and
+  searches them with highlighted snippets — a server-free way to add search to a
+  static site or ship an index next to a desktop app. Most of these landed as
+  reviewed community contributions, which is exactly the sign of life a revived
+  project wants. <code>pip install -U whoosh3</code>, then
+  <code>whoosh search --help</code>.</p>
+
+  <p><strong>Update (3.3.1):</strong> fixed a long-standing bug where large
+  in-memory (<code>RamStorage</code>) indexes could fail to commit with
+  <code>NameError: &lt;name&gt;.run</code> once the posting pool spilled sorted
+  run files — reported across both the original tracker and the
+  <code>whoosh-reloaded</code> fork. In-memory runs are now retained correctly;
+  disk-backed indexes were never affected. Comes with a regression test that
+  forces multiple spills and verifies the committed index is searchable.</p>
 
   <p><strong>Update (3.3.0) — search a folder from your terminal.</strong>
   Whoosh now installs a <code>whoosh</code> command, so you can index and
