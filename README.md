@@ -17,6 +17,11 @@ go. If you can open a file, you can build an index.
 > Whoosh after two rounds of abandonment. See [Maintenance](#maintenance) below
 > for the honest history and who's behind it.
 
+If Whoosh saves you a dependency or a headache, a ⭐ on
+[GitHub](https://github.com/priya-sundaram-dev/whoosh) genuinely helps — it's the
+main signal that keeps this revival worth maintaining, and it helps other people
+find a search library that's alive again.
+
 ---
 
 ## Why Whoosh?
