@@ -6,6 +6,8 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.4.0] - 2026-07-15
+
 ### Added
 
 - **`whoosh search --json`.** The `whoosh search` command can now emit a
