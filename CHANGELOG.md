@@ -14,6 +14,20 @@ All notable changes to this project are documented here. This project follows
   results into `jq` or other tooling. The flag is mutually exclusive with
   `--html`. Thanks to [@Krshs90](https://github.com/Krshs90) for the
   contribution (#6, #7).
+- **Static-site search cookbook + example.** New
+  `examples/static_site_search.py` indexes a directory of Markdown/RST/text
+  files and searches them from the command line with highlighted snippets
+  (title boosted over body, re-indexable via a unique `path` key) — a
+  server-free way to add search to a static site or ship an index alongside a
+  desktop app. Documented in the cookbook. Thanks to
+  [@Krshs90](https://github.com/Krshs90) (#5, #8).
+
+### Tests
+
+- Added `test_concurrent_writers_lock` covering the file-storage writer lock
+  path: a second concurrent `writer()` raises `LockError`, and a fresh writer
+  succeeds once the first is cancelled. Thanks to
+  [@Krshs90](https://github.com/Krshs90) (#4, #8).
 
 ## [3.3.1] - 2026-07-14
 
