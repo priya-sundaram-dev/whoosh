@@ -15,6 +15,11 @@ All notable changes to this project are documented here. This project follows
   a helpful "unknown field" error (listing the valid field names) when given a
   field that is not in the schema. Thanks to
   [@Krshs90](https://github.com/Krshs90) for the contribution (#9, #10).
+- **`whoosh search --count`.** New flag that prints only the number of matching
+  documents as a single integer and exits, ignoring `--limit` to report the true
+  total. Handy for shell pipelines and scripting. Mutually exclusive with
+  `--json` and `--html`. Thanks to [@Krshs90](https://github.com/Krshs90) for the
+  contribution (#11, #12).
 
 ## [3.4.0] - 2026-07-15
 
