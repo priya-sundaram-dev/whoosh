@@ -229,3 +229,22 @@ def test_search_summary_truncated(corpus, capsys):
     assert "Showing 1 of 2 matches." in err
     assert "matches for" in out
     assert "Showing" not in out
+
+def test_version_flag(capsys):
+    from whoosh import __version_str__
+    with pytest.raises(SystemExit) as excinfo:
+        run(["--version"])
+    assert excinfo.value.code == 0
+    out = capsys.readouterr().out
+    assert "whoosh" in out.lower()
+    assert __version_str__ in out
+
+
+def test_version_flag_short(capsys):
+    from whoosh import __version_str__
+    with pytest.raises(SystemExit) as excinfo:
+        run(["-V"])
+    assert excinfo.value.code == 0
+    out = capsys.readouterr().out
+    assert "whoosh" in out.lower()
+    assert __version_str__ in out
