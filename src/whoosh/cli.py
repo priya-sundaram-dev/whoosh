@@ -193,6 +193,12 @@ def cmd_search(args: argparse.Namespace) -> int:
     query = parser.parse(args.query)
 
     with ix.searcher() as s:
+        # If just counting, ignore limit to give the true total.
+        if getattr(args, "count", False):
+            results = s.search(query, limit=None)
+            print(len(results))
+            return 0
+
         results = s.search(query, limit=args.limit)
         if args.html:
             results.formatter = HtmlFormatter(tagname="mark")
@@ -291,6 +297,8 @@ def build_parser() -> argparse.ArgumentParser:
     group.add_argument("--json", action="store_true",
                     help="emit machine-readable JSON output instead of "
                          "human-readable text")
+    group.add_argument("--count", action="store_true",
+                    help="emit only the number of matching documents")
     ps.set_defaults(func=cmd_search)
     return p
 

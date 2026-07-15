@@ -129,6 +129,7 @@ def test_search_mutually_exclusive_json_html(corpus, capsys):
     assert "not allowed with argument" in err.lower()
 
 
+
 def test_search_limit_invalid(corpus, capsys):
     with pytest.raises(SystemExit):
         run(["search", "search", corpus, "--limit", "0"])
@@ -177,4 +178,34 @@ def test_search_fields_text(corpus, capsys):
     out = capsys.readouterr().out
     assert "path:" in out
     assert "score" not in out
+
+def test_search_count(corpus, capsys):
+    assert run(["index", corpus]) == 0
+    capsys.readouterr()
+    rc = run(["search", "search", corpus, "--count"])
+    assert rc == 0
+    out = capsys.readouterr().out.strip()
+    assert out == "2"
+
+
+def test_search_count_zero_matches(corpus, capsys):
+    assert run(["index", corpus]) == 0
+    capsys.readouterr()
+    rc = run(["search", "zzzznottherezzz", corpus, "--count"])
+    assert rc == 0
+    out = capsys.readouterr().out.strip()
+    assert out == "0"
+
+
+def test_search_mutually_exclusive_count_json_html(corpus, capsys):
+    with pytest.raises(SystemExit):
+        run(["search", "whoosh", corpus, "--count", "--json"])
+    err = capsys.readouterr().err
+    assert "not allowed with argument" in err.lower()
+
+    with pytest.raises(SystemExit):
+        run(["search", "whoosh", corpus, "--count", "--html"])
+    err = capsys.readouterr().err
+    assert "not allowed with argument" in err.lower()
+
 
