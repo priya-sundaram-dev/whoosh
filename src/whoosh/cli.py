@@ -29,6 +29,7 @@ import sys
 import time
 from typing import TYPE_CHECKING
 
+from whoosh import __version_str__
 from whoosh import index
 from whoosh.analysis import StemmingAnalyzer
 from whoosh.fields import ID, NUMERIC, TEXT, Schema
@@ -276,6 +277,11 @@ def build_parser() -> argparse.ArgumentParser:
         prog="whoosh",
         description="Full-text search a folder of files, powered by Whoosh "
                     "(pure-Python, no server).")
+    p.add_argument(
+        "-V", "--version",
+        action="version",
+        version=f"%(prog)s {__version_str__}",
+    )
     sub = p.add_subparsers(dest="command", required=True)
 
     pi = sub.add_parser("index", help="build/refresh the search index")
