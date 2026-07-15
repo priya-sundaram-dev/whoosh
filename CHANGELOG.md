@@ -6,11 +6,14 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.8.0] - 2026-07-15
+
 ### Added
 
 - Added repeatable `whoosh search --field NAME` options for restricting a
   query to equally weighted index fields while preserving the existing
-  defaults when the option is omitted.
+  defaults when the option is omitted. Thanks to @sahilmathur254 for the
+  contribution (#14, #15).
 
 ### Changed
 
