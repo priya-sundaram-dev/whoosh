@@ -6,6 +6,16 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Added
+
+- **`whoosh search --limit` validation and `--fields`.** `--limit` now rejects
+  non-positive values with a clear argparse error (exit code 2) instead of
+  silently accepting `0`/negatives. The new `--fields` option restricts which
+  stored fields appear in the output, in both text and JSON modes, and reports
+  a helpful "unknown field" error (listing the valid field names) when given a
+  field that is not in the schema. Thanks to
+  [@Krshs90](https://github.com/Krshs90) for the contribution (#9, #10).
+
 ## [3.4.0] - 2026-07-15
 
 ### Added
