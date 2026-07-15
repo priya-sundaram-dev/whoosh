@@ -17,6 +17,9 @@ pure Python::
     # Limit which files get indexed
     whoosh index ~/notes --ext .md,.txt,.rst
 
+    # Exclude specific files and directories
+    whoosh index . --exclude "build/*" --exclude "*.min.js"
+
 Everything here uses only the public Whoosh API, so the same code doubles as
 a worked example you can copy into your own project and adapt.
 """
@@ -27,6 +30,7 @@ import json
 import os
 import sys
 import time
+from pathlib import PurePath
 from typing import TYPE_CHECKING
 
 from whoosh import __version_str__
@@ -62,18 +66,30 @@ def build_schema() -> Schema:
     )
 
 
-def iter_files(root: str, exts: tuple[str, ...]):
+def iter_files(root: str, exts: tuple[str, ...], exclude: tuple[str, ...] = ()):
     """Yield ``(abspath, mtime)`` for files under *root* matching *exts*.
 
     Skips the index directory itself and common noise directories.
     """
     skip = {INDEX_DIRNAME, ".git", ".hg", "__pycache__", "node_modules", ".venv"}
     for dirpath, dirnames, filenames in os.walk(root):
-        dirnames[:] = [d for d in dirnames if d not in skip]
+        new_dirnames = []
+        for d in dirnames:
+            if d in skip:
+                continue
+            rel_d = os.path.relpath(os.path.join(dirpath, d), root)
+            if any(PurePath(rel_d).match(pat) for pat in exclude):
+                continue
+            new_dirnames.append(d)
+        dirnames[:] = new_dirnames
+
         for name in filenames:
             if exts and not name.lower().endswith(exts):
                 continue
             full = os.path.join(dirpath, name)
+            rel_f = os.path.relpath(full, root)
+            if any(PurePath(rel_f).match(pat) for pat in exclude):
+                continue
             try:
                 yield full, os.path.getmtime(full)
             except OSError:
@@ -136,7 +152,7 @@ def cmd_index(args: argparse.Namespace) -> int:
     t0 = time.time()
     writer = ix.writer()
     try:
-        for full, mtime in iter_files(root, exts):
+        for full, mtime in iter_files(root, exts, exclude=tuple(args.exclude)):
             rel = os.path.relpath(full, root)
             seen.add(rel)
             if args.update and rel in indexed and indexed[rel] >= mtime:
@@ -293,6 +309,9 @@ def build_parser() -> argparse.ArgumentParser:
     pi.add_argument("--ext", default="",
                     help="comma-separated extensions to include "
                          "(default: common text/source)")
+    pi.add_argument("--exclude", action="append", default=[], metavar="PATTERN",
+                    help="exclude paths matching the given glob pattern "
+                         "(e.g., 'build/*' or '*.min.js'). Can be specified multiple times.")
     pi.set_defaults(func=cmd_index)
 
     ps = sub.add_parser("search", help="query the index")
