@@ -272,10 +272,20 @@ def _check_positive_int(value: str) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
+    from whoosh import __version_str__
+    
     p = argparse.ArgumentParser(
         prog="whoosh",
         description="Full-text search a folder of files, powered by Whoosh "
                     "(pure-Python, no server).")
+    
+    # Add version flag before subparsers
+    p.add_argument(
+        "-V", "--version",
+        action="version",
+        version=f"%(prog)s {__version_str__}",
+    )
+    
     sub = p.add_subparsers(dest="command", required=True)
 
     pi = sub.add_parser("index", help="build/refresh the search index")

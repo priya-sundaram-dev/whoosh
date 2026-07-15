@@ -8,6 +8,14 @@ All notable changes to this project are documented here. This project follows
 
 ### Added
 
+- **`whoosh --version` / `whoosh -V` flag.** The CLI now has a top-level
+  `--version` / `-V` flag to display the current version and exit immediately,
+  before any subcommand parsing. The version string comes from the single
+  source of truth `whoosh.__version_str__`, so it never drifts from the
+  package version. Handy for bug reports, CI, and packaging scripts.
+  Thanks to [@abu-pixel](https://github.com/abu-pixel) for the contribution
+  (#6).
+
 - **`whoosh search` match summary.** In the default text output mode, `whoosh
   search` now prints a short summary line to **stderr** — `N matches.` when
   everything is shown, or `Showing X of Y matches.` when results are truncated

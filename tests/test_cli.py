@@ -3,7 +3,7 @@ import os
 
 import pytest
 
-from whoosh import cli
+from whoosh import cli, __version_str__
 
 
 @pytest.fixture()
@@ -31,6 +31,28 @@ def corpus(tmp_path):
 
 def run(argv):
     return cli.main([str(a) for a in argv])
+
+
+def test_version_flag(capsys):
+    """Test that --version displays the version and exits with code 0."""
+    with pytest.raises(SystemExit) as excinfo:
+        run(["--version"])
+    
+    assert excinfo.value.code == 0
+    captured = capsys.readouterr()
+    assert "whoosh" in captured.out
+    assert __version_str__ in captured.out
+
+
+def test_version_short_flag(capsys):
+    """Test that -V displays the version and exits with code 0."""
+    with pytest.raises(SystemExit) as excinfo:
+        run(["-V"])
+    
+    assert excinfo.value.code == 0
+    captured = capsys.readouterr()
+    assert "whoosh" in captured.out
+    assert __version_str__ in captured.out
 
 
 def test_index_then_search(corpus, capsys):
@@ -129,7 +151,6 @@ def test_search_mutually_exclusive_json_html(corpus, capsys):
     assert "not allowed with argument" in err.lower()
 
 
-
 def test_search_limit_invalid(corpus, capsys):
     with pytest.raises(SystemExit):
         run(["search", "search", corpus, "--limit", "0"])
@@ -179,6 +200,7 @@ def test_search_fields_text(corpus, capsys):
     assert "path:" in out
     assert "score" not in out
 
+
 def test_search_count(corpus, capsys):
     assert run(["index", corpus]) == 0
     capsys.readouterr()
@@ -219,6 +241,7 @@ def test_search_summary_all_shown(corpus, capsys):
     assert "Showing" not in err
     assert "matches for" in out
     assert "match." not in out
+
 
 def test_search_summary_truncated(corpus, capsys):
     assert run(["index", corpus]) == 0

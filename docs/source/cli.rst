@@ -30,6 +30,23 @@ and the installed console command is ``whoosh``::
     usage: whoosh [-h] {index,search} ...
 
 
+Check the version
+=================
+
+Display the current version of whoosh::
+
+    $ whoosh --version
+    whoosh 3.5.0
+
+    $ whoosh -V
+    whoosh 3.5.0
+
+The version string comes from the single source of truth
+``whoosh.__version_str__``, so it never drifts from the package version.
+This is useful for bug reports, CI pipelines, packaging scripts, and
+quickly confirming which version you are using.
+
+
 Index a folder
 ==============
 
