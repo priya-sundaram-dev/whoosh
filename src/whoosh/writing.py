@@ -149,7 +149,14 @@ class PostingPool(SortingPool):
 
     def _new_run(self):
         path = f"{random_name()}.run"
-        f = self.tempstore.create_file(path).raw_file()
+        # gh#116: return the StructFile itself rather than its raw underlying
+        # file object. For in-memory storages (RamStorage) the file contents
+        # are only persisted by the StructFile's onclose callback; handing out
+        # the bare buffer via raw_file() meant _write_run() closed the buffer
+        # directly, the callback never fired, and the run could not be reopened
+        # (NameError). StructFile proxies write()/close() so disk-backed
+        # storages behave exactly as before. See whoosh-community#450.
+        f = self.tempstore.create_file(path)
         return path, f
 
     def _open_run(self, path):

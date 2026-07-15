@@ -6,6 +6,23 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.3.1] - 2026-07-14
+
+### Fixed
+
+- **`RamStorage` indexes no longer raise `NameError` on large writes.** When an
+  in-memory index received enough documents (or used a low `limitmb`) that the
+  posting pool spilled sorted "run" files, committing failed with
+  `NameError: <name>.run`. The run files created in the temporary in-memory
+  storage were never actually persisted, because the pool handed out the bare
+  underlying buffer via `raw_file()` and the `StructFile.onclose` callback that
+  saves the bytes was bypassed. The pool now keeps the `StructFile` wrapper so
+  the callback fires on close; disk-backed storages are unaffected. Fixes a
+  long-standing bug reported across the original tracker
+  (whoosh-community#450) and the reloaded fork (Sygil-Dev/whoosh-reloaded#116).
+  Added a regression test that spills multiple runs into a `RamStorage` index
+  and verifies the committed index is searchable.
+
 ### Documentation
 
 - Documented the `strict_phrase=True` option of `Hit.highlights()` /

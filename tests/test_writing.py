@@ -604,3 +604,31 @@ def test_add_fail_with_absorbed_exception():
         # Assert that correct exception is raised, not the cryptic one
         assert "already" not in ex.value.args[0]
         assert "unicode" in ex.value.args[0]
+
+
+def test_ramstorage_multisegment_spill():
+    """gh#116 / whoosh-community#450: writing enough documents to a RamStorage
+    index that the posting pool spills run files should not raise
+    ``NameError``. Previously the in-memory run files were never persisted
+    (the StructFile.onclose callback was bypassed by raw_file()), so merging
+    the runs at commit time failed to reopen them.
+    """
+    schema = fields.Schema(
+        id_num=fields.NUMERIC(stored=True),
+        body=fields.TEXT(analyzer=analysis.StemmingAnalyzer()),
+    )
+    st = RamStorage()
+    ix = st.create_index(schema)
+    # A small limit forces the PostingPool to spill several run files.
+    w = ix.writer(limitmb=1)
+    for i in range(20000):
+        w.add_document(
+            id_num=i,
+            body=f"this is some body content number {i} with more words to index",
+        )
+    w.commit()
+
+    with ix.searcher() as s:
+        q = query.Term("body", "content")
+        assert s.doc_count() == 20000
+        assert len(s.search(q, limit=None)) == 20000
