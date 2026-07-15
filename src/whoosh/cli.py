@@ -23,6 +23,7 @@ a worked example you can copy into your own project and adapt.
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import sys
 import time
@@ -201,8 +202,28 @@ def cmd_search(args: argparse.Namespace) -> int:
 
         n = len(results)
         if n == 0:
+            if getattr(args, "json", False):
+                print(json.dumps([]))
+                return 1
             print(f"No matches for: {args.query!r}")
             return 1
+            
+        if getattr(args, "json", False):
+            json_results = []
+            for i, hit in enumerate(results, 1):
+                snippet = hit.highlights("body") or (hit["body"][:160] + "...")
+                snippet = " ".join(snippet.split())
+                hit_dict = {
+                    "path": hit['path'],
+                    "score": hit.score,
+                    "snippet": snippet
+                }
+                if "title" in hit and hit["title"]:
+                    hit_dict["title"] = hit["title"]
+                json_results.append(hit_dict)
+            print(json.dumps(json_results))
+            return 0
+
         print(f"{n} match{'es' if n != 1 else ''} for {args.query!r}:\n")
         for i, hit in enumerate(results, 1):
             snippet = hit.highlights("body") or (hit["body"][:160] + "...")
@@ -238,9 +259,14 @@ def build_parser() -> argparse.ArgumentParser:
                     help="directory whose index to search (default: current)")
     ps.add_argument("--limit", type=int, default=10,
                     help="max results (default: 10)")
-    ps.add_argument("--html", action="store_true",
+    
+    group = ps.add_mutually_exclusive_group()
+    group.add_argument("--html", action="store_true",
                     help="emit <mark>...</mark> HTML highlights instead of "
                          "UPPERCASE")
+    group.add_argument("--json", action="store_true",
+                    help="emit machine-readable JSON output instead of "
+                         "human-readable text")
     ps.set_defaults(func=cmd_search)
     return p
 

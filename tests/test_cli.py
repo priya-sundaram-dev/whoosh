@@ -105,3 +105,26 @@ def test_html_highlight_formatter(corpus, capsys):
 def test_resolve_exts_normalizes():
     assert cli._resolve_exts("md,.txt") == (".md", ".txt")
     assert cli._resolve_exts("") == cli.DEFAULT_EXTS
+
+
+def test_search_json_output(corpus, capsys):
+    assert run(["index", corpus]) == 0
+    capsys.readouterr()
+    rc = run(["search", "whoosh", corpus, "--json"])
+    assert rc == 0
+    out = capsys.readouterr().out
+    import json
+    data = json.loads(out)
+    assert isinstance(data, list)
+    assert len(data) > 0
+    assert "path" in data[0]
+    assert "score" in data[0]
+    assert "snippet" in data[0]
+
+
+def test_search_mutually_exclusive_json_html(corpus, capsys):
+    with pytest.raises(SystemExit):
+        run(["search", "whoosh", corpus, "--json", "--html"])
+    err = capsys.readouterr().err
+    assert "not allowed with argument" in err.lower()
+

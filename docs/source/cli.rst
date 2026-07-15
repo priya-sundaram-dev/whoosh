@@ -79,10 +79,14 @@ Useful options::
 
     $ whoosh search "index writer" ~/notes --limit 20   # show up to 20 hits
     $ whoosh search "index writer" ~/notes --html        # <mark>...</mark> snippets
+    $ whoosh search "index writer" ~/notes --json        # JSON array output
 
 ``--html`` emits ``<mark>...</mark>`` around matched terms instead of the
 default UPPERCASE highlighting, which is handy when piping results into a web
 page or a note-taking tool.
+
+``--json`` emits a machine-readable JSON array of matches (mutually exclusive
+with ``--html``), making it easy to parse results with tools like ``jq``.
 
 
 Exit codes
