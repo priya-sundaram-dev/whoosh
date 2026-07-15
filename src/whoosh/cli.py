@@ -200,6 +200,14 @@ def cmd_search(args: argparse.Namespace) -> int:
             results.formatter = UppercaseFormatter()
         results.fragmenter = ContextFragmenter(maxchars=200, surround=40)
 
+        fields_to_show = None
+        if getattr(args, "fields", None):
+            fields_to_show = [f.strip() for f in args.fields.split(",") if f.strip()]
+            for f in fields_to_show:
+                if f not in ix.schema.names():
+                    print(f"whoosh search: error: unknown field {f!r}. Valid fields: {', '.join(ix.schema.names())}", file=sys.stderr)
+                    return 2
+
         n = len(results)
         if n == 0:
             if getattr(args, "json", False):
@@ -211,26 +219,40 @@ def cmd_search(args: argparse.Namespace) -> int:
         if getattr(args, "json", False):
             json_results = []
             for i, hit in enumerate(results, 1):
-                snippet = hit.highlights("body") or (hit["body"][:160] + "...")
-                snippet = " ".join(snippet.split())
-                hit_dict = {
-                    "path": hit['path'],
-                    "score": hit.score,
-                    "snippet": snippet
-                }
-                if "title" in hit and hit["title"]:
-                    hit_dict["title"] = hit["title"]
+                if fields_to_show:
+                    hit_dict = {f: hit[f] for f in fields_to_show if f in hit}
+                else:
+                    snippet = hit.highlights("body") or (hit["body"][:160] + "...")
+                    snippet = " ".join(snippet.split())
+                    hit_dict = {
+                        "path": hit['path'],
+                        "score": hit.score,
+                        "snippet": snippet
+                    }
+                    if "title" in hit and hit["title"]:
+                        hit_dict["title"] = hit["title"]
                 json_results.append(hit_dict)
             print(json.dumps(json_results))
             return 0
 
         print(f"{n} match{'es' if n != 1 else ''} for {args.query!r}:\n")
         for i, hit in enumerate(results, 1):
-            snippet = hit.highlights("body") or (hit["body"][:160] + "...")
-            snippet = " ".join(snippet.split())  # collapse whitespace
-            print(f"{i}. {hit['path']}  (score {hit.score:.2f})")
-            print(f"   {snippet}\n")
+            if fields_to_show:
+                fields_str = ", ".join(f"{f}: {hit[f]}" for f in fields_to_show if f in hit)
+                print(f"{i}. {fields_str}\n")
+            else:
+                snippet = hit.highlights("body") or (hit["body"][:160] + "...")
+                snippet = " ".join(snippet.split())  # collapse whitespace
+                print(f"{i}. {hit['path']}  (score {hit.score:.2f})")
+                print(f"   {snippet}\n")
     return 0
+
+
+def _check_positive_int(value: str) -> int:
+    ivalue = int(value)
+    if ivalue < 1:
+        raise argparse.ArgumentTypeError(f"invalid positive int value: '{value}'")
+    return ivalue
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -257,8 +279,10 @@ def build_parser() -> argparse.ArgumentParser:
                          'field:term)')
     ps.add_argument("directory", nargs="?", default=".",
                     help="directory whose index to search (default: current)")
-    ps.add_argument("--limit", type=int, default=10,
+    ps.add_argument("--limit", type=_check_positive_int, default=10,
                     help="max results (default: 10)")
+    ps.add_argument("--fields",
+                    help="comma-separated list of stored fields to include in output")
     
     group = ps.add_mutually_exclusive_group()
     group.add_argument("--html", action="store_true",

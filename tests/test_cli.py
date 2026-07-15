@@ -128,3 +128,53 @@ def test_search_mutually_exclusive_json_html(corpus, capsys):
     err = capsys.readouterr().err
     assert "not allowed with argument" in err.lower()
 
+
+def test_search_limit_invalid(corpus, capsys):
+    with pytest.raises(SystemExit):
+        run(["search", "search", corpus, "--limit", "0"])
+    err = capsys.readouterr().err
+    assert "invalid positive int value" in err.lower()
+
+
+def test_search_limit(corpus, capsys):
+    assert run(["index", corpus]) == 0
+    capsys.readouterr()
+    rc = run(["search", "search", corpus, "--limit", "1"])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert out.count("1.") == 1
+    assert "2." not in out
+
+
+def test_search_fields_invalid(corpus, capsys):
+    assert run(["index", corpus]) == 0
+    capsys.readouterr()
+    rc = run(["search", "whoosh", corpus, "--fields", "badfield"])
+    assert rc == 2
+    err = capsys.readouterr().err
+    assert "unknown field" in err.lower()
+
+
+def test_search_fields_json(corpus, capsys):
+    assert run(["index", corpus]) == 0
+    capsys.readouterr()
+    rc = run(["search", "whoosh", corpus, "--json", "--fields", "path"])
+    assert rc == 0
+    out = capsys.readouterr().out
+    import json
+    data = json.loads(out)
+    assert len(data) > 0
+    assert "path" in data[0]
+    assert "score" not in data[0]
+    assert "snippet" not in data[0]
+
+
+def test_search_fields_text(corpus, capsys):
+    assert run(["index", corpus]) == 0
+    capsys.readouterr()
+    rc = run(["search", "whoosh", corpus, "--fields", "path"])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "path:" in out
+    assert "score" not in out
+
