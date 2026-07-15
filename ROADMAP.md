@@ -51,7 +51,8 @@ About section of the README.)*
       rather than duplicating it (see whoosh-reloaded#114 / de-odex/whoosh-novo).
 - [ ] Resource-lifecycle hardening: readers/searchers as context managers with
       explicit `close()` (shipped) — document and test the Windows file-lock
-      path end-to-end for downstreams like paperless-ngx and MoinMoin.
+      path end-to-end for downstreams like paperless-ngx and MoinMoin
+      ([#4](https://github.com/priya-sundaram-dev/whoosh/issues/4), help wanted).
 
 ## Next
 
@@ -65,7 +66,10 @@ About section of the README.)*
       install.
 - [ ] Better Unicode/tokenizer coverage and documented analyzer recipes.
 - [ ] A cookbook of integration examples (Flask/Django/FastAPI, static-site
-      search).
+      search — [#5](https://github.com/priya-sundaram-dev/whoosh/issues/5), good
+      first issue).
+- [ ] `--json` output for the `whoosh` command-line search, for scripting and
+      pipelines ([#6](https://github.com/priya-sundaram-dev/whoosh/issues/6)).
 
 ## Non-goals
 
