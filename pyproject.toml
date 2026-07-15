@@ -71,7 +71,10 @@ version = { attr = "whoosh.__version_str__" }
 # ==========================================================================
 
 [tool.mypy]
-python_version = "3.9"
+# Type-check the public-API smoke fixture against a modern floor. Whoosh3 runs
+# on 3.9+, but this only sets mypy's *checking target*; 3.10 keeps CI robust as
+# newer mypy releases drop support for 3.9 as a target (gh#3).
+python_version = "3.10"
 files = ["tests/typing_smoke.py"]
 follow_imports = "silent"
 ignore_missing_imports = true
