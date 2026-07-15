@@ -33,8 +33,7 @@ import time
 from pathlib import PurePath
 from typing import TYPE_CHECKING
 
-from whoosh import __version_str__
-from whoosh import index
+from whoosh import __version_str__, index
 from whoosh.analysis import StemmingAnalyzer
 from whoosh.fields import ID, NUMERIC, TEXT, Schema
 from whoosh.highlight import ContextFragmenter, HtmlFormatter, UppercaseFormatter
@@ -238,7 +237,7 @@ def cmd_search(args: argparse.Namespace) -> int:
                 return 1
             print(f"No matches for: {args.query!r}")
             return 1
-            
+
         if getattr(args, "json", False):
             json_results = []
             for i, hit in enumerate(results, 1):
@@ -248,7 +247,7 @@ def cmd_search(args: argparse.Namespace) -> int:
                     snippet = hit.highlights("body") or (hit["body"][:160] + "...")
                     snippet = " ".join(snippet.split())
                     hit_dict = {
-                        "path": hit['path'],
+                        "path": hit["path"],
                         "score": hit.score,
                         "snippet": snippet
                     }
@@ -270,7 +269,7 @@ def cmd_search(args: argparse.Namespace) -> int:
                 snippet = " ".join(snippet.split())  # collapse whitespace
                 print(f"{i}. {hit['path']}  (score {hit.score:.2f})")
                 print(f"   {snippet}\n")
-        
+
         if getattr(args, "count", False) or getattr(args, "json", False) or getattr(args, "html", False):
             pass
         else:
@@ -324,7 +323,7 @@ def build_parser() -> argparse.ArgumentParser:
                     help="max results (default: 10)")
     ps.add_argument("--fields",
                     help="comma-separated list of stored fields to include in output")
-    
+
     group = ps.add_mutually_exclusive_group()
     group.add_argument("--html", action="store_true",
                     help="emit <mark>...</mark> HTML highlights instead of "

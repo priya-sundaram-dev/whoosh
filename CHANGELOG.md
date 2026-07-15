@@ -8,6 +8,10 @@ All notable changes to this project are documented here. This project follows
 
 ### Added
 
+- **`whoosh index --exclude`.** The CLI now supports excluding specific files or
+  directories during indexing using the `--exclude` flag with glob patterns
+  (e.g., `--exclude "build/*"`). It can be specified multiple times.
+
 - **`whoosh --version` / `-V`.** The CLI now has a top-level `--version` (and
   short `-V`) flag that prints the installed Whoosh version and exits. Thanks
   to [@abhiramvsmg](https://github.com/abhiramvsmg) for the contribution
