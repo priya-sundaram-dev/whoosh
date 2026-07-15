@@ -293,6 +293,17 @@ pagination, and highlighted snippets via
 broader "adding search to your app" guide, including a Django variant.
 
 
+Adding search to a static site
+==============================
+
+``examples/static_site_search.py`` — a lightweight script to index a directory of static files (e.g. Markdown or ReStructuredText) and perform a search on them. Because Whoosh is pure Python and doesn't require a server, it's perfect for static sites::
+
+    python examples/static_site_search.py index docs/source
+    python examples/static_site_search.py search "whoosh"
+
+The script walks the directory to find ``.md`` and ``.rst`` files, strips out simple markup using standard library regular expressions, and builds a Whoosh index. The schema boosts the ``title`` over the ``body`` content. When searching, it opens the index and prints highlighted snippets. This approach allows you to build the index at CI time or distribute it alongside a desktop application without external database dependencies.
+
+
 Migrating from Whoosh 2.x / whoosh-reloaded
 ===========================================
 

@@ -133,3 +133,32 @@ def test_version_object():
 
     assert sv(1, 2, 3).to_int() == 17213488128
     assert sv.from_int(17213488128) == sv(1, 2, 3)
+
+
+def test_concurrent_writers_lock():
+    import pytest
+    import tempfile
+    import uuid
+    from whoosh import fields
+    from whoosh.filedb.filestore import FileStorage
+    from whoosh.index import LockError
+
+    schema = fields.Schema(text=fields.TEXT)
+    uid = uuid.uuid4()
+    dirpath = os.path.join(tempfile.gettempdir(), str(uid))
+    st = FileStorage(dirpath)
+    st.create()
+    try:
+        ix = st.create_index(schema)
+        w1 = ix.writer()
+        try:
+            with pytest.raises(LockError):
+                ix.writer()
+        finally:
+            w1.cancel()
+            
+        # After w1 is closed, we should be able to get a new writer
+        w2 = ix.writer()
+        w2.cancel()
+    finally:
+        st.destroy()
