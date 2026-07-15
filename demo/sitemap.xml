@@ -193,6 +193,12 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://priya-sundaram-dev.github.io/whoosh/search-files-command-line.html</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://priya-sundaram-dev.github.io/whoosh/docs/cookbook.html</loc>
     <lastmod>2026-07-14</lastmod>
     <changefreq>monthly</changefreq>
