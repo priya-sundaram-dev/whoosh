@@ -49,9 +49,10 @@ jobs:
         run: |
           python -m pip install build
           python -m build --wheel
-          # The demo installs "./whoosh3-latest-py2.py3-none-any.whl" via micropip,
-          # so the live demo always runs the current release with no committed binary.
-          cp dist/whoosh3-*-py2.py3-none-any.whl demo/whoosh3-latest-py2.py3-none-any.whl
+          # Keep the real wheel filename: micropip validates it against PEP 440,
+          # so a "latest" pseudo-version is rejected as an invalid wheel name.
+          # The real filename is injected into the demo HTML in the next step.
+          cp dist/whoosh3-*-py2.py3-none-any.whl demo/
 
       - name: Assemble site (demo at root, docs under /docs)
         run: |
@@ -62,6 +63,15 @@ jobs:
           # Keep the demo's JSON-LD softwareVersion in sync with the shipped release.
           VERSION="$(python -c 'import whoosh; print(whoosh.__version_str__)')"
           sed -i -E "s#(\"softwareVersion\": \")[^\"]*(\")#\1${VERSION}\2#" _site/index.html
+          # Inject the real wheel filename so micropip can install it (PEP 440).
+          WHEEL="$(cd dist && ls whoosh3-*-py2.py3-none-any.whl | head -1)"
+          echo "Demo wheel: ${WHEEL}"
+          sed -i "s#__WHEEL_FILENAME__#${WHEEL}#g" _site/index.html
+          # Fail loudly if the placeholder was not replaced (guards the live demo).
+          if grep -q "__WHEEL_FILENAME__" _site/index.html; then
+            echo "ERROR: __WHEEL_FILENAME__ placeholder was not replaced" >&2
+            exit 1
+          fi
 
       - name: Self-heal sitemap (append any built docs pages not yet listed)
         run: |

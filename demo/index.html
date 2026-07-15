@@ -136,9 +136,11 @@ async function main(){
   await pyodide.loadPackage("micropip");
   const micropip = pyodide.pyimport("micropip");
   // Install the wheel shipped alongside this page.
-  // Wheel is built fresh from the current release by the Pages workflow and
-  // copied here as whoosh3-latest-...whl, so this demo always runs the latest.
-  await micropip.install("./whoosh3-latest-py2.py3-none-any.whl");
+  // The Pages workflow builds the wheel fresh from the current release and
+  // rewrites the __WHEEL_FILENAME__ placeholder below to the real wheel name
+  // (e.g. whoosh3-3.3.1-py2.py3-none-any.whl). micropip validates the wheel
+  // filename against PEP 440, so it must carry a real version — not "latest".
+  await micropip.install("./__WHEEL_FILENAME__");
 
   pyodide.globals.set("CORPUS_JSON", JSON.stringify(CORPUS));
   await pyodide.runPythonAsync(`
