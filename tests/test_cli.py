@@ -248,3 +248,26 @@ def test_version_flag_short(capsys):
     out = capsys.readouterr().out
     assert "whoosh" in out.lower()
     assert __version_str__ in out
+
+
+def test_index_exclude(tmp_path, capsys):
+    (tmp_path / "keep.txt").write_text("keep me")
+    build_dir = tmp_path / "build"
+    build_dir.mkdir()
+    (build_dir / "skip.txt").write_text("skip me")
+    (tmp_path / "vendor.min.js").write_text("vendor")
+
+    rc = run(["index", tmp_path, "--exclude", "build/*", "--exclude", "*.min.js"])
+    assert rc == 0
+
+    # Check that keep.txt was indexed, but not the others
+    capsys.readouterr()
+    rc = run(["search", "keep", tmp_path])
+    assert rc == 0
+    assert "keep.txt" in capsys.readouterr().out
+
+    rc = run(["search", "skip", tmp_path])
+    assert rc == 1  # Should find no matches
+
+    rc = run(["search", "vendor", tmp_path])
+    assert rc == 1  # Should find no matches

@@ -52,6 +52,10 @@ are picked up with ``--ext`` (comma-separated)::
 
     $ whoosh index ~/notes --ext .md,.txt,.rst
 
+You can exclude specific folders or files using `--exclude` with glob patterns. This can be specified multiple times::
+
+    $ whoosh index ~/notes --exclude "build/*" --exclude "*.min.js"
+
 Re-index incrementally with ``--update``. Only files whose modification time
 changed are re-read, and files that were deleted are dropped from the index —
 so keeping a large tree fresh is cheap::
