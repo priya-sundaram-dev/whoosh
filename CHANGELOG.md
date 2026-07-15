@@ -6,6 +6,12 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Changed
+
+- Clarified the package description so PyPI search results make it obvious this
+  is the actively maintained Whoosh (Python 3.9-3.13), distinct from the
+  long-dormant `Whoosh` and `whoosh-reloaded` distributions.
+
 ## [3.7.0] - 2026-07-15
 
 ### Added

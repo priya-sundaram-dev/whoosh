@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "whoosh3"
 dynamic = ["version"]
-description = "Fast, pure-Python full text indexing, search, and spell checking library."
+description = "Fast, pure-Python full-text indexing, search, and spell-checking library — the actively maintained Whoosh, running on Python 3.9-3.13."
 readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "BSD-2-Clause" }
