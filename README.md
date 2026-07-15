@@ -123,6 +123,8 @@ $ whoosh search "full text search" ~/notes
 - Query language: `AND`/`OR`/`NOT`, `"exact phrases"`, and `field:term`.
 - `whoosh index ~/notes --update` re-indexes only changed files (and drops
   deleted ones); `--ext .md,.txt` limits which files are picked up.
+- `whoosh stats ~/notes` prints a quick summary of an index — document count,
+  fields, size on disk, and when it was last updated (`--json` for scripts).
 
 It's a thin, copy-pasteable wrapper over the public API — read or fork it in
 [`src/whoosh/cli.py`](src/whoosh/cli.py) to build your own tool. Full command

@@ -27,7 +27,7 @@ The import package is still ``whoosh`` (so it is a drop-in for existing code),
 and the installed console command is ``whoosh``::
 
     $ whoosh --help
-    usage: whoosh [-h] {index,search} ...
+    usage: whoosh [-h] {index,search,stats} ...
 
 Check your installed version at any time with ``whoosh --version`` or
 ``whoosh -V``::
@@ -105,6 +105,31 @@ with ``--html``), making it easy to parse results with tools like ``jq``.
 and exits, which is great for shell pipelines (mutually exclusive with ``--json`` and ``--html``).
 
 
+Inspect an index
+================
+
+``whoosh stats`` prints a quick summary of an existing index without running a
+query — handy for confirming an index built correctly, or for wiring index
+health into a script::
+
+    $ whoosh stats ~/notes
+    Index: /home/you/notes/.whoosh_index
+      documents:   128
+      fields:      4
+        - body (TEXT)
+        - mtime (NUMERIC)
+        - path (ID)
+        - title (TEXT)
+      size on disk: 2.1 MB  (7 files)
+      last updated: 2026-07-15 12:56:46
+
+Add ``--json`` for machine-readable output (document count, fields with their
+types, size in bytes, and last-modified timestamp), which parses cleanly with
+tools like ``jq``::
+
+    $ whoosh stats ~/notes --json
+
+
 Exit codes
 ==========
 
@@ -128,6 +153,8 @@ the directory, and writes each file into a Whoosh index using the same
 :doc:`indexing` and :doc:`schema` APIs documented here. ``whoosh search``
 opens that index and runs a :doc:`MultifieldParser <parsing>` query across
 ``title`` and ``body``, then renders :doc:`highlighted <highlight>` snippets.
+``whoosh stats`` opens the index read-only and reports counts and metadata from
+the reader and the on-disk files.
 
 Everything the command does is achievable directly from the library — the CLI
 just wires the pieces together with sensible defaults. If you outgrow it (custom

@@ -8,6 +8,11 @@ All notable changes to this project are documented here. This project follows
 
 ### Added
 
+- **`whoosh stats` subcommand.** Print a summary of an existing index without
+  running a query: document count (and count including deleted docs when they
+  differ), the schema fields with their types, the index size on disk, and when
+  it was last updated. Add `--json` for machine-readable output. Useful for
+  quickly inspecting an index or wiring index health into scripts (#10).
 - **`whoosh index --exclude`.** The CLI now supports excluding specific files or
   directories during indexing using the `--exclude` flag with glob patterns
   (e.g., `--exclude "build/*"`). It can be specified multiple times. Excluded

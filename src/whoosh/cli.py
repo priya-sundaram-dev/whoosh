@@ -20,6 +20,9 @@ pure Python::
     # Exclude specific files and directories
     whoosh index . --exclude "build/*" --exclude "*.min.js"
 
+    # Inspect an index (doc count, fields, size on disk)
+    whoosh stats .
+
 Everything here uses only the public Whoosh API, so the same code doubles as
 a worked example you can copy into your own project and adapt.
 """
@@ -280,6 +283,76 @@ def cmd_search(args: argparse.Namespace) -> int:
     return 0
 
 
+def _human_bytes(n: int) -> str:
+    """Render a byte count as a short human-readable string."""
+    size = float(n)
+    for unit in ("B", "KB", "MB", "GB", "TB"):
+        if size < 1024.0 or unit == "TB":
+            if unit == "B":
+                return f"{int(size)} {unit}"
+            return f"{size:.1f} {unit}"
+        size /= 1024.0
+    return f"{size:.1f} TB"
+
+
+def cmd_stats(args: argparse.Namespace) -> int:
+    """Print a summary of an existing index: doc count, fields, size on disk."""
+    root = os.path.abspath(args.directory)
+    index_dir = os.path.join(root, INDEX_DIRNAME)
+    if not index.exists_in(index_dir):
+        print(f"error: no index at {index_dir}. Run 'whoosh index' first.",
+              file=sys.stderr)
+        return 2
+
+    ix = index.open_dir(index_dir)
+    with ix.reader() as r:
+        doc_count = r.doc_count()
+        doc_count_all = r.doc_count_all()
+
+    schema = ix.schema
+    fields = [(name, type(schema[name]).__name__) for name in schema.names()]
+
+    # Size on disk: sum of all files in the index directory.
+    total_bytes = 0
+    file_count = 0
+    latest_mtime = 0.0
+    for name in os.listdir(index_dir):
+        fp = os.path.join(index_dir, name)
+        try:
+            st = os.stat(fp)
+        except OSError:
+            continue
+        if os.path.isfile(fp):
+            total_bytes += st.st_size
+            file_count += 1
+            latest_mtime = max(latest_mtime, st.st_mtime)
+
+    if getattr(args, "json", False):
+        payload = {
+            "index_dir": index_dir,
+            "doc_count": doc_count,
+            "doc_count_all": doc_count_all,
+            "fields": [{"name": n, "type": t} for n, t in fields],
+            "size_bytes": total_bytes,
+            "index_files": file_count,
+            "last_modified": latest_mtime or None,
+        }
+        print(json.dumps(payload, indent=2))
+        return 0
+
+    print(f"Index: {index_dir}")
+    print(f"  documents:   {doc_count}"
+          + (f"  ({doc_count_all} incl. deleted)" if doc_count_all != doc_count else ""))
+    print(f"  fields:      {len(fields)}")
+    for name, ftype in fields:
+        print(f"    - {name} ({ftype})")
+    print(f"  size on disk: {_human_bytes(total_bytes)}  ({file_count} files)")
+    if latest_mtime:
+        stamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(latest_mtime))
+        print(f"  last updated: {stamp}")
+    return 0
+
+
 def _check_positive_int(value: str) -> int:
     ivalue = int(value)
     if ivalue < 1:
@@ -334,6 +407,14 @@ def build_parser() -> argparse.ArgumentParser:
     group.add_argument("--count", action="store_true",
                     help="emit only the number of matching documents")
     ps.set_defaults(func=cmd_search)
+
+    pst = sub.add_parser("stats",
+                         help="show index summary (doc count, fields, size)")
+    pst.add_argument("directory", nargs="?", default=".",
+                     help="directory whose index to inspect (default: current)")
+    pst.add_argument("--json", action="store_true",
+                     help="emit machine-readable JSON output")
+    pst.set_defaults(func=cmd_stats)
     return p
 
 

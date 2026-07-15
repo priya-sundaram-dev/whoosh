@@ -271,3 +271,42 @@ def test_index_exclude(tmp_path, capsys):
 
     rc = run(["search", "vendor", tmp_path])
     assert rc == 1  # Should find no matches
+
+
+def test_stats_no_index_errors(tmp_path, capsys):
+    rc = run(["stats", tmp_path])
+    assert rc == 2
+    assert "no index" in capsys.readouterr().err
+
+
+def test_stats_text_output(corpus, capsys):
+    run(["index", corpus])
+    capsys.readouterr()
+    rc = run(["stats", corpus])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "documents:" in out
+    assert "fields:" in out
+    # schema fields from build_schema()
+    assert "path" in out and "body" in out
+    assert "size on disk:" in out
+
+
+def test_stats_json_output(corpus, capsys):
+    import json as _json
+    run(["index", corpus])
+    capsys.readouterr()
+    rc = run(["stats", corpus, "--json"])
+    assert rc == 0
+    payload = _json.loads(capsys.readouterr().out)
+    assert payload["doc_count"] >= 1
+    assert payload["size_bytes"] > 0
+    names = {f["name"] for f in payload["fields"]}
+    assert {"path", "title", "body", "mtime"} <= names
+
+
+def test_human_bytes():
+    assert cli._human_bytes(0) == "0 B"
+    assert cli._human_bytes(512) == "512 B"
+    assert cli._human_bytes(1536).endswith("KB")
+    assert cli._human_bytes(5 * 1024 * 1024).endswith("MB")
