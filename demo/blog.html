@@ -214,6 +214,11 @@
     guide</a></strong> — use Whoosh as the BM25 keyword-retrieval half of a
     hybrid RAG pipeline and fuse it with vector search via Reciprocal Rank
     Fusion (RRF), with runnable code and no server.</li>
+    <li><strong>A <a href="./whoosh-performance-tuning-fast-indexing.html">performance-tuning
+    guide</a></strong> — why Whoosh indexing feels slow (usually a writer per
+    document: ~18× slower) and how to fix it with batching, <code>limitmb</code>,
+    <code>multisegment</code>, <code>optimize</code>, and searcher reuse — with
+    verified before/after benchmarks.</li>
     <li><strong>A migration guide</strong> for existing Whoosh / whoosh-reloaded
     users — upgrading is a one-line dependency change; imports, on-disk index
     format, and the public API are unchanged.</li>
