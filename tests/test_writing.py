@@ -732,6 +732,10 @@ def test_cancel_failure_releases_writelock():
         orig = SegmentWriter._close_segment
 
         def boom(self, *args, **kwargs):
+            # Do the real close first (so no OS file handles are left open,
+            # which would block temp-storage cleanup on Windows), then raise
+            # to simulate a failure late in cancel().
+            orig(self, *args, **kwargs)
             raise RuntimeError("simulated failure during cancel")
 
         SegmentWriter._close_segment = boom
