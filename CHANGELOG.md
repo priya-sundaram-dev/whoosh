@@ -6,6 +6,18 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.9.0] - 2026-07-16
+
+### Added
+
+- **`whoosh search --no-highlight`** prints results as a plain, grep-friendly
+  leading slice of the document body with no match markup — handy when piping
+  output to other tools where the `UPPERCASED` match tokens get in the way
+  (gh#11).
+- **`whoosh search --snippet-chars N`** controls the maximum length of the
+  context snippet shown per result (default 200). Applies to both the default
+  text output and JSON snippets (gh#13).
+
 ## [3.8.3] - 2026-07-16
 
 ### Fixed

@@ -232,11 +232,33 @@ def cmd_search(args: argparse.Namespace) -> int:
             return 0
 
         results = s.search(query, limit=args.limit)
+        snippet_chars = getattr(args, "snippet_chars", 200)
+        no_highlight = getattr(args, "no_highlight", False)
         if args.html:
             results.formatter = HtmlFormatter(tagname="mark")
         else:
             results.formatter = UppercaseFormatter()
-        results.fragmenter = ContextFragmenter(maxchars=200, surround=40)
+        results.fragmenter = ContextFragmenter(
+            maxchars=snippet_chars, surround=snippet_chars // 5)
+
+        def make_snippet(hit):
+            """Return a display snippet for ``hit`` honoring the output flags.
+
+            With ``--no-highlight`` (or when the highlighter finds nothing to
+            fragment) fall back to a plain, whitespace-collapsed leading slice
+            of the stored body so output stays readable and grep-friendly.
+            """
+            body = hit["body"] if "body" in hit else ""
+            if no_highlight:
+                text = " ".join(body.split())
+                if len(text) > snippet_chars:
+                    text = text[:snippet_chars].rstrip() + "..."
+                return text
+            snippet = hit.highlights("body")
+            if not snippet:
+                text = " ".join(body.split())
+                snippet = text[:snippet_chars] + ("..." if len(text) > snippet_chars else "")
+            return " ".join(snippet.split())
 
         fields_to_show = None
         if getattr(args, "fields", None):
@@ -260,12 +282,10 @@ def cmd_search(args: argparse.Namespace) -> int:
                 if fields_to_show:
                     hit_dict = {f: hit[f] for f in fields_to_show if f in hit}
                 else:
-                    snippet = hit.highlights("body") or (hit["body"][:160] + "...")
-                    snippet = " ".join(snippet.split())
                     hit_dict = {
                         "path": hit["path"],
                         "score": hit.score,
-                        "snippet": snippet
+                        "snippet": make_snippet(hit)
                     }
                     if "title" in hit and hit["title"]:
                         hit_dict["title"] = hit["title"]
@@ -281,10 +301,8 @@ def cmd_search(args: argparse.Namespace) -> int:
                 fields_str = ", ".join(f"{f}: {hit[f]}" for f in fields_to_show if f in hit)
                 print(f"{i}. {fields_str}\n")
             else:
-                snippet = hit.highlights("body") or (hit["body"][:160] + "...")
-                snippet = " ".join(snippet.split())  # collapse whitespace
                 print(f"{i}. {hit['path']}  (score {hit.score:.2f})")
-                print(f"   {snippet}\n")
+                print(f"   {make_snippet(hit)}\n")
 
         if getattr(args, "count", False) or getattr(args, "json", False) or getattr(args, "html", False):
             pass
@@ -411,11 +429,23 @@ def build_parser() -> argparse.ArgumentParser:
                     help="comma-separated list of stored fields to include in output")
     ps.add_argument("--field", action="append", metavar="NAME",
                     help="field to search (repeatable; default: title and body)")
+    ps.add_argument("--snippet-chars", type=_check_positive_int, default=200,
+                    metavar="N", dest="snippet_chars",
+                    help="max characters of context to show per snippet "
+                         "(default: 200)")
 
+    # Output style/mode flags are mutually exclusive: the default UPPERCASE
+    # text, HTML highlights, a plain grep-friendly slice, machine-readable
+    # JSON, or a bare count. (JSON snippets are already plain, so combining
+    # --no-highlight with --json would be redundant.)
     group = ps.add_mutually_exclusive_group()
     group.add_argument("--html", action="store_true",
                     help="emit <mark>...</mark> HTML highlights instead of "
                          "UPPERCASE")
+    group.add_argument("--no-highlight", action="store_true",
+                    dest="no_highlight",
+                    help="print a plain, grep-friendly leading slice of the "
+                         "body with no match markup")
     group.add_argument("--json", action="store_true",
                     help="emit machine-readable JSON output instead of "
                          "human-readable text")

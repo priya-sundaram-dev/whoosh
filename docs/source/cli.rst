@@ -89,11 +89,13 @@ The query supports Whoosh's full query language:
 
 Useful options::
 
-    $ whoosh search "index writer" ~/notes --limit 20    # show up to 20 hits
-    $ whoosh search "index writer" ~/notes --html        # <mark>...</mark> snippets
-    $ whoosh search "index writer" ~/notes --json        # JSON array output
-    $ whoosh search "index writer" ~/notes --count       # output just the number of matches
-    $ whoosh search "index writer" ~/notes --field title # search titles only
+    $ whoosh search "index writer" ~/notes --limit 20       # show up to 20 hits
+    $ whoosh search "index writer" ~/notes --html           # <mark>...</mark> snippets
+    $ whoosh search "index writer" ~/notes --no-highlight   # plain, grep-friendly snippets
+    $ whoosh search "index writer" ~/notes --snippet-chars 80  # shorter snippets
+    $ whoosh search "index writer" ~/notes --json           # JSON array output
+    $ whoosh search "index writer" ~/notes --count          # output just the number of matches
+    $ whoosh search "index writer" ~/notes --field title    # search titles only
 
 Repeat ``--field`` to search more than one selected field with equal weighting.
 When it is omitted, Whoosh searches ``title`` and ``body`` with the usual title
@@ -109,8 +111,20 @@ in the output instead.
 default UPPERCASE highlighting, which is handy when piping results into a web
 page or a note-taking tool.
 
-``--json`` emits a machine-readable JSON array of matches (mutually exclusive
-with ``--html``), making it easy to parse results with tools like ``jq``.
+``--no-highlight`` prints a plain, whitespace-collapsed leading slice of the
+document body with no match markup at all. This keeps output readable and
+grep-friendly when piping into other tools where the ``UPPERCASED`` match
+tokens get in the way.
+
+``--snippet-chars N`` sets the maximum number of characters shown per snippet
+(default 200). It applies to the default text output, ``--no-highlight``, and
+the ``snippet`` field of ``--json`` output.
+
+``--json`` emits a machine-readable JSON array of matches, making it easy to
+parse results with tools like ``jq``.
+
+The output-style flags (``--html``, ``--no-highlight``, ``--json`` and
+``--count``) are mutually exclusive.
 
 ``--count`` prints only the total number of matching documents as a single integer
 and exits, which is great for shell pipelines (mutually exclusive with ``--json`` and ``--html``).

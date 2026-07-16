@@ -102,6 +102,58 @@ def test_html_highlight_formatter(corpus, capsys):
     assert "<mark" in capsys.readouterr().out.lower()
 
 
+def test_search_no_highlight_plain_output(corpus, capsys):
+    """--no-highlight prints a plain body slice with no UPPERCASE markup."""
+    assert run(["index", corpus]) == 0
+    capsys.readouterr()
+    rc = run(["search", "whoosh", corpus, "--no-highlight"])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "match" in out.lower()
+    # The matched term is lowercased in the source, so no UPPERCASE marker.
+    assert "WHOOSH" not in out
+    assert "<mark" not in out.lower()
+    # The plain leading slice should be present verbatim (lowercased term).
+    assert "whoosh" in out.lower()
+
+
+def test_search_no_highlight_conflicts_with_html(corpus, capsys):
+    with pytest.raises(SystemExit):
+        run(["search", "whoosh", corpus, "--no-highlight", "--html"])
+    err = capsys.readouterr().err
+    assert "not allowed with argument" in err.lower()
+
+
+def test_search_no_highlight_conflicts_with_json(corpus, capsys):
+    with pytest.raises(SystemExit):
+        run(["search", "whoosh", corpus, "--no-highlight", "--json"])
+    err = capsys.readouterr().err
+    assert "not allowed with argument" in err.lower()
+
+
+def test_search_snippet_chars_limits_length(corpus, capsys):
+    """--snippet-chars N bounds the plain snippet length."""
+    assert run(["index", corpus]) == 0
+    capsys.readouterr()
+    rc = run(["search", "whoosh", corpus, "--no-highlight", "--snippet-chars", "20"])
+    assert rc == 0
+    out = capsys.readouterr().out
+    # Each snippet line (indented) should be short; check the ellipsis marker
+    # appears, indicating truncation happened.
+    assert "..." in out
+    for line in out.splitlines():
+        if line.startswith("   "):  # snippet lines are indented
+            # 20 chars + optional "..." + indent; keep a generous bound.
+            assert len(line.strip()) <= 20 + len("...")
+
+
+def test_search_snippet_chars_rejects_nonpositive(corpus, capsys):
+    with pytest.raises(SystemExit):
+        run(["search", "whoosh", corpus, "--snippet-chars", "0"])
+    err = capsys.readouterr().err
+    assert "positive" in err.lower()
+
+
 def test_resolve_exts_normalizes():
     assert cli._resolve_exts("md,.txt") == (".md", ".txt")
     assert cli._resolve_exts("") == cli.DEFAULT_EXTS
