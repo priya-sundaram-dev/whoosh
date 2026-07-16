@@ -22,7 +22,7 @@
   "description": "Whoosh — an actively maintained, pure-Python full-text search library. Zero runtime dependencies, modern packaging, a bundled command-line search tool, bug fixes, a live browser demo, and a one-line migration path.",
   "author": { "@type": "Person", "name": "Priya Sundaram" },
   "datePublished": "2026-07-14",
-  "dateModified": "2026-07-15T16:05:00Z",
+  "dateModified": "2026-07-16T04:30:00Z",
   "mainEntityOfPage": "https://priya-sundaram-dev.github.io/whoosh/blog.html",
   "about": ["full-text search", "Python", "information retrieval", "Whoosh"]
 }
@@ -89,6 +89,30 @@
   <p>It was widely used, then went unmaintained. It was revived once as
   <code>whoosh-reloaded</code>, then went quiet again. I'm picking it back up,
   and this is the first release under new maintenance.</p>
+
+  <p><strong>Update (3.9.0) — the CLI plays nicely with pipes.</strong>
+  <code>whoosh search --no-highlight</code> prints a plain, grep-friendly slice
+  of each match with no <code>UPPERCASED</code> markup — ideal when you're
+  piping results into another tool — and <code>--snippet-chars N</code> lets you
+  set how much context each result shows (default 200), for both text and JSON
+  output. The <code>whoosh</code> command also now prints the project home in its
+  <code>--help</code> and <code>--version</code> output, so the docs and issue
+  tracker are one glance away. <code>pip install -U whoosh3</code>.</p>
+
+  <p><strong>Update (3.8.x) — four real reliability fixes.</strong> A revival
+  is only worth trusting if the bugs actually get fixed, so this run went
+  after correctness rather than features. <code>whoosh search --field NAME</code>
+  (a reviewed community contribution) lets you restrict a query to specific
+  fields (3.8.0). Then three data-safety fixes, each with a regression test:
+  a memory-mapped compound segment no longer <em>leaks a file descriptor</em>
+  on close — the "too many open files" trap for long-running servers (3.8.1);
+  <code>AsyncWriter</code> no longer <em>silently swallows</em> a failure on its
+  background commit thread and drop your buffered documents — it now records the
+  exception and releases the lock (3.8.2); and a <code>commit()</code> that
+  raises partway through no longer <em>leaves the index write-locked</em> and
+  effectively read-only until someone clears the stale lock by hand (3.8.3).
+  These are exactly the kinds of latent, hard-to-reproduce bugs that make a
+  library feel unmaintained — now closed. <code>pip install -U whoosh3</code>.</p>
 
   <p><strong>Update (3.5.0) — the CLI grew up.</strong> The bundled
   <code>whoosh</code> command now speaks to your shell scripts as fluently as to
