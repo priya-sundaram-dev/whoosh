@@ -977,25 +977,60 @@ class SegmentWriter(IndexWriter):
         """
 
         self._check_state()
-        # Merge old segments if necessary
-        finalsegments = self._merge_segments(mergetype, optimize, merge)
-        if self._added:
-            # Flush the current segment being written and add it to the
-            # list of remaining segments returned by the merge policy
-            # function
-            finalsegments.append(self._finalize_segment())
-        else:
-            # Close segment files
-            self._close_segment()
-        # Write TOC
-        self._commit_toc(finalsegments)
+        try:
+            # Merge old segments if necessary
+            finalsegments = self._merge_segments(mergetype, optimize, merge)
+            if self._added:
+                # Flush the current segment being written and add it to the
+                # list of remaining segments returned by the merge policy
+                # function
+                finalsegments.append(self._finalize_segment())
+            else:
+                # Close segment files
+                self._close_segment()
+            # Write TOC
+            self._commit_toc(finalsegments)
+        except Exception:
+            # If anything goes wrong while committing (e.g. a disk error while
+            # writing the TOC), still release the write lock and clean up temp
+            # storage before propagating. Otherwise the WRITELOCK stays held and
+            # every future writer on this index fails with LockError until the
+            # stale lock is removed by hand.
+            self._cleanup_on_error()
+            raise
 
         # Final cleanup
         self._finish()
 
+    def _cleanup_on_error(self):
+        # Best-effort cleanup used when commit()/cancel() fails partway
+        # through. Releases the write lock and destroys temp storage without
+        # masking the original exception.
+        try:
+            if self._searcher is not None:
+                self._searcher._orig_close()
+                self._searcher = None
+        except Exception:
+            pass
+        try:
+            self._tempstorage.destroy()
+        except Exception:
+            pass
+        try:
+            if self.writelock:
+                self.writelock.release()
+                self.writelock = None
+        except Exception:
+            pass
+        self.is_closed = True
+
     def cancel(self):
         self._check_state()
-        self._close_segment()
+        try:
+            self._close_segment()
+        except Exception:
+            self._cleanup_on_error()
+            raise
         self._finish()
 
 

@@ -6,6 +6,22 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.8.3] - 2026-07-16
+
+### Fixed
+
+- **A failed `commit()` left the index write-locked.** `SegmentWriter`
+  acquires the `WRITELOCK` in its constructor and only released it in
+  `_finish()`, at the very end of `commit()`. If `commit()` raised partway
+  through — for example a disk error while flushing the final segment or
+  writing the TOC — `_finish()` was skipped, so the write lock stayed held.
+  Every subsequent writer on that index then failed with `LockError`,
+  effectively making the index read-only until the stale lock was removed by
+  hand. `commit()` (and `cancel()`) now release the write lock and destroy the
+  temp storage on failure before re-raising the original exception, so a
+  failed write no longer wedges the index. Added regression tests covering
+  both `commit()` and `cancel()` failure paths.
+
 ## [3.8.2] - 2026-07-16
 
 ### Fixed

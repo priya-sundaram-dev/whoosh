@@ -677,3 +677,72 @@ def test_ramstorage_multisegment_spill():
         q = query.Term("body", "content")
         assert s.doc_count() == 20000
         assert len(s.search(q, limit=None)) == 20000
+
+
+def test_commit_failure_releases_writelock():
+    """gh: a disk/TOC error during commit() must not leave the WRITELOCK
+    held. Previously, if commit() raised after acquiring the lock (e.g. while
+    writing the TOC), ``_finish()`` was skipped and the write lock stayed
+    held, so every subsequent writer failed with LockError and the index
+    effectively became read-only until the stale lock was removed by hand.
+    """
+    from whoosh.index import LockError
+    from whoosh.writing import SegmentWriter
+
+    schema = fields.Schema(id=fields.ID(stored=True), body=fields.TEXT)
+    with TempIndex(schema, "commitfail") as ix:
+        w = ix.writer()
+        w.add_document(id=u("1"), body=u("hello world"))
+
+        orig = SegmentWriter._commit_toc
+
+        def boom(self, *args, **kwargs):
+            raise RuntimeError("simulated disk failure during TOC write")
+
+        SegmentWriter._commit_toc = boom
+        try:
+            with pytest.raises(RuntimeError):
+                w.commit()
+        finally:
+            SegmentWriter._commit_toc = orig
+
+        # The lock must be free: a new writer should be obtainable.
+        try:
+            w2 = ix.writer(timeout=1.0)
+        except LockError:
+            pytest.fail("WRITELOCK left held after failed commit()")
+        w2.add_document(id=u("2"), body=u("second document"))
+        w2.commit()
+
+        with ix.searcher() as s:
+            assert s.doc_count() == 1
+
+
+def test_cancel_failure_releases_writelock():
+    """A failure during cancel() must also release the write lock rather than
+    leaving the index locked."""
+    from whoosh.index import LockError
+    from whoosh.writing import SegmentWriter
+
+    schema = fields.Schema(id=fields.ID(stored=True), body=fields.TEXT)
+    with TempIndex(schema, "cancelfail") as ix:
+        w = ix.writer()
+        w.add_document(id=u("1"), body=u("hello world"))
+
+        orig = SegmentWriter._close_segment
+
+        def boom(self, *args, **kwargs):
+            raise RuntimeError("simulated failure during cancel")
+
+        SegmentWriter._close_segment = boom
+        try:
+            with pytest.raises(RuntimeError):
+                w.cancel()
+        finally:
+            SegmentWriter._close_segment = orig
+
+        try:
+            w2 = ix.writer(timeout=1.0)
+        except LockError:
+            pytest.fail("WRITELOCK left held after failed cancel()")
+        w2.cancel()
