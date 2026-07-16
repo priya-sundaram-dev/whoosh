@@ -17,6 +17,16 @@ All notable changes to this project are documented here. This project follows
   search round trip. The `tests/typing_smoke.py` fixture (type-checked in CI) now
   exercises the writer as a context manager and `update_document`, guarding the
   annotations against regressions. No runtime behavior changes.
+- **Type annotations for the search-results public API.** The user-facing
+  `Results` methods (`is_empty`, `items`, `fields`, `has_exact_length`,
+  `estimated_length`, `estimated_min_length`, `scored_length`, `docs`, `copy`,
+  `score`, `docnum`, `has_matched_terms`) and the `Hit` dict-like accessors
+  (`fields`, `keys`, `values`, `items`) now carry explicit return-type hints.
+  With `py.typed` shipped, these flow into users' editors and `mypy`/`pyright`
+  runs — so iterating results, reading scores/docnums, and pulling stored
+  fields off a `Hit` are now fully typed for the read-back path that follows
+  every search. The CI-type-checked `tests/typing_smoke.py` fixture now
+  exercises these methods end-to-end. No runtime behavior changes.
 
 ## [3.11.0] - 2026-07-16
 

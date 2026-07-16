@@ -14,7 +14,7 @@ searching layer.
 from __future__ import annotations
 
 import tempfile
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from whoosh import index
 from whoosh.fields import DATETIME, ID, NUMERIC, TEXT, Schema
@@ -59,8 +59,34 @@ def run() -> list[str]:
         parser = QueryParser("title", schema=ix.schema)
         query = parser.parse("search")
         results: Results = searcher.search(query, limit=10)
+
+        # Results inspection helpers are annotated, so their return types
+        # flow into user code and type-check here.
+        empty: bool = results.is_empty()
+        scored: int = results.scored_length()
+        est: int = results.estimated_length()
+        exact: bool = results.has_exact_length()
+        assert not empty or scored == 0
+        assert est >= 0 and exact in (True, False)
+
+        if scored:
+            top_score: float | None = results.score(0)
+            top_docnum: int = results.docnum(0)
+            top_fields: dict[str, Any] = results.fields(0)
+            assert top_docnum >= 0
+            assert top_score is None or top_score >= 0.0
+            assert isinstance(top_fields, dict)
+
+        for docnum, score in results.items():
+            assert docnum >= 0
+            assert score is None or score >= 0.0
+
         for hit in results:
             hit_obj: Hit = hit
+            # Hit's dict-like accessors are annotated.
+            keys: list[str] = hit_obj.keys()
+            fields: dict[str, Any] = hit_obj.fields()
+            assert set(keys) <= set(fields)
             titles.append(str(hit_obj["title"]))
     return titles
 

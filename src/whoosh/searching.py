@@ -33,7 +33,7 @@ from __future__ import annotations
 import copy
 import weakref
 from math import ceil
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Iterator
 
 from whoosh import classify, highlight, query, scoring
 from whoosh.idsets import BitSet, DocIdSet
@@ -1084,19 +1084,19 @@ class Results:
 
     __bool__ = __nonzero__
 
-    def is_empty(self):
+    def is_empty(self) -> bool:
         """Returns True if not documents matched the query."""
 
         return self.scored_length() == 0
 
-    def items(self):
+    def items(self) -> Iterator[tuple[int, float | None]]:
         """Returns an iterator of (docnum, score) pairs for the scored
         documents in the results.
         """
 
         return ((docnum, score) for score, docnum in self.top_n)
 
-    def fields(self, n):
+    def fields(self, n: int) -> dict[str, Any]:
         """Returns the stored fields for the document at the ``n`` th position
         in the results. Use :meth:`Results.docnum` if you want the raw
         document number instead of the stored fields.
@@ -1160,7 +1160,7 @@ class Results:
             raise KeyError(f"{name!r} not in facet names {self.facet_names()!r}")
         return self._facetmaps[name].as_dict()
 
-    def has_exact_length(self):
+    def has_exact_length(self) -> bool:
         """Returns True if this results object already knows the exact number
         of matching documents.
         """
@@ -1170,7 +1170,7 @@ class Results:
         else:
             return self._total is not None
 
-    def estimated_length(self):
+    def estimated_length(self) -> int:
         """The estimated maximum number of matching documents, or the
         exact number of matching documents if it's known.
         """
@@ -1180,7 +1180,7 @@ class Results:
         else:
             return self.q.estimate_size(self.searcher.reader())
 
-    def estimated_min_length(self):
+    def estimated_min_length(self) -> int:
         """The estimated minimum number of matching documents, or the
         exact number of matching documents if it's known.
         """
@@ -1190,7 +1190,7 @@ class Results:
         else:
             return self.q.estimate_min_size(self.searcher.reader())
 
-    def scored_length(self):
+    def scored_length(self) -> int:
         """Returns the number of scored documents in the results, equal to or
         less than the ``limit`` keyword argument to the search.
 
@@ -1206,7 +1206,7 @@ class Results:
 
         return len(self.top_n)
 
-    def docs(self):
+    def docs(self) -> set:
         """Returns a set-like object containing the document numbers that
         matched the query.
         """
@@ -1215,7 +1215,7 @@ class Results:
             self.docset = set(self.collector.all_ids())
         return self.docset
 
-    def copy(self):
+    def copy(self) -> Results:
         """Returns a deep copy of this results object."""
 
         # Shallow copy self to get attributes
@@ -1225,7 +1225,7 @@ class Results:
         r.top_n = copy.deepcopy(self.top_n)
         return r
 
-    def score(self, n):
+    def score(self, n: int) -> float | None:
         """Returns the score for the document at the Nth position in the list
         of ranked documents. If the search was not scored, this may return
         None.
@@ -1233,7 +1233,7 @@ class Results:
 
         return self.top_n[n][0]
 
-    def docnum(self, n):
+    def docnum(self, n: int) -> int:
         """Returns the document number of the result at position n in the list
         of ranked documents.
         """
@@ -1244,7 +1244,7 @@ class Results:
             self.searcher.reader(), fieldname=fieldname, expand=expand
         )
 
-    def has_matched_terms(self):
+    def has_matched_terms(self) -> bool:
         """Returns True if the search recorded which terms matched in which
         documents.
 
@@ -1457,7 +1457,7 @@ class Hit:
         self.score = score
         self._fields = None
 
-    def fields(self):
+    def fields(self) -> dict[str, Any]:
         """Returns a dictionary of the stored fields of the document this
         object represents.
         """
@@ -1613,13 +1613,13 @@ class Hit:
     def __contains__(self, key):
         return key in self.fields() or self.reader.has_column(key)
 
-    def items(self):
+    def items(self) -> list[tuple[str, Any]]:
         return list(self.fields().items())
 
-    def keys(self):
+    def keys(self) -> list[str]:
         return list(self.fields().keys())
 
-    def values(self):
+    def values(self) -> list[Any]:
         return list(self.fields().values())
 
     def iteritems(self):
