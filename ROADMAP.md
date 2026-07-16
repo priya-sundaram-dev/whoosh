@@ -38,6 +38,10 @@ About section of the README.)*
 
 ## Now (next patch/minor)
 
+- [x] **Python 3.14 support (3.11.0).** Verified the full suite passes on the
+      latest stable CPython (3.14.0, released 2025-10-07), added it to the CI
+      matrix, and shipped the `Programming Language :: Python :: 3.14`
+      classifier. Whoosh now supports 3.9–3.14.
 - [ ] Triage the inherited issue backlog; label, reproduce, close stale. Two
       long-standing bugs already fixed (gh#99, gh#116); more to review.
 - [x] `py.typed` marker + `Typing :: Typed` classifier shipped in **3.1.0**;

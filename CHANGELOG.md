@@ -6,6 +6,17 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.11.0] - 2026-07-16
+
+### Added
+
+- **Python 3.14 support.** Python 3.14.0 was released on 2025-10-07 and is now
+  the latest stable CPython. The full test suite (689 tests) is verified green
+  on 3.14 in CI, including the multiprocessing writer under 3.14's new
+  `forkserver` default start method on Linux. Whoosh now officially supports
+  Python 3.9 through 3.14 and advertises the `Programming Language :: Python
+  :: 3.14` classifier.
+
 ## [3.10.0] - 2026-07-16
 
 ### Added
