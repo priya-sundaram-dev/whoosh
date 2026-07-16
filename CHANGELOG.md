@@ -6,6 +6,18 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Fixed
+
+- **File descriptor leak when closing memory-mapped compound segments.**
+  Closing a `CompoundStorage` while a memory-mapped subfile (`BufferFile`) was
+  still open raised `BufferError` internally and dropped the `mmap` reference
+  without closing it, leaking one file descriptor per close. On long-running
+  servers doing frequent index writes (e.g. wikis), this accumulated into
+  "too many open files" errors. `BufferFile.close()` now releases its
+  memoryview so the parent `mmap` can close cleanly, and `CompoundStorage.close()`
+  guarantees the mapping is released even when a view is still outstanding.
+  Added regression tests covering the unclosed-mmap and fd-leak paths.
+
 ## [3.8.0] - 2026-07-15
 
 ### Added

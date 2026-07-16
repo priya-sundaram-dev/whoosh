@@ -107,7 +107,20 @@ class CompoundStorage(FileStorage):
             try:
                 self._source.close()
             except BufferError:
-                del self._source
+                # Some BufferFile view into this mmap wasn't closed. Force a
+                # collection to drop any unreferenced views, then try once
+                # more. Only if that still fails do we drop the reference and
+                # let the garbage collector reclaim the mapping (previously
+                # this path leaked a file descriptor on every close).
+                import gc
+
+                gc.collect()
+                try:
+                    self._source.close()
+                except BufferError:
+                    pass
+            finally:
+                self._source = None
         if self._file:
             self._file.close()
 

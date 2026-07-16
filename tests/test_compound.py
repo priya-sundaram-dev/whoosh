@@ -1,3 +1,7 @@
+import os
+
+import pytest
+
 from whoosh.filedb.compound import CompoundStorage
 from whoosh.filedb.filestore import RamStorage
 from whoosh.util.testing import TempStorage
@@ -49,14 +53,62 @@ def test_simple_compound_nomap():
     _test_simple_compound(st)
 
 
-# def test_unclosed_mmap():
-#    with TempStorage("unclosed") as st:
-#        assert st.supports_mmap
-#        with st.create_file("a") as af:
-#            af.write("alfa")
-#        with st.create_file("b") as bf:
-#            bf.write("bravo")
-#        f = st.create_file("f")
-#        CompoundStorage.assemble(f, st, ["a", "b"])
-#
-#        f = CompoundStorage(st, "f")
+def _make_compound(st):
+    with st.create_file("a") as af:
+        af.write(b"alfa")
+    with st.create_file("b") as bf:
+        bf.write(b"bravo")
+    CompoundStorage.assemble(st.create_file("f"), st, ["a", "b"])
+
+
+def test_unclosed_mmap_does_not_error():
+    # Closing a CompoundStorage while a memory-mapped subfile is still open
+    # must not raise BufferError.
+    with TempStorage("unclosed") as st:
+        assert st.supports_mmap
+        _make_compound(st)
+        cs = CompoundStorage(st.open_file("f"))
+        sub = cs.open_file("a")  # holds a live memoryview into the mmap
+        assert sub.read() == b"alfa"
+        # Do not close ``sub`` first; closing the storage must still succeed.
+        cs.close()
+        assert cs.is_closed
+
+
+def test_bufferfile_close_releases_memoryview():
+    with TempStorage("bufclose") as st:
+        assert st.supports_mmap
+        _make_compound(st)
+        cs = CompoundStorage(st.open_file("f"))
+        sub = cs.open_file("a")
+        assert sub.read() == b"alfa"
+        sub.close()
+        assert sub._buf is None
+        cs.close()
+
+
+def test_compound_close_does_not_leak_fds():
+    # Regression: previously, closing a CompoundStorage whose subfile views
+    # were still alive leaked one file descriptor per close ("too many open
+    # files" on long-running servers). See structfile.BufferFile.close.
+    import gc
+
+    fd_dir = "/proc/self/fd"
+    if not os.path.isdir(fd_dir):
+        pytest.skip("no /proc/self/fd on this platform")
+
+    with TempStorage("fdleak") as st:
+        if not st.supports_mmap:
+            pytest.skip("mmap not supported")
+        _make_compound(st)
+
+        gc.collect()
+        base = len(os.listdir(fd_dir))
+        for _ in range(25):
+            cs = CompoundStorage(st.open_file("f"))
+            sub = cs.open_file("a")
+            del sub
+            cs.close()
+        gc.collect()
+        delta = len(os.listdir(fd_dir)) - base
+        assert delta <= 1, f"leaked {delta} file descriptors"

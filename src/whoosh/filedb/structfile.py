@@ -368,6 +368,35 @@ class BufferFile(StructFile):
         self.is_real = False
         self.is_closed = False
 
+    def close(self):
+        """Closes the file and releases the underlying buffer.
+
+        For memoryview-backed buffers (e.g. slices of an mmap in a
+        :class:`whoosh.filedb.compound.CompoundStorage`), explicitly releasing
+        the memoryview here is what allows the parent mmap to be closed cleanly
+        instead of raising ``BufferError`` and leaking a file descriptor. See
+        https://github.com/priya-sundaram-dev/whoosh — "too many open files"
+        under heavy indexing.
+        """
+        if self.is_closed:
+            raise Exception("This file is already closed")
+        if self.onclose:
+            self.onclose(self)
+        # BytesIO holds a reference to the same buffer; close it first.
+        if hasattr(self.file, "close"):
+            self.file.close()
+        # Release the memoryview so exported pointers no longer block the
+        # parent mmap from closing.
+        buf = self._buf
+        self._buf = None
+        if isinstance(buf, memoryview):
+            try:
+                buf.release()
+            except (ValueError, BufferError):
+                # Already released, or still exported by a subset view.
+                pass
+        self.is_closed = True
+
     def subset(self, position, length, name=None):
         name = name or self._name
         return BufferFile(self.get(position, length), name=name)
