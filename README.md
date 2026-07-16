@@ -171,6 +171,14 @@ Whoosh has a long history worth being honest about:
 Huge thanks to Matt Chaput and the Sygil-Dev maintainers; this project stands
 entirely on their work, and their copyright and license are preserved.
 
+## Questions & community
+
+Have a "how do I…?" question? Ask in
+[**GitHub Discussions**](https://github.com/priya-sundaram-dev/whoosh/discussions)
+(Q&A category). Found a bug or want a feature? Open an
+[issue](https://github.com/priya-sundaram-dev/whoosh/issues). Built something with
+Whoosh? Share it in **Show and tell** — I'd love to see it.
+
 ## Contributing
 
 Issues and pull requests are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
