@@ -88,6 +88,23 @@ def run() -> list[str]:
             fields: dict[str, Any] = hit_obj.fields()
             assert set(keys) <= set(fields)
             titles.append(str(hit_obj["title"]))
+
+        # Searcher's document-lookup helpers are annotated, so their return
+        # types flow into user code and type-check here.
+        total: int = searcher.doc_count()
+        total_all: int = searcher.doc_count_all()
+        assert total <= total_all
+
+        one: dict[str, Any] | None = searcher.document(id="1")
+        assert one is None or isinstance(one, dict)
+
+        found_docnum: int | None = searcher.document_number(id="1")
+        assert found_docnum is None or found_docnum >= 0
+
+        for stored in searcher.documents():
+            assert isinstance(stored, dict)
+        for dn in searcher.document_numbers():
+            assert dn >= 0
     return titles
 
 

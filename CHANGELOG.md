@@ -6,6 +6,12 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Changed
+- Extended public-API type annotations to the `Searcher` document-lookup
+  methods: `doc_count()`, `doc_count_all()`, `reader()`, `document()`,
+  `documents()`, `document_number()`, and `document_numbers()` now carry
+  explicit return types, improving editor/mypy hints on the read path.
+
 ## [3.11.1] - 2026-07-16
 
 ### Changed

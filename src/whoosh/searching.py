@@ -218,12 +218,12 @@ class Searcher:
         else:
             return self
 
-    def doc_count(self):
+    def doc_count(self) -> int:
         """Returns the number of UNDELETED documents in the index."""
 
         return self.ixreader.doc_count()
 
-    def doc_count_all(self):
+    def doc_count_all(self) -> int:
         """Returns the total number of documents, DELETED OR UNDELETED, in
         the index.
         """
@@ -287,7 +287,7 @@ class Searcher:
             return default
         return self.field_length(fieldname) / (self._doccount or 1)
 
-    def reader(self):
+    def reader(self) -> IndexReader:
         """Returns the underlying :class:`~whoosh.reading.IndexReader`."""
         return self.ixreader
 
@@ -357,7 +357,7 @@ class Searcher:
         cache[term] = idf
         return idf
 
-    def document(self, **kw):
+    def document(self, **kw: Any) -> dict[str, Any] | None:
         """Convenience method returns the stored fields of a document
         matching the given keyword arguments, where the keyword keys are
         field names and the values are terms that must appear in the field.
@@ -381,7 +381,7 @@ class Searcher:
         for p in self.documents(**kw):
             return p
 
-    def documents(self, **kw):
+    def documents(self, **kw: Any) -> Iterator[dict[str, Any]]:
         """Convenience method returns the stored fields of a document
         matching the given keyword arguments, where the keyword keys are field
         names and the values are terms that must appear in the field.
@@ -415,7 +415,7 @@ class Searcher:
             q = query.Every()
         return q
 
-    def document_number(self, **kw):
+    def document_number(self, **kw: Any) -> int | None:
         """Returns the document number of the document matching the given
         keyword arguments, where the keyword keys are field names and the
         values are terms that must appear in the field.
@@ -445,7 +445,7 @@ class Searcher:
             if m.is_active():
                 return m.id()
 
-    def document_numbers(self, **kw):
+    def document_numbers(self, **kw: Any) -> Iterator[int]:
         """Returns a generator of the document numbers for documents matching
         the given keyword arguments, where the keyword keys are field names and
         the values are terms that must appear in the field. If you do not
