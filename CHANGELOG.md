@@ -6,6 +6,8 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.10.0] - 2026-07-16
+
 ### Added
 
 - **`whoosh search --sort-by score|mtime`** sorts results either by relevance
