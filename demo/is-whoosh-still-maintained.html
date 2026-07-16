@@ -4,16 +4,16 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Is Whoosh still maintained? (2026 status, forks, and how to upgrade)</title>
-<meta name="description" content="A clear, honest answer to whether the Whoosh Python search library is still maintained in 2026: the history of the forks (whoosh, whoosh-reloaded), which one is active now, Python 3.13 support, and how to migrate off an abandoned version." />
+<meta name="description" content="A clear, honest answer to whether the Whoosh Python search library is still maintained in 2026: the history of the forks (whoosh, whoosh-reloaded), which one is active now, Python 3.14 support, and how to migrate off an abandoned version." />
 <link rel="canonical" href="https://priya-sundaram-dev.github.io/whoosh/is-whoosh-still-maintained.html" />
 <meta name="author" content="Priya Sundaram" />
 <meta property="og:type" content="article" />
 <meta property="og:title" content="Is Whoosh still maintained? (2026 status)" />
-<meta property="og:description" content="The history of Whoosh's forks, which one is active in 2026, Python 3.13 support, and how to migrate off an abandoned version." />
+<meta property="og:description" content="The history of Whoosh's forks, which one is active in 2026, Python 3.14 support, and how to migrate off an abandoned version." />
 <meta property="og:url" content="https://priya-sundaram-dev.github.io/whoosh/is-whoosh-still-maintained.html" />
 <meta name="twitter:card" content="summary" />
 <meta name="twitter:title" content="Is Whoosh still maintained? (2026 status)" />
-<meta name="twitter:description" content="Which Whoosh fork is active in 2026, Python 3.13 support, and how to upgrade." />
+<meta name="twitter:description" content="Which Whoosh fork is active in 2026, Python 3.14 support, and how to upgrade." />
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -24,7 +24,7 @@
       "name": "Is Whoosh still maintained in 2026?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "The original Whoosh (by Matt Chaput) and the whoosh-reloaded fork are both effectively unmaintained. An actively-maintained continuation is published on PyPI as whoosh3, which keeps the import name whoosh, supports Python 3.9 through 3.13, and ships regular releases."
+        "text": "The original Whoosh (by Matt Chaput) and the whoosh-reloaded fork are both effectively unmaintained. An actively-maintained continuation is published on PyPI as whoosh3, which keeps the import name whoosh, supports Python 3.9 through 3.14, and ships regular releases."
       }
     },
     {
@@ -37,10 +37,10 @@
     },
     {
       "@type": "Question",
-      "name": "Does Whoosh work on Python 3.13?",
+      "name": "Does Whoosh work on Python 3.14?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "The original Whoosh 2.7.4 does not install cleanly on modern Python. The whoosh3 continuation is tested on CPython 3.9 through 3.13 and on PyPy, and is pure Python with no C build step."
+        "text": "The original Whoosh 2.7.4 does not install cleanly on modern Python. The whoosh3 continuation is tested on CPython 3.9 through 3.14 and on PyPy, and is pure Python with no C build step."
       }
     }
   ]
@@ -97,7 +97,7 @@
     actively-maintained continuation on PyPI called
     <a href="https://pypi.org/project/whoosh3/"><code>whoosh3</code></a>. It keeps
     the import name <code>whoosh</code>, so it is a drop-in replacement, and it is
-    tested on Python 3.9&ndash;3.13. Install it with
+    tested on Python 3.9&ndash;3.14. Install it with
     <code>pip install whoosh3</code>.
   </div>
 
@@ -134,7 +134,7 @@
   <p>I picked Whoosh back up and have been maintaining it in the open. Concretely,
   the <code>whoosh3</code> package today:</p>
   <ul>
-    <li>installs and runs on <strong>CPython 3.9 through 3.13</strong> and on PyPy,
+    <li>installs and runs on <strong>CPython 3.9 through 3.14</strong> and on PyPy,
       with a green CI matrix;</li>
     <li>is still <strong>pure Python</strong> &mdash; no C toolchain, no native
       wheels, no separate service;</li>
