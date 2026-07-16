@@ -1027,6 +1027,18 @@ class AsyncWriter(threading.Thread, IndexWriter):
 
     >>> from whoosh.writing import AsyncWriter
     >>> writer = AsyncWriter(myindex)
+
+    If the writer could not be obtained immediately, ``commit()`` returns
+    right away and the work is finished on a background thread. To find out
+    whether that background commit succeeded, wait for it and check the
+    ``exception`` attribute::
+
+        writer.commit()
+        if writer.running:
+            writer.join()
+        if writer.exception is not None:
+            # the buffered documents were not committed
+            handle(writer.exception)
     """
 
     def __init__(self, index, delay=0.25, writerargs=None):
@@ -1044,6 +1056,11 @@ class AsyncWriter(threading.Thread, IndexWriter):
         self.writerargs = writerargs or {}
         self.delay = delay
         self.events = []
+        # If the background thread (see ``run()``) raises while acquiring the
+        # writer or replaying buffered events, the exception is stored here so
+        # callers can detect the failure after ``join()``. It stays ``None``
+        # on success.
+        self.exception = None
         try:
             self.writer = self.index.writer(**self.writerargs)
         except LockError:
@@ -1066,14 +1083,30 @@ class AsyncWriter(threading.Thread, IndexWriter):
     def run(self):
         self.running = True
         writer = self.writer
-        while writer is None:
-            try:
-                writer = self.index.writer(**self.writerargs)
-            except LockError:
-                time.sleep(self.delay)
-        for method, args, kwargs in self.events:
-            getattr(writer, method)(*args, **kwargs)
-        writer.commit(*self.commitargs, **self.commitkwargs)
+        try:
+            while writer is None:
+                try:
+                    writer = self.index.writer(**self.writerargs)
+                except LockError:
+                    time.sleep(self.delay)
+            for method, args, kwargs in self.events:
+                getattr(writer, method)(*args, **kwargs)
+            writer.commit(*self.commitargs, **self.commitkwargs)
+        except Exception as e:
+            # The background thread runs detached from the caller, so an
+            # uncaught exception here would otherwise vanish (printed to
+            # stderr at best) and silently drop the buffered documents. Record
+            # it so callers can inspect ``writer.exception`` after ``join()``,
+            # and try to release the writer's lock so a failed commit does not
+            # leave the index locked for the rest of the process.
+            self.exception = e
+            if writer is not None:
+                try:
+                    writer.cancel()
+                except Exception:
+                    pass
+        finally:
+            self.running = False
 
     def delete_document(self, *args, **kwargs):
         self._record("delete_document", args, kwargs)

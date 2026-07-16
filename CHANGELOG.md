@@ -6,6 +6,22 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.8.2] - 2026-07-16
+
+### Fixed
+
+- **`AsyncWriter` silently swallowed background failures.** When the writer
+  could not be obtained immediately, `AsyncWriter` finishes the commit on a
+  background thread. If that thread raised (e.g. a backend error while
+  acquiring the writer or replaying buffered events), the exception vanished
+  into the thread and the buffered documents were dropped with no signal to
+  the caller — a silent data-loss hazard for the web/wiki transaction pattern
+  `AsyncWriter` is designed for. The background thread now records any
+  exception on the new `AsyncWriter.exception` attribute (which callers can
+  check after `join()`), attempts to release the writer's lock so a failed
+  commit doesn't leave the index locked, and always clears the `running` flag.
+  Added regression tests for both the failure and success paths.
+
 ## [3.8.1] - 2026-07-16
 
 ### Fixed

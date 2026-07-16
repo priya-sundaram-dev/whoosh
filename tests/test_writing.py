@@ -106,6 +106,51 @@ def test_asyncwriter_no_stored():
             assert sorted([int(id) for id in r.lexicon("id")]) == list(range(20))
 
 
+def test_asyncwriter_reports_background_exception():
+    # If the background thread fails while acquiring the writer or replaying
+    # buffered events, the exception must be surfaced on ``.exception`` rather
+    # than silently vanishing (which would drop the buffered documents with no
+    # signal to the caller).
+    schema = fields.Schema(id=fields.ID(stored=True), text=fields.TEXT)
+    with TempIndex(schema, "asyncexc") as ix:
+        w = writing.AsyncWriter(ix)
+        # Force the buffered/background path.
+        w.writer = None
+        w.add_document(id="1", text="hello")
+
+        def boom(*args, **kwargs):
+            raise ValueError("simulated backend failure")
+
+        ix.writer = boom
+        w.commit()
+        if w.running:
+            w.join()
+
+        assert not w.is_alive()
+        assert not w.running
+        assert isinstance(w.exception, ValueError)
+        assert str(w.exception) == "simulated backend failure"
+
+
+def test_asyncwriter_no_exception_on_success():
+    # The happy path must leave ``.exception`` as None.
+    schema = fields.Schema(id=fields.ID(stored=True), text=fields.TEXT)
+    with TempIndex(schema, "asyncnoexc") as ix:
+        writers = []
+        for i in range(5):
+            w = writing.AsyncWriter(ix)
+            writers.append(w)
+            w.add_document(id=str(i), text="alfa bravo")
+            w.commit()
+        for w in writers:
+            if w.running:
+                w.join()
+        for w in writers:
+            assert w.exception is None
+        with ix.reader() as r:
+            assert sorted(int(i) for i in r.lexicon("id")) == list(range(5))
+
+
 def test_updates():
     schema = fields.Schema(id=fields.ID(unique=True, stored=True))
     ix = RamStorage().create_index(schema)
