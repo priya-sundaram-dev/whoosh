@@ -682,7 +682,22 @@ class Searcher:
         results = self.search(query, limit=pagenum * pagelen, **kwargs)
         return ResultsPage(results, pagenum, pagelen)
 
-    def find(self, defaultfield, querystring, **kwargs):
+    def find(
+        self, defaultfield: str, querystring: str, **kwargs: Any
+    ) -> Results:
+        """Parses ``querystring`` with a default
+        :class:`whoosh.qparser.QueryParser` over ``defaultfield`` and runs the
+        resulting query, returning a :class:`Results` object.
+
+        This is a convenience wrapper around parsing a query string and calling
+        :meth:`Searcher.search`; any additional keyword arguments are passed
+        through to :meth:`Searcher.search`.
+
+        :param defaultfield: the name of the field to search by default when the
+            query string does not name a field.
+        :param querystring: the user query string to parse.
+        :returns: :class:`Results`
+        """
         from whoosh.qparser import QueryParser
 
         qp = QueryParser(defaultfield, schema=self.ixreader.schema)

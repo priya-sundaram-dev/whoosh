@@ -105,6 +105,12 @@ def run() -> list[str]:
             assert isinstance(stored, dict)
         for dn in searcher.document_numbers():
             assert dn >= 0
+
+        # Searcher.find() parses a query string and returns Results, so its
+        # return type flows into user code and type-checks here.
+        found: Results = searcher.find("title", "search")
+        for fhit in found:
+            titles.append(str(fhit["title"]))
     return titles
 
 

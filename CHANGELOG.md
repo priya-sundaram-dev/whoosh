@@ -11,6 +11,8 @@ All notable changes to this project are documented here. This project follows
   methods: `doc_count()`, `doc_count_all()`, `reader()`, `document()`,
   `documents()`, `document_number()`, and `document_numbers()` now carry
   explicit return types, improving editor/mypy hints on the read path.
+- Annotated `Searcher.find()` (the parse-a-query-string-and-search convenience
+  method) with `-> Results`, and added it to the type-check smoke fixture.
 
 ## [3.11.1] - 2026-07-16
 
