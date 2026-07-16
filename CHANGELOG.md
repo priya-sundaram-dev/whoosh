@@ -6,6 +6,8 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.8.1] - 2026-07-16
+
 ### Fixed
 
 - **File descriptor leak when closing memory-mapped compound segments.**
