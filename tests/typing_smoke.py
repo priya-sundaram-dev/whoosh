@@ -14,11 +14,15 @@ searching layer.
 from __future__ import annotations
 
 import tempfile
+from typing import TYPE_CHECKING
 
 from whoosh import index
 from whoosh.fields import DATETIME, ID, NUMERIC, TEXT, Schema
 from whoosh.qparser import QueryParser
-from whoosh.searching import Hit, Results
+
+if TYPE_CHECKING:
+    from whoosh.searching import Hit, Results
+    from whoosh.writing import IndexWriter
 
 
 def build_schema() -> Schema:
@@ -39,9 +43,16 @@ def run() -> list[str]:
     ix = index.create_in(tmpdir, schema)
     assert index.exists_in(tmpdir)
 
-    writer = ix.writer()
+    # ix.writer() is annotated to return an IndexWriter; add_document /
+    # update_document / commit are annotated ``-> None`` on the public base
+    # class, and the writer works as a context manager.
+    writer: IndexWriter = ix.writer()
     writer.add_document(id="1", title="First document about search")
     writer.commit()
+
+    with ix.writer() as w:
+        w.add_document(id="2", title="Second document about indexing")
+        w.update_document(id="2", title="Second document about indexing v2")
 
     titles: list[str] = []
     with ix.searcher() as searcher:

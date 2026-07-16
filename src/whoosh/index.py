@@ -46,6 +46,7 @@ from whoosh.system import _FLOAT_SIZE, _INT_SIZE, _LONG_SIZE
 if TYPE_CHECKING:
     from whoosh.fields import Schema
     from whoosh.filedb.filestore import Storage
+    from whoosh.writing import IndexWriter
 
 _DEF_INDEX_NAME = "MAIN"
 _CURRENT_TOC_VERSION = -111
@@ -362,7 +363,7 @@ class Index:
 
         raise NotImplementedError
 
-    def writer(self, **kwargs):
+    def writer(self, **kwargs) -> "IndexWriter":
         """Returns an IndexWriter object for this index.
 
         :rtype: :class:`whoosh.writing.IndexWriter`
@@ -468,7 +469,7 @@ class FileIndex(Index):
 
     # searcher
 
-    def writer(self, procs=1, **kwargs):
+    def writer(self, procs=1, **kwargs) -> "IndexWriter":
         if procs > 1:
             from whoosh.multiproc import MpWriter
 

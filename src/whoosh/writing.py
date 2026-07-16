@@ -31,6 +31,7 @@ import time
 from abc import abstractmethod
 from bisect import bisect_right
 from contextlib import contextmanager
+from typing import Any
 
 from whoosh import columns
 from whoosh.externalsort import SortingPool
@@ -218,10 +219,10 @@ class IndexWriter:
     ...     w.add_document(title="Second document", content="This is easy!")
     """
 
-    def __enter__(self):
+    def __enter__(self) -> "IndexWriter":
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         if exc_type:
             self.cancel()
         else:
@@ -354,7 +355,7 @@ class IndexWriter:
         raise NotImplementedError
 
     @abstractmethod
-    def add_document(self, **fields):
+    def add_document(self, **fields: Any) -> None:
         """The keyword arguments map field names to the values to index/store::
 
             w = myindex.writer()
@@ -443,7 +444,7 @@ class IndexWriter:
         ]
         return unique_fields
 
-    def update_document(self, **fields):
+    def update_document(self, **fields: Any) -> None:
         """The keyword arguments map field names to the values to index/store.
 
         This method adds a new document to the index, and automatically deletes
@@ -508,11 +509,11 @@ class IndexWriter:
         # Add the given fields
         self.add_document(**fields)
 
-    def commit(self):
+    def commit(self) -> None:
         """Finishes writing and unlocks the index."""
         pass
 
-    def cancel(self):
+    def cancel(self) -> None:
         """Cancels any documents/deletions added by this object
         and unlocks the index.
         """

@@ -6,6 +6,18 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Changed
+
+- **Type annotations for the writer public API.** `Index.writer()` is now
+  annotated to return an `IndexWriter`, and the public `IndexWriter` methods
+  `add_document`, `update_document`, `commit`, `cancel`, and the context-manager
+  protocol (`__enter__`/`__exit__`) now carry explicit type hints. Whoosh3 ships
+  a `py.typed` marker, so these annotations flow directly into users' editors and
+  `mypy`/`pyright` runs — completing type coverage of the core index → write →
+  search round trip. The `tests/typing_smoke.py` fixture (type-checked in CI) now
+  exercises the writer as a context manager and `update_document`, guarding the
+  annotations against regressions. No runtime behavior changes.
+
 ## [3.11.0] - 2026-07-16
 
 ### Added
