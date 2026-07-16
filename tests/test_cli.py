@@ -1,6 +1,7 @@
 """Tests for the ``whoosh`` command-line interface (whoosh.cli)."""
-import os
 
+import os
+import time
 import pytest
 
 from whoosh import cli
@@ -403,3 +404,29 @@ def test_human_bytes():
     assert cli._human_bytes(512) == "512 B"
     assert cli._human_bytes(1536).endswith("KB")
     assert cli._human_bytes(5 * 1024 * 1024).endswith("MB")
+
+def test_sort_by_mtime_orders_newest_first(tmp_path, capsys):
+    (tmp_path / "old.txt").write_text("shared search term", encoding="utf-8")
+    time.sleep(1.1)
+    (tmp_path / "new.txt").write_text("shared search term", encoding="utf-8")
+    assert run(["index", tmp_path]) == 0
+    capsys.readouterr()
+
+    rc = run(["search", "shared", tmp_path, "--sort-by", "mtime"])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert out.index("new.txt") < out.index("old.txt")
+
+
+def test_sort_by_default_is_score(tmp_path, capsys):
+    (tmp_path / "old.txt").write_text("shared search term", encoding="utf-8")
+    time.sleep(1.1)
+    (tmp_path / "new.txt").write_text("shared search term", encoding="utf-8")
+    assert run(["index", tmp_path]) == 0
+    capsys.readouterr()
+
+    rc = run(["search", "shared", tmp_path])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "new.txt" in out
+    assert "old.txt" in out

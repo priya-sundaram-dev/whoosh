@@ -95,6 +95,7 @@ Useful options::
     $ whoosh search "index writer" ~/notes --snippet-chars 80  # shorter snippets
     $ whoosh search "index writer" ~/notes --json           # JSON array output
     $ whoosh search "index writer" ~/notes --count          # output just the number of matches
+    $ whoosh search "index writer" ~/notes --sort-by mtime  # newest files first
     $ whoosh search "index writer" ~/notes --field title    # search titles only
 
 Repeat ``--field`` to search more than one selected field with equal weighting.

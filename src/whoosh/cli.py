@@ -231,7 +231,10 @@ def cmd_search(args: argparse.Namespace) -> int:
             print(len(results))
             return 0
 
-        results = s.search(query, limit=args.limit)
+        if getattr(args, "sort_by", "score") == "mtime":
+            results = s.search(query, limit=args.limit, sortedby="mtime", reverse=True)
+        else:
+            results = s.search(query, limit=args.limit)
         snippet_chars = getattr(args, "snippet_chars", 200)
         no_highlight = getattr(args, "no_highlight", False)
         if args.html:
@@ -437,6 +440,10 @@ def build_parser() -> argparse.ArgumentParser:
                     metavar="N", dest="snippet_chars",
                     help="max characters of context to show per snippet "
                          "(default: 200)")
+    ps.add_argument("--sort-by", choices=["score", "mtime"], default="score",
+                    dest="sort_by",
+                    help="sort results by relevance score (default) or "
+                         "file modification time")
 
     # Output style/mode flags are mutually exclusive: the default UPPERCASE
     # text, HTML highlights, a plain grep-friendly slice, machine-readable
