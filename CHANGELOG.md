@@ -6,6 +6,14 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Added
+
+- **`whoosh search --sort-by score|mtime`** sorts results either by relevance
+  score (the default, unchanged behavior) or by file modification time
+  (newest first). `--count` still reports the true total regardless of sort
+  order (gh#19). Thanks to [@abhiramvsmg](https://github.com/abhiramvsmg) for
+  the first community feature contribution!
+
 ### Changed
 
 - The `whoosh` CLI now prints the project home
