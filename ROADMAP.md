@@ -36,6 +36,16 @@ About section of the README.)*
 - [x] Clear "when to use Whoosh (and when not to)" guidance vs. SQLite FTS5 in
       the README and a runnable benchmark example.
 
+## Done (3.10.0 — released 2026-07-16)
+
+- [x] **First community feature merged.** `whoosh search --sort-by score|mtime`
+      lets the CLI order results by relevance (default) or file modification
+      time (gh#19), contributed by
+      [@abhiramvsmg](https://github.com/abhiramvsmg) — the first community
+      feature contribution to the revived project. Contributions like this are
+      exactly what this roadmap exists to invite; see the
+      [good-first-issue backlog](https://github.com/priya-sundaram-dev/whoosh/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
+
 ## Now (next patch/minor)
 
 - [x] **Python 3.14 support (3.11.0).** Verified the full suite passes on the
