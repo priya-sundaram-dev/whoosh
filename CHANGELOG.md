@@ -6,6 +6,13 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Changed
+
+- The `whoosh` CLI now prints the project home
+  (`https://github.com/priya-sundaram-dev/whoosh`) in its `--help` epilog and
+  `--version` output, so users can find docs, examples, and where to report
+  issues without leaving the terminal.
+
 ## [3.9.0] - 2026-07-16
 
 ### Added

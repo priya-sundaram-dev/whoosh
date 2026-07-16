@@ -331,6 +331,18 @@ def test_version_flag_short(capsys):
     assert __version_str__ in out
 
 
+def test_help_shows_project_url(capsys):
+    """--help epilog and --version point users to the project home."""
+    with pytest.raises(SystemExit):
+        run(["--help"])
+    help_out = capsys.readouterr().out
+    assert "github.com/priya-sundaram-dev/whoosh" in help_out
+    with pytest.raises(SystemExit):
+        run(["--version"])
+    ver_out = capsys.readouterr().out
+    assert "github.com/priya-sundaram-dev/whoosh" in ver_out
+
+
 def test_index_exclude(tmp_path, capsys):
     (tmp_path / "keep.txt").write_text("keep me")
     build_dir = tmp_path / "build"

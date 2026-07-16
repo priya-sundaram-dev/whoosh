@@ -395,11 +395,15 @@ def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="whoosh",
         description="Full-text search a folder of files, powered by Whoosh "
-                    "(pure-Python, no server).")
+                    "(pure-Python, no server).",
+        epilog="Docs, examples, and source: "
+               "https://github.com/priya-sundaram-dev/whoosh",
+    )
     p.add_argument(
         "-V", "--version",
         action="version",
-        version=f"%(prog)s {__version_str__}",
+        version=f"%(prog)s {__version_str__} "
+                "(https://github.com/priya-sundaram-dev/whoosh)",
     )
     sub = p.add_subparsers(dest="command", required=True)
 
