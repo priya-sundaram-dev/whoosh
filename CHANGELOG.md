@@ -6,6 +6,19 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.15.0] - 2026-07-17
+
+### Added
+- `whoosh.reading.CorruptIndexError`: reading a damaged or truncated postings
+  block now raises this clear, dedicated exception instead of a cryptic
+  low-level pickle error (for example `UnpicklingError: invalid load key, 'x'`
+  or `ValueError: unsupported pickle protocol`). The message names the affected
+  file and offset and explains the most common cause — writing to the same
+  index from multiple processes/threads without the shared write lock, or an
+  interrupted commit — along with the fix (rebuild the index). This makes a
+  previously baffling failure mode diagnosable. Behavior for valid indexes is
+  unchanged, so this is backward compatible (gh#46).
+
 ## [3.14.1] - 2026-07-17
 
 ### Fixed

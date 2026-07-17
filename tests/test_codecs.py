@@ -729,3 +729,45 @@ def test_term_not_found_exception():
     reader = MemTermsReader(storage, segment)
     with pytest.raises(TermNotFound):
         list(reader.terms_from("unknown_field", "prefix"))
+
+
+# A corrupt/truncated postings block should raise a clear CorruptIndexError
+# (not a raw pickle UnpicklingError/ValueError) so users get an actionable
+# message. See mchaput/whoosh#46.
+def test_corrupt_postings_block_raises_clear_error(tmp_path):
+    import glob
+    import os
+
+    from whoosh import index
+    from whoosh.qparser import QueryParser
+    from whoosh.reading import CorruptIndexError
+
+    d = str(tmp_path)
+    schema = fields.Schema(id=fields.ID(stored=True), body=fields.TEXT)
+    ix = index.create_in(d, schema)
+    w = ix.writer()
+    for i in range(400):
+        w.add_document(id=str(i), body=u("alpha beta gamma delta ") * (i % 7 + 1))
+    w.commit()
+
+    # Corrupt the postings block payload: find the block magic and clobber
+    # the pickled block-info tuple that follows it.
+    pst = glob.glob(os.path.join(d, "*.pst")) or glob.glob(os.path.join(d, "*.seg"))
+    assert pst, "expected a postings/segment file"
+    target = pst[0]
+    with open(target, "r+b") as f:
+        data = f.read()
+        pos = data.find(b"W3Bl")
+        assert pos >= 0
+        f.seek(pos + 4 + 4 + 1)  # magic + int length + into the pickle payload
+        f.write(b"x" * 8)
+
+    ix2 = index.open_dir(d)
+    with pytest.raises(CorruptIndexError) as excinfo:
+        with ix2.searcher() as s:
+            q = QueryParser("body", ix2.schema).parse(u("alpha"))
+            list(s.search(q, limit=None))
+    # The message should name the file and explain the likely cause.
+    msg = str(excinfo.value)
+    assert "corrupt" in msg.lower()
+    assert "concurrent writes" in msg.lower()

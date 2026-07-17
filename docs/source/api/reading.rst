@@ -19,3 +19,5 @@ Exceptions
 ==========
 
 .. autoexception:: TermNotFound
+
+.. autoexception:: CorruptIndexError

@@ -36,6 +36,18 @@ While the writer is open and during the commit, **the index is still available
 for reading**. Existing readers are unaffected and new readers can open the
 current index normally.
 
+.. warning::
+
+    Always go through the write lock. If two processes write to the same index
+    at the same time *without* coordinating through the lock (for example by
+    forcibly clearing the lock, or by writing to a shared index from separate
+    machines over a filesystem that doesn't honor the lock), they can overwrite
+    each other's segment files and leave the index corrupted. A corrupted index
+    typically fails at *read* time with a
+    :class:`whoosh.reading.CorruptIndexError` (a damaged postings block), which
+    reports the affected file and this likely cause. If you hit it, rebuild the
+    index from your source data.
+
 
 Lock files
 ----------

@@ -59,6 +59,20 @@ class TermNotFound(Exception):
     pass
 
 
+class CorruptIndexError(Exception):
+    """Raised when Whoosh reads an index block whose contents are damaged or
+    unreadable (for example a truncated or overwritten postings block).
+
+    This usually means the index files were corrupted after they were written
+    -- most often by writing to the same index from multiple processes or
+    threads without coordinating through the index's write lock, or by an
+    interrupted/partial commit. Whoosh indexes are not safe for concurrent
+    writes unless every writer goes through the same on-disk write lock; see
+    the "Concurrency" section of the documentation. Rebuilding the index from
+    source usually resolves it.
+    """
+
+
 # Term Info base class
 
 

@@ -38,7 +38,7 @@ from whoosh import columns, formats
 from whoosh.codec import base
 from whoosh.filedb import compound, filetables
 from whoosh.matching import LeafMatcher, ListMatcher, ReadTooFar
-from whoosh.reading import TermInfo, TermNotFound
+from whoosh.reading import CorruptIndexError, TermInfo, TermNotFound
 from whoosh.system import (
     _FLOAT_SIZE,
     _INT_SIZE,
@@ -938,7 +938,15 @@ class W3LeafMatcher(LeafMatcher):
         postfile.seek(self._startoffset)
         magic = postfile.read(4)
         if magic != WHOOSH3_HEADER_MAGIC:
-            raise Exception(f"Block tag error {magic!r}")
+            raise CorruptIndexError(
+                f"Bad postings block tag {magic!r} at offset "
+                f"{self._startoffset} in "
+                f"{getattr(postfile, '_name', None) or '<postings file>'!r} "
+                f"(expected {WHOOSH3_HEADER_MAGIC!r}). The index appears "
+                f"corrupted -- this is usually caused by concurrent writes "
+                f"without the index write lock or an interrupted commit. "
+                f"Rebuilding the index should fix it."
+            )
 
         # Remember the base offset (start of postings, after the header)
         self._baseoffset = postfile.tell()
@@ -982,20 +990,43 @@ class W3LeafMatcher(LeafMatcher):
 
         # Remember the offset of the next block
         self._nextoffset = position + _INT_SIZE + length
-        # Read the pickled block info tuple
-        info = postfile.read_pickle()
+        # Read the pickled block info tuple. A corrupt/truncated index (e.g.
+        # from unsynchronized concurrent writes) shows up here as a low-level
+        # unpickling error like "invalid load key" or "unsupported pickle
+        # protocol"; turn that into a clear, actionable CorruptIndexError.
+        try:
+            info = postfile.read_pickle()
+        except Exception as e:
+            raise CorruptIndexError(
+                f"Damaged postings block at offset {position} in "
+                f"{getattr(postfile, '_name', None) or '<postings file>'!r} "
+                f"(could not read block header: {e!r}). The index appears "
+                f"corrupted -- this is usually caused by concurrent writes "
+                f"without the index write lock or an interrupted commit. "
+                f"Rebuilding the index should fix it."
+            ) from e
         # Remember the offset of the block's data
         self._dataoffset = postfile.tell()
 
         # Decompose the info tuple to set the current block info
-        (
-            self._blocklength,
-            self._maxid,
-            self._maxweight,
-            self._compression,
-            mnlen,
-            mxlen,
-        ) = info
+        try:
+            (
+                self._blocklength,
+                self._maxid,
+                self._maxweight,
+                self._compression,
+                mnlen,
+                mxlen,
+            ) = info
+        except (TypeError, ValueError) as e:
+            raise CorruptIndexError(
+                f"Damaged postings block at offset {position} in "
+                f"{getattr(postfile, '_name', None) or '<postings file>'!r} "
+                f"(unexpected block header contents: {info!r}). The index "
+                f"appears corrupted -- this is usually caused by concurrent "
+                f"writes without the index write lock or an interrupted "
+                f"commit. Rebuilding the index should fix it."
+            ) from e
         self._minlength = byte_to_length(mnlen)
         self._maxlength = byte_to_length(mxlen)
 
