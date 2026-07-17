@@ -29,11 +29,11 @@ words and ignores whitespace and punctuation.
     >>> from whoosh.analysis import RegexTokenizer
     >>> tokenizer = RegexTokenizer()
     >>> for token in tokenizer(u"Hello there my friend!"):
-    ...   print repr(token.text)
-    u'Hello'
-    u'there'
-    u'my'
-    u'friend'
+    ...   print(repr(token.text))
+    'Hello'
+    'there'
+    'my'
+    'friend'
 
 A filter is a callable that takes a generator of Tokens (either a tokenizer or
 another filter) and in turn yields a series of Tokens.
@@ -53,14 +53,15 @@ by converting their text to lowercase. The implementation is very simple::
 You can wrap the filter around a tokenizer to see it in operation::
 
     >>> from whoosh.analysis import LowercaseFilter
-    >>> for token in LowercaseFilter(tokenizer(u"These ARE the things I want!")):
-    ...   print repr(token.text)
-    u'these'
-    u'are'
-    u'the'
-    u'things'
-    u'i'
-    u'want'
+    >>> lowercase = LowercaseFilter()
+    >>> for token in lowercase(tokenizer(u"These ARE the things I want!")):
+    ...   print(repr(token.text))
+    'these'
+    'are'
+    'the'
+    'things'
+    'i'
+    'want'
 
 An analyzer is just a means of combining a tokenizer and some filters into a
 single package.
@@ -203,11 +204,11 @@ filter out stop words, and includes a default list of common stop words.
 
     >>> from whoosh.analysis import StopFilter
     >>> stopper = StopFilter()
-    >>> for token in stopper(LowercaseFilter(tokenizer(u"These ARE the things I want!"))):
-    ...   print repr(token.text)
-    u'these'
-    u'things'
-    u'want'
+    >>> for token in stopper(lowercase(tokenizer(u"These ARE the things I want!"))):
+    ...   print(repr(token.text))
+    'these'
+    'things'
+    'want'
 
 However, this seemingly simple filter idea raises a couple of minor but slightly
 thorny issues: renumbering term positions and keeping or removing stopped words.
@@ -279,9 +280,9 @@ be removed from the stream or left in.
     >>> from whoosh.analysis import StandardAnalyzer
     >>> analyzer = StandardAnalyzer()
     >>> [(t.text, t.stopped) for t in analyzer(u"This is a test")]
-    [(u'test', False)]
+    [('test', False)]
     >>> [(t.text, t.stopped) for t in analyzer(u"This is a test", removestops=False)]
-    [(u'this', True), (u'is', True), (u'a', True), (u'test', False)]
+    [('this', True), ('is', True), ('a', True), ('test', False)]
 
 The ``analysis.unstopped()`` filter function takes a token generator and yields
 only the tokens whose ``stopped`` attribute is ``False``.
@@ -306,7 +307,7 @@ attributes, if you keep a copy of the Token you get from a loop of the
 generator, it will be changed from under you. For example::
 
     >>> list(tokenizer(u"Hello there my friend"))
-    [Token(u"friend"), Token(u"friend"), Token(u"friend"), Token(u"friend")]
+    [Token("friend"), Token("friend"), Token("friend"), Token("friend")]
 
 Instead, do this::
 

@@ -6,6 +6,14 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Documentation
+- Fixed the runnable examples in the "About analyzers" guide (`analysis.rst`).
+  The interactive `LowercaseFilter(tokenizer(...))` example raised
+  `TypeError: LowercaseFilter() takes no arguments` because `LowercaseFilter`
+  is a class, not a function; it now instantiates the filter first
+  (`lowercase = LowercaseFilter()`). Also modernized the example blocks to
+  Python 3 (`print(...)` and Python 3 `repr` output without the `u''` prefix).
+
 ### Development
 - Added `benchmark/regression.py`, a deterministic, standard-library-only
   performance-regression harness. It times index build, incremental adds, and
