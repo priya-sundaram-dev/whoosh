@@ -59,8 +59,8 @@ To create a :class:`whoosh.qparser.QueryParser` object, pass it the name of the
 Once you have a ``QueryParser`` object, you can call ``parse()`` on it to parse a
 query string into a query object::
 
-    >>> parser.parse(u"alpha OR beta gamma")
-    And([Or([Term('content', u'alpha'), Term('content', u'beta')]), Term('content', u'gamma')])
+    >>> parser.parse("alpha OR beta gamma")
+    And([Or([Term('content', 'alpha'), Term('content', 'beta')]), Term('content', 'gamma')])
 
 See the :doc:`query language reference <querylang>` for the features and syntax
 of the default parser's query language.
