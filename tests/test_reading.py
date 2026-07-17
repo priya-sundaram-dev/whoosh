@@ -577,3 +577,41 @@ def test_term_inspection_multi_reader():
             w.merge = False
 
         _check_inspection_results(ix)
+
+
+def test_field_terms_numeric_and_datetime():
+    # Regression for gh#24 (upstream mchaput/whoosh#24): field_terms() must not
+    # decode the internal lower-precision "shifted" terms that NUMERIC/DATETIME
+    # fields store to accelerate range queries. Decoding those artifacts used to
+    # raise OverflowError for DATETIME and yield garbage ints for NUMERIC.
+    from datetime import datetime
+
+    schema = fields.Schema(
+        doc_id=fields.ID(stored=True),
+        when=fields.DATETIME(stored=True),
+        price=fields.NUMERIC(stored=True),
+        content=fields.TEXT(stored=True),
+    )
+    with TempIndex(schema, "fieldterms_numeric") as ix:
+        with ix.writer() as w:
+            w.add_document(doc_id="A1", when=datetime(2020, 1, 1), price=15,
+                           content="alpha beta")
+            w.add_document(doc_id="B2", when=datetime(1985, 3, 15), price=3,
+                           content="beta gamma")
+            w.add_document(doc_id="C3", when=datetime(1977, 1, 1), price=42,
+                           content="delta")
+
+        with ix.reader() as r:
+            # DATETIME: exactly the three inserted dates, no OverflowError.
+            assert sorted(r.field_terms("when")) == [
+                datetime(1977, 1, 1),
+                datetime(1985, 3, 15),
+                datetime(2020, 1, 1),
+            ]
+            # NUMERIC: exactly the three inserted numbers, no shifted junk.
+            assert sorted(r.field_terms("price")) == [3, 15, 42]
+            # Ordinary text/id fields keep returning their full lexicon.
+            assert sorted(r.field_terms("content")) == [
+                "alpha", "beta", "delta", "gamma",
+            ]
+            assert sorted(r.field_terms("doc_id")) == ["A1", "B2", "C3"]

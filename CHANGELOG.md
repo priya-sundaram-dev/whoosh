@@ -6,6 +6,19 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.11.7] - 2026-07-17
+
+### Fixed
+- `IndexReader.field_terms()` no longer raises `OverflowError` (or yields
+  garbage values) on `NUMERIC` and `DATETIME` fields. Numeric fields store
+  extra lower-precision "shifted" terms to accelerate range queries; those
+  bytestrings are internal encoding artifacts, not real field values, and
+  decoding them produced out-of-range dates (`OverflowError`) for `DATETIME`
+  and nonsense integers for `NUMERIC`. `field_terms()` now iterates only the
+  full-precision tokens (via each field's `sortable_terms()`), so it returns
+  exactly the distinct values that were indexed. Ordinary text fields are
+  unaffected. Fixes gh#24 (reported upstream at mchaput/whoosh#24).
+
 ## [3.11.6] - 2026-07-17
 
 ### Fixed

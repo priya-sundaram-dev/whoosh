@@ -267,8 +267,16 @@ class IndexReader:
         field.
         """
 
-        from_bytes = self.schema[fieldname].from_bytes
-        for btext in self.lexicon(fieldname):
+        fieldobj = self.schema[fieldname]
+        from_bytes = fieldobj.from_bytes
+        # NUMERIC/DATETIME fields store extra lower-precision "shifted" terms
+        # (used to accelerate range queries) alongside the full-precision
+        # value. Those shifted bytestrings are internal encoding artifacts, not
+        # real field values, and decoding them can produce nonsense or even
+        # raise OverflowError (e.g. for DATETIME). ``sortable_terms`` yields
+        # only the full-precision tokens for such fields, and falls back to the
+        # full lexicon for ordinary fields, so it is the correct source here.
+        for btext in fieldobj.sortable_terms(self, fieldname):
             yield from_bytes(btext)
 
     def __iter__(self):
