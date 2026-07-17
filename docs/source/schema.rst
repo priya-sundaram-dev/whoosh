@@ -169,7 +169,7 @@ Because data is stored on disk with the field name, *do not* add a new field wit
 the same name as a deleted field without optimizing the index in between::
 
     writer = ix.writer()
-    writer.delete_field("path")
+    writer.remove_field("path")
     # Don't do this!!!
     writer.add_field("path", fields.KEYWORD)
 
