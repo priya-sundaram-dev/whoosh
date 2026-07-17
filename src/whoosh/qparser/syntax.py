@@ -370,6 +370,12 @@ class Wrapper(GroupNode):
     merging = False
 
     def query(self, parser):
+        # A wrapper may end up with no sub-node for malformed input such as
+        # ``NOT OR foobar`` (gh#19), where ``NOT`` is left wrapping nothing.
+        # Indexing ``self.nodes[0]`` in that case raised ``IndexError``; treat
+        # an empty wrapper as producing no query instead of crashing.
+        if not self.nodes:
+            return None
         q = self.nodes[0].query(parser)
         if q:
             return attach(self.qclass(q), self)

@@ -6,6 +6,16 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.12.1] - 2026-07-17
+
+### Fixed
+- Query parser: malformed queries where a `NOT` (or any wrapper node) ends up
+  wrapping no sub-node — for example `NOT OR foobar` — no longer raise
+  `IndexError: list index out of range` from `Wrapper.query`. The empty wrapper
+  now contributes no query and the rest of the expression parses normally, so
+  `NOT OR foobar` yields `foobar` and a bare `NOT` yields the null query
+  (gh#19, reported by @CodeOptimist).
+
 ### Documentation
 - Rewrote the documentation landing page (`index.rst`). It previously opened
   with stale boilerplate (a "Bitbucket page" label and a "mailing list" link)

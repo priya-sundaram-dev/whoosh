@@ -1043,6 +1043,26 @@ def test_not_order():
     assert str(q2) == "(cats:1 AND NOT count:0)"
 
 
+def test_not_wrapping_nothing():
+    # gh#19: malformed queries where NOT ends up wrapping no sub-node
+    # (e.g. "NOT OR foobar") used to raise IndexError in Wrapper.query;
+    # they should now parse gracefully instead of crashing.
+    qp = default.QueryParser("content", fields.Schema(content=fields.TEXT))
+
+    # The empty NOT contributes no query; only the real term survives.
+    q = qp.parse("NOT OR foobar")
+    assert q.__class__ == query.Term
+    assert q.text == "foobar"
+
+    # A bare "NOT" with nothing to negate yields the null query.
+    q = qp.parse("NOT")
+    assert q is query.NullQuery
+
+    # A handful of other malformed operator soups must not raise.
+    for text in ("foo NOT", "NOT AND bar", "foo OR NOT"):
+        qp.parse(text)
+
+
 def test_spacespace_and():
     qp = default.QueryParser("f", None)
     # one blank before/after AND

@@ -27,8 +27,8 @@
 
 from typing import Tuple
 
-__version__: Tuple[int, ...] = (3, 12, 0)
-__version_str__: str = "3.12.0"
+__version__: Tuple[int, ...] = (3, 12, 1)
+__version_str__: str = "3.12.1"
 
 
 def versionstring(build: bool = True, extra: bool = True) -> str:
