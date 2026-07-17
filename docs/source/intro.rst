@@ -14,7 +14,7 @@ search engine (or both!).
 * Whoosh is fast, but uses only pure Python, so it will run anywhere Python runs,
   without requiring a compiler.
 
-* By default, Whoosh uses the `Okapi BM25F <http://en.wikipedia.com/wiki/Okapi_BM25>`_ ranking
+* By default, Whoosh uses the `Okapi BM25F <https://en.wikipedia.org/wiki/Okapi_BM25>`_ ranking
   function, but like most things the ranking function can be easily customized.
 
 * Whoosh creates fairly small indexes compared to many other search libraries.
@@ -55,6 +55,7 @@ documents based on simple or complex search criteria.
 Getting help with Whoosh
 ------------------------
 
-You can view outstanding issues on the
-`Whoosh Github page <http://github.com/Sygil-Dev/whoosh-reloaded>`_
-and get help on the `Whoosh mailing list <http://groups.google.com/group/whoosh>`_.
+You can browse and file issues on the
+`GitHub issue tracker <https://github.com/priya-sundaram-dev/whoosh/issues>`_,
+ask questions in `GitHub Discussions <https://github.com/priya-sundaram-dev/whoosh/discussions>`_,
+and read the docs at https://priya-sundaram-dev.github.io/whoosh/.
