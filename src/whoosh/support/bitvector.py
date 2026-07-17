@@ -1,4 +1,4 @@
-"""
+BITS_SWITCH_THRESHOLD = 32BITS_THRESHOLD = 256"""
 An implementation of an object that acts like a collection of on/off bits.
 """
 
@@ -446,7 +446,7 @@ class BitSet:
         self.size = size
 
         self._back = ()
-        self._switch(size > 256)
+        self._switch(size > BITS_THRESHOLD)
 
         if source:
             add = self.add
@@ -485,7 +485,7 @@ class BitSet:
 
     def _set_add(self, num):
         self._back.add(num)
-        if len(self._back) * 4 > self.size // 8 + 32:
+        if len(self._back) * 4 > self.size // 8 + BITS_SWITCH_THRESHOLD:
             self._switch(False)
 
     def _vec_remove(self, num):
