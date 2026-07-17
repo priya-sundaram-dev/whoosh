@@ -163,8 +163,8 @@ $ whoosh search '"did you mean"'
 # exclude a term
 $ whoosh search "ranking NOT draft"
 
-# scope to a field (e.g. only match in the file path)
-$ whoosh search "path:install"</code></pre>
+# scope to a field (title = file name, body = file contents)
+$ whoosh search "body:install"</code></pre>
 
   <h2>Output for humans and for scripts</h2>
   <p>
