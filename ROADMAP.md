@@ -70,7 +70,13 @@ About section of the README.)*
 
 ## Next
 
-- [ ] A small, honest benchmark suite vs. prior releases to catch regressions.
+- [x] A small, honest benchmark suite vs. prior releases to catch regressions.
+      Shipped as [`benchmark/regression.py`](benchmark/regression.py): a
+      deterministic, stdlib-only harness that times index build, incremental
+      adds, and single-term/two-term/prefix/sorted queries, writes results to
+      JSON, and (with `--compare baseline.json`) fails non-zero when any metric
+      regresses beyond a tolerance. Intended to be run against the previous
+      release before cutting a new one.
 - [ ] Expand "when to use Whoosh" guidance to cover Tantivy/`tantivy-py` and
       Lucene-based engines, not just SQLite FTS5.
 

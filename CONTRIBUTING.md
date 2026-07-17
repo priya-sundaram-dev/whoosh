@@ -41,6 +41,14 @@ Please include:
 ## Reviews and releases
 
 Maintainers aim to respond to issues and PRs promptly and kindly. Releases are
-cut only from green CI across all supported Python versions.
+cut only from green CI across all supported Python versions. Before a release,
+maintainers also run the performance-regression benchmark against the previous
+release to make sure nothing got noticeably slower:
+
+```bash
+python benchmark/regression.py --compare baseline.json
+```
+
+See [`benchmark/README.md`](benchmark/README.md) for details.
 
 Thank you for helping keep Whoosh healthy!

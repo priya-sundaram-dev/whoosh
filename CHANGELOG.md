@@ -6,6 +6,15 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Development
+- Added `benchmark/regression.py`, a deterministic, standard-library-only
+  performance-regression harness. It times index build, incremental adds, and
+  single-term/two-term/prefix/sorted queries against a fixed seeded corpus,
+  can save results to JSON, and with `--compare baseline.json` exits non-zero
+  when any metric regresses beyond a tolerance (default 25%). Maintainers run
+  it against the previous release before cutting a new one. This is developer
+  tooling only; it does not change the installed package.
+
 ## [3.11.7] - 2026-07-17
 
 ### Fixed
