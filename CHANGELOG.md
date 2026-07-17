@@ -6,6 +6,20 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.13.0] - 2026-07-17
+
+### Added
+- `AsyncWriter.wait(timeout=None)`: a public, race-free way to block until the
+  background commit thread (if one was started) has finished and to re-raise
+  any exception it hit. Previously, callers had to poke `AsyncWriter`
+  internals — `if writer.running: writer.join()` followed by manually checking
+  `writer.exception` — to find out whether an asynchronous commit actually
+  landed, and getting that pattern wrong could silently drop buffered
+  documents. `wait()` collapses that into a single call: it is a no-op when
+  the commit was written synchronously, blocks otherwise, and raises on
+  failure (or `RuntimeError` if an optional `timeout` elapses). The old
+  `join()`/`exception` pattern still works unchanged (gh#14).
+
 ## [3.12.4] - 2026-07-17
 
 ### Fixed

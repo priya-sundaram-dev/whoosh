@@ -151,6 +151,53 @@ def test_asyncwriter_no_exception_on_success():
             assert sorted(int(i) for i in r.lexicon("id")) == list(range(5))
 
 
+def test_asyncwriter_wait_reraises_background_exception():
+    # wait() should block for the background thread and re-raise whatever it
+    # hit, so callers get a single clear signal instead of poking internals.
+    schema = fields.Schema(id=fields.ID(stored=True), text=fields.TEXT)
+    with TempIndex(schema, "asyncwaitexc") as ix:
+        w = writing.AsyncWriter(ix)
+        w.writer = None  # force the buffered/background path
+        w.add_document(id="1", text="hello")
+
+        def boom(*args, **kwargs):
+            raise ValueError("simulated backend failure")
+
+        ix.writer = boom
+        w.commit()
+        try:
+            w.wait()
+            assert False, "wait() should have re-raised the background exception"
+        except ValueError as e:
+            assert str(e) == "simulated backend failure"
+        assert not w.is_alive()
+
+
+def test_asyncwriter_wait_success_and_noop_sync_path():
+    schema = fields.Schema(id=fields.ID(stored=True), text=fields.TEXT)
+    with TempIndex(schema, "asyncwaitok") as ix:
+        # Sync path: writer available immediately -> wait() is a harmless no-op.
+        w0 = writing.AsyncWriter(ix)
+        w0.add_document(id="0", text="alfa")
+        w0.commit()
+        w0.wait()
+        assert w0.exception is None
+
+        # Background path: hold the lock so several writers must buffer, then
+        # wait() on each should return cleanly once the work lands.
+        writers = []
+        for i in range(1, 6):
+            w = writing.AsyncWriter(ix)
+            w.add_document(id=str(i), text="bravo")
+            w.commit()
+            writers.append(w)
+        for w in writers:
+            w.wait()
+            assert w.exception is None
+        with ix.reader() as r:
+            assert sorted(int(i) for i in r.lexicon("id")) == list(range(6))
+
+
 def test_updates():
     schema = fields.Schema(id=fields.ID(unique=True, stored=True))
     ix = RamStorage().create_index(schema)

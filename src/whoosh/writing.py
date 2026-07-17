@@ -1065,9 +1065,16 @@ class AsyncWriter(threading.Thread, IndexWriter):
     >>> writer = AsyncWriter(myindex)
 
     If the writer could not be obtained immediately, ``commit()`` returns
-    right away and the work is finished on a background thread. To find out
-    whether that background commit succeeded, wait for it and check the
-    ``exception`` attribute::
+    right away and the work is finished on a background thread. The simplest
+    way to find out whether that background commit succeeded is to call
+    ``wait()``, which blocks until the background thread (if any) has finished
+    and re-raises any exception it hit::
+
+        writer.commit()
+        writer.wait()   # blocks if needed; raises if the commit failed
+
+    If you would rather inspect the outcome yourself without ``wait()``
+    re-raising, join the thread and check the ``exception`` attribute::
 
         writer.commit()
         if writer.running:
@@ -1172,6 +1179,41 @@ class AsyncWriter(threading.Thread, IndexWriter):
     def cancel(self, *args, **kwargs):
         if self.writer:
             self.writer.cancel(*args, **kwargs)
+
+    def wait(self, timeout=None):
+        """Block until the background commit thread (if one was started) has
+        finished, then re-raise any exception it encountered.
+
+        If ``commit()`` was able to write synchronously (the writer was
+        available immediately), this returns at once and does nothing. This is
+        the recommended way to make an :class:`AsyncWriter` deterministic --
+        for example at the end of a request or before process shutdown -- so
+        that buffered documents are not silently lost::
+
+            writer = AsyncWriter(ix)
+            writer.add_document(...)
+            writer.commit()
+            writer.wait()   # ensures the write actually landed
+
+        :param timeout: optional maximum number of seconds to wait for the
+            background thread. If the thread is still running after ``timeout``
+            seconds, ``wait()`` raises :class:`RuntimeError` and leaves the
+            thread running (the commit may still complete later).
+        :raises: any exception raised by the background commit (the buffered
+            documents were not committed), or :class:`RuntimeError` on timeout.
+        """
+        # ``is_alive()`` is the authoritative, race-free check for whether the
+        # background thread is running. ``self.running`` is a convenience flag
+        # that can momentarily lag the thread's true state.
+        if self.is_alive():
+            self.join(timeout)
+            if self.is_alive():
+                raise RuntimeError(
+                    "AsyncWriter background commit did not finish within "
+                    "%r seconds" % (timeout,)
+                )
+        if self.exception is not None:
+            raise self.exception
 
 
 # Ex post factor functions
