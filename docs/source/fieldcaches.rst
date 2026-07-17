@@ -2,45 +2,69 @@
 Field caches
 ============
 
-The default (``filedb``) backend uses *field caches* in certain circumstances.
-The field cache basically pre-computes the order of documents in the index to
-speed up sorting and faceting.
+.. note::
 
-Generating field caches can take time the first time you sort/facet on a large
-index. The field cache is kept in memory (and by default written to disk when it
-is generated) so subsequent sorted/faceted searches should be faster.
+   This page describes an older mechanism. In current Whoosh, the way to make
+   sorting and faceting fast is to store per-document values in a **column** by
+   passing ``sortable=True`` when you define a field. See
+   :doc:`facets` for the full, up-to-date guide. The rest of this page explains
+   how field caches relate to that, and what changed.
 
-The default caching policy never expires field caches, so reused searchers and/or
-sorting a lot of different fields could use up quite a bit of memory with large
-indexes.
+What field caches are
+=====================
 
+When you sort or facet on a field, Whoosh needs a per-document value for that
+field so it can order the documents. Historically the ``filedb`` backend would
+build this ordering on demand and keep it in a *field cache* — a structure that
+pre-computes the order of documents in the index to speed up sorting and
+faceting.
 
-Customizing cache behaviour
-===========================
+Building that ordering the first time can take a moment on a large index, so
+Whoosh keeps it in memory for the life of the searcher and reuses it for
+subsequent sorted or faceted searches.
 
-(The following API examples refer to the default ``filedb`` backend.)
+The modern replacement: sortable columns
+=========================================
 
-*By default*, Whoosh saves field caches to disk. To prevent a reader or searcher
-from writing out field caches, do this before you start using it::
+The recommended approach today is to tell Whoosh up front which fields you will
+sort or facet on, by passing ``sortable=True`` when you define them::
 
-    searcher.set_caching_policy(save=False)
+    from whoosh import fields
 
-By default, if caches are written to disk they are saved in the index directory.
-To tell a reader or searcher to save cache files to a different location, create
-a storage object and pass it to the ``storage`` keyword argument::
+    schema = fields.Schema(title=fields.TEXT(sortable=True),
+                           content=fields.TEXT,
+                           modified=fields.DATETIME(sortable=True))
 
-    from whoosh.filedb.filestore import FileStorage
+When a field is ``sortable``, Whoosh stores its per-document values in a
+:mod:`whoosh.columns` column on disk at index time. Sorting and faceting then
+read directly from that column, so there is no need to build an in-memory field
+cache first, and the values persist with the index instead of being recomputed
+for each new searcher.
 
-    mystorage = FileStorage("path/to/cachedir")
-    reader.set_caching_policy(storage=mystorage)
+You *can* still sort or facet on a field that was not created with
+``sortable=True`` — in that case Whoosh falls back to computing the ordering in
+memory (an internal field cache) the first time it is needed. This works, but it
+is slower and uses more memory on large indexes, so prefer ``sortable=True`` for
+any field you know you will order by. See :doc:`facets` for details on column
+types (``VarBytesColumn``, ``NumericColumn``, ``RefBytesColumn``, and friends)
+and how to choose one.
 
+What changed
+============
 
-Creating a custom caching policy
-================================
+Earlier versions of Whoosh exposed a configurable *caching policy* for the
+on-disk field cache — a ``set_caching_policy()`` method on readers and searchers
+and a ``whoosh.filedb.fieldcache.FieldCachingPolicy`` base class you could
+subclass to control where caches were written or when they expired.
 
-Expert users who want to implement a custom caching policy (for example, to add
-cache expiration) should subclass :class:`whoosh.filedb.fieldcache.FieldCachingPolicy`.
-Then you can pass an instance of your policy object to the ``set_caching_policy``
-method::
+That machinery has been **removed**. The ``whoosh.filedb.fieldcache`` module and
+the ``set_caching_policy()`` method no longer exist, and calling them will raise
+an error. Sortable columns cover the same need — persistent, fast sort/facet
+values — in a simpler and more reliable way, so there is no separate caching
+policy to configure. Any per-field ordering that a column does not provide is
+computed in memory automatically, with no configuration required.
 
-    searcher.set_caching_policy(MyPolicy())
+If you are migrating old code that called ``set_caching_policy()`` or referenced
+``FieldCachingPolicy``, remove those calls and add ``sortable=True`` (or a custom
+column via the ``sortable=`` argument) to the fields you sort or facet on. See
+the :doc:`facets` guide.
