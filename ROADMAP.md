@@ -77,8 +77,12 @@ About section of the README.)*
       JSON, and (with `--compare baseline.json`) fails non-zero when any metric
       regresses beyond a tolerance. Intended to be run against the previous
       release before cutting a new one.
-- [ ] Expand "when to use Whoosh" guidance to cover Tantivy/`tantivy-py` and
-      Lucene-based engines, not just SQLite FTS5.
+- [x] Expand "when to use Whoosh" guidance to cover Tantivy/`tantivy-py` and
+      Lucene-based engines (Elasticsearch/OpenSearch), not just SQLite FTS5.
+      The [comparison guide](https://priya-sundaram-dev.github.io/whoosh/docs/comparison.html)
+      now maps Whoosh against SQLite FTS5, Tantivy, and search servers with an
+      honest "look elsewhere when…" section covering large-corpus throughput,
+      distributed/sharded search, and first-class vector/semantic search.
 
 ## Later / exploring
 
