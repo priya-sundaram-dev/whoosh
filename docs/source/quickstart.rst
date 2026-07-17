@@ -227,8 +227,8 @@ the document for the document to match)::
     >>> print(parser.parse(u"render shade animate"))
     And([Term("content", "render"), Term("content", "shade"), Term("content", "animate")])
 
-    >>> print(parser.parse(u"render OR (title:shade keyword:animate)"))
-    Or([Term("content", "render"), And([Term("title", "shade"), Term("keyword", "animate")])])
+    >>> print(parser.parse(u"render OR (title:shade tags:animate)"))
+    Or([Term("content", "render"), And([Term("title", "shade"), Term("tags", "animate")])])
 
     >>> print(parser.parse(u"rend*"))
     Prefix("content", "rend")
