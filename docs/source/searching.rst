@@ -36,7 +36,11 @@ has lots of useful methods for getting information about the index, such as
 ::
 
     >>> list(searcher.lexicon("content"))
-    [u"document", u"index", u" whoosh"]
+    [b"document", b"index", b"whoosh"]
+
+Note that :meth:`~whoosh.reading.IndexReader.lexicon` yields the indexed terms
+as *bytestrings* (they are stored on disk as bytes), so decode them if you need
+text, e.g. ``[t.decode("utf-8") for t in searcher.lexicon("content")]``.
 
 However, the most important method on the ``Searcher`` object is
 :meth:`~whoosh.searching.Searcher.search`, which takes a
