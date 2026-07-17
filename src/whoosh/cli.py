@@ -330,7 +330,12 @@ def _human_bytes(n: int) -> str:
 
 
 def cmd_stats(args: argparse.Namespace) -> int:
-    """Print a summary of an existing index: doc count, fields, size on disk."""
+    """Print a summary of an existing index: doc count, fields, size on disk.
+
+    With ``--top-terms FIELD`` also prints the ``--top`` most frequent terms
+    indexed in FIELD. The term listing is human-readable output only; the
+    ``--json`` payload is intentionally unchanged (gh#24).
+    """
     root = os.path.abspath(args.directory)
     index_dir = os.path.join(root, INDEX_DIRNAME)
     if not index.exists_in(index_dir):
@@ -384,6 +389,26 @@ def cmd_stats(args: argparse.Namespace) -> int:
     if latest_mtime:
         stamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(latest_mtime))
         print(f"  last updated: {stamp}")
+
+    if getattr(args, "top_terms", None):
+        fieldname = args.top_terms
+        if fieldname not in schema.names():
+            print(f"error: no field {fieldname!r} in index", file=sys.stderr)
+            return 2
+        try:
+            with ix.reader() as r:
+                top_terms = r.most_frequent_terms(fieldname, number=args.top)
+        except Exception as exc:  # noqa: BLE001
+            # Field types without term frequencies (e.g. NUMERIC, DATETIME)
+            # raise assorted low-level decoding errors; show a clear message
+            # instead of a traceback.
+            print(f"error: cannot list top terms for field {fieldname!r}: {exc}",
+                  file=sys.stderr)
+            return 2
+        print(f"Top terms in {fieldname!r}:")
+        for freq, term in top_terms:
+            text = term.decode("utf-8", "replace")
+            print(f"  {int(freq)}  {text}")
     return 0
 
 
@@ -470,6 +495,10 @@ def build_parser() -> argparse.ArgumentParser:
                      help="directory whose index to inspect (default: current)")
     pst.add_argument("--json", action="store_true",
                      help="emit machine-readable JSON output")
+    pst.add_argument("--top-terms", metavar="FIELD",
+                     help="show the most frequent indexed terms in FIELD")
+    pst.add_argument("--top", type=_check_positive_int, default=10,
+                     help="how many top terms to show (default: 10)")
     pst.set_defaults(func=cmd_stats)
     return p
 
