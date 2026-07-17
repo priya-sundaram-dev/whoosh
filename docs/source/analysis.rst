@@ -304,14 +304,17 @@ generator.
 
 Because the analyzer only has one ``Token`` object, of which it keeps changing the
 attributes, if you keep a copy of the Token you get from a loop of the
-generator, it will be changed from under you. For example::
+generator, it will be changed from under you. For example, collecting the token
+objects into a list gives you four references to the *same* object, all showing
+the last token's text::
 
-    >>> list(tokenizer(u"Hello there my friend"))
-    [Token("friend"), Token("friend"), Token("friend"), Token("friend")]
+    >>> [t.text for t in list(tokenizer(u"Hello there my friend"))]
+    ['friend', 'friend', 'friend', 'friend']
 
-Instead, do this::
+Instead, read the attribute you care about inside the loop::
 
     >>> [t.text for t in tokenizer(u"Hello there my friend")]
+    ['Hello', 'there', 'my', 'friend']
 
 That is, save the attributes, not the token object itself.
 
