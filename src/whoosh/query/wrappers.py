@@ -129,10 +129,10 @@ class Not(qcore.Query):
         return None
 
     def estimate_size(self, ixreader):
-        return ixreader.doc_count()
+        return ixreader.doc_count() or 0
 
     def estimate_min_size(self, ixreader):
-        return 1 if ixreader.doc_count() else 0
+        return int(bool(ixreader.doc_count()))
 
     def matcher(self, searcher, context=None):
         # Usually only called if Not is the root query. Otherwise, queries such
