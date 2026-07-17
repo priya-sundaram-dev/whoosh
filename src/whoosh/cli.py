@@ -133,6 +133,24 @@ def cmd_index(args: argparse.Namespace) -> int:
         print(f"error: not a directory: {root}", file=sys.stderr)
         return 2
     exts = _resolve_exts(args.ext)
+
+    # --dry-run: preview which files WOULD be indexed under the current
+    # --ext/--exclude filters, then exit WITHOUT creating, clearing, or
+    # writing the index. Done here, before any index dir is touched, so a
+    # dry run never mutates .whoosh_index. Reuses iter_files so the previewed
+    # set exactly matches a real run.
+    if args.dry_run:
+        rels = sorted(
+            os.path.relpath(full, root)
+            for full, _mtime in iter_files(root, exts, exclude=tuple(args.exclude))
+        )
+        for rel in rels:
+            print(rel)
+        n = len(rels)
+        print(f"Would index {n} file{'s' if n != 1 else ''} under {root}",
+              file=sys.stderr)
+        return 0
+
     index_dir = os.path.join(root, INDEX_DIRNAME)
 
     # For a full (non-incremental) index, start clean.
@@ -447,6 +465,10 @@ def build_parser() -> argparse.ArgumentParser:
     pi.add_argument("--exclude", action="append", default=[], metavar="PATTERN",
                     help="exclude paths matching the given glob pattern "
                          "(e.g., 'build/*' or '*.min.js'). Can be specified multiple times.")
+    pi.add_argument("--dry-run", action="store_true", dest="dry_run",
+                    help="list the files that would be indexed under the "
+                         "current --ext/--exclude filters and exit, without "
+                         "creating, clearing, or writing the index")
     pi.set_defaults(func=cmd_index)
 
     ps = sub.add_parser("search", help="query the index")
