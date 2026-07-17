@@ -371,3 +371,59 @@ def test_span_characters():
                 startchar, endchar = span.startchar, span.endchar
                 assert orig[startchar:endchar] == "bravo echo"
             m.next()
+
+
+def test_span_with_wildcard_subquery():
+    # gh#49: a Sequence/SpanNear query containing a wildcard/prefix subquery
+    # raised "Field does not support spans" once the index was large enough that
+    # the constant-scoring wildcard chose a fast ArrayUnionMatcher (which has no
+    # positions). The span queries must build their sub-matchers with
+    # needs_current so the wildcard falls back to a position-aware matcher.
+    from whoosh.qparser import PhrasePlugin, QueryParser, SequencePlugin
+
+    ana = analysis.StandardAnalyzer(minsize=None, stoplist=None)
+    schema = fields.Schema(text=fields.TEXT(analyzer=ana, phrase=True, stored=True))
+    st = RamStorage()
+    ix = st.create_index(schema)
+    w = ix.writer()
+    w.add_document(text="alpha road place house beta")  # adjacent -> matches
+    w.add_document(text="road beta place house")  # gapped -> no match
+    # Pad with enough docs that the wildcard's Or prefers the array matcher.
+    for _ in range(60):
+        w.add_document(text="filler roam places housing text")
+    w.commit(optimize=True)
+
+    parser = QueryParser("text", schema=schema)
+    parser.remove_plugin_class(PhrasePlugin)
+    parser.add_plugin(SequencePlugin())
+
+    with ix.searcher() as s:
+        q = parser.parse('"ro* place house"')
+        # Must not raise "Field does not support spans".
+        hits = s.search(q, limit=None)
+        results = sorted(h["text"] for h in hits)
+        assert results == ["alpha road place house beta"]
+
+
+def test_span_direct_wildcard_spans():
+    # gh#49 (direct API): calling .spans() on a SpanNear built from a Prefix
+    # (constantscore=True by default) must work even on a large index.
+    from whoosh.query import Prefix
+
+    ana = analysis.StandardAnalyzer(minsize=None, stoplist=None)
+    schema = fields.Schema(text=fields.TEXT(analyzer=ana, phrase=True, stored=True))
+    st = RamStorage()
+    ix = st.create_index(schema)
+    w = ix.writer()
+    w.add_document(text="foxtrot golf hotel")
+    for _ in range(60):
+        w.add_document(text="filler foxy going hotels text")
+    w.commit(optimize=True)
+
+    q = spans.SpanNear2([Prefix("text", "fox"), Term("text", "golf")], slop=1)
+    with ix.searcher() as s:
+        m = q.matcher(s)
+        # Just iterating and requesting spans must not raise.
+        while m.is_active():
+            m.spans()
+            m.next()

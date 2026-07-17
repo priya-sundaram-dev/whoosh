@@ -6,6 +6,19 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.12.3] - 2026-07-17
+
+### Fixed
+- Span/phrase queries containing a wildcard or prefix sub-query (for example a
+  `Sequence`/`SpanNear` phrase like `"ro* place house"`) no longer raise
+  `Exception: Field does not support spans` on larger indexes. Wildcard and
+  prefix queries default to `constantscore=True`, which builds a fast
+  constant-scoring union (`ArrayUnionMatcher`) that does not expose positions.
+  Span queries now build their sub-matchers with `needs_current=True`, forcing
+  the wildcard to fall back to a position-aware matcher so `.spans()` works.
+  The bug was intermittent because it only appeared once the index was large
+  enough to select the array matcher (gh#49).
+
 ## [3.12.2] - 2026-07-17
 
 ### Fixed

@@ -276,8 +276,30 @@ class SpanQuery(Query):
     wrapped query, and ``matcher()`` to return a span-aware matcher object.
     """
 
+    @staticmethod
+    def _span_context(context):
+        """Returns a search context with ``needs_current`` forced on.
+
+        Span queries call ``.spans()`` on their sub-matchers, which requires the
+        matchers to expose per-document position information. Some queries (for
+        example ``Prefix``/``Wildcard`` with ``constantscore=True``) build a
+        fast constant-scoring union (``ArrayUnionMatcher``) that does *not*
+        support positions when ``needs_current`` is False -- calling ``.spans()``
+        on it raises ``Exception("Field does not support spans")`` (see gh#49).
+        Forcing ``needs_current=True`` when building the sub-matchers makes those
+        queries fall back to a position-aware matcher.
+        """
+
+        from whoosh.searching import SearchContext
+
+        if context is None:
+            return SearchContext(needs_current=True)
+        if context.needs_current:
+            return context
+        return context.set(needs_current=True)
+
     def _subm(self, s, context=None):
-        return self.q.matcher(s, context)
+        return self.q.matcher(s, self._span_context(context))
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.q!r})"
@@ -447,6 +469,7 @@ class SpanNear(SpanQuery):
         )
 
     def matcher(self, searcher, context=None):
+        context = self._span_context(context)
         ma = self.a.matcher(searcher, context)
         mb = self.b.matcher(searcher, context)
         return SpanNear.SpanNearMatcher(
@@ -622,6 +645,7 @@ class SpanNear2(SpanQuery):
         )
 
     def matcher(self, searcher, context=None):
+        context = self._span_context(context)
         ms = [q.matcher(searcher, context) for q in self.qs]
         return self.SpanNear2Matcher(
             ms, slop=self.slop, ordered=self.ordered, mindist=self.mindist
@@ -720,6 +744,7 @@ class SpanOr(SpanQuery):
         return self.__class__([fn(sq) for sq in self.subqs])
 
     def matcher(self, searcher, context=None):
+        context = self._span_context(context)
         matchers = [q.matcher(searcher, context) for q in self.subqs]
         return make_binary_tree(SpanOr.SpanOrMatcher, matchers)
 
@@ -763,6 +788,7 @@ class SpanBiQuery(SpanQuery):
         return self.__class__(fn(self.a), fn(self.b))
 
     def matcher(self, searcher, context=None):
+        context = self._span_context(context)
         ma = self.a.matcher(searcher, context)
         mb = self.b.matcher(searcher, context)
         return self._Matcher(ma, mb)
