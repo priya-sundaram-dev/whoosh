@@ -4,7 +4,8 @@ import os
 import time
 import pytest
 
-from whoosh import cli
+from whoosh import cli, index
+from whoosh.fields import TEXT, Schema
 
 
 @pytest.fixture()
@@ -27,6 +28,26 @@ def corpus(tmp_path):
     )
     # A binary file that must be skipped.
     (tmp_path / "logo.bin").write_bytes(b"\x00\x01\x02binary\x00")
+    return tmp_path
+
+
+@pytest.fixture()
+def term_index(tmp_path):
+    """Index on disk with known ``body`` term frequencies (apple x3,
+    banana x2, cherry x1).
+
+    Built directly with a plain TEXT field instead of via ``whoosh index``:
+    the CLI schema stems ``body`` terms (StemmingAnalyzer turns "apple" into
+    "appl"), so indexing through the CLI would make exact term assertions
+    impossible. ``whoosh stats`` only needs the index on disk.
+    """
+    index_dir = tmp_path / cli.INDEX_DIRNAME
+    index_dir.mkdir()
+    ix = index.create_in(str(index_dir), Schema(body=TEXT))
+    writer = ix.writer()
+    writer.add_document(body="apple apple apple banana banana")
+    writer.add_document(body="cherry")
+    writer.commit()
     return tmp_path
 
 
@@ -397,6 +418,37 @@ def test_stats_json_output(corpus, capsys):
     assert payload["size_bytes"] > 0
     names = {f["name"] for f in payload["fields"]}
     assert {"path", "title", "body", "mtime"} <= names
+
+
+def test_stats_top_terms_orders_by_frequency(term_index, capsys):
+    rc = run(["stats", term_index, "--top-terms", "body", "--top", "2"])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "Top terms in 'body':" in out
+    # Frequencies print as ints, most-frequent-first.
+    assert "  3  apple" in out
+    assert "  2  banana" in out
+    assert out.index("apple") < out.index("banana")
+    # --top 2 drops cherry (frequency 1).
+    assert "cherry" not in out
+
+
+def test_stats_top_terms_unknown_field(term_index, capsys):
+    rc = run(["stats", term_index, "--top-terms", "nosuchfield"])
+    assert rc == 2
+    err = capsys.readouterr().err
+    assert "no field 'nosuchfield' in index" in err
+
+
+def test_stats_top_terms_field_without_frequencies(corpus, capsys):
+    """Field types without term frequencies (NUMERIC mtime): clean error."""
+    assert run(["index", corpus]) == 0
+    capsys.readouterr()
+    rc = run(["stats", corpus, "--top-terms", "mtime"])
+    assert rc == 2
+    err = capsys.readouterr().err
+    assert "cannot list top terms" in err
+    assert "Traceback" not in err
 
 
 def test_human_bytes():
