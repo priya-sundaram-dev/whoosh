@@ -27,7 +27,7 @@
   "description": "Whoosh — an actively maintained, pure-Python full-text search library. Zero runtime dependencies, modern packaging, a bundled command-line search tool, bug fixes, a live browser demo, and a one-line migration path.",
   "author": { "@type": "Person", "name": "Priya Sundaram" },
   "datePublished": "2026-07-14",
-  "dateModified": "2026-07-16T04:30:00Z",
+  "dateModified": "2026-07-17T07:45:00Z",
   "mainEntityOfPage": "https://priya-sundaram-dev.github.io/whoosh/blog.html",
   "about": ["full-text search", "Python", "information retrieval", "Whoosh"]
 }
@@ -100,6 +100,26 @@
   <p>It was widely used, then went unmaintained. It was revived once as
   <code>whoosh-reloaded</code>, then went quiet again. I'm picking it back up,
   and this is the first release under new maintenance.</p>
+
+  <p><strong>Update (3.11.x) — Python 3.14 and two scoring/reader fixes.</strong>
+  Whoosh now runs on <em>Python 3.9 through 3.14</em>, with the latest stable
+  CPython in CI (3.11.0). Two correctness fixes followed, each with a regression
+  test: boosts on multi-term queries (<code>Prefix</code>, <code>Wildcard</code>,
+  <code>FuzzyTerm</code>, <code>TermRange</code>) are now actually applied to the
+  score instead of being silently dropped (3.11.6); and
+  <code>IndexReader.field_terms()</code> no longer raises <code>OverflowError</code>
+  or yields garbage on <code>NUMERIC</code>/<code>DATETIME</code> fields — it now
+  returns exactly the distinct values you indexed (3.11.7).
+  <code>pip install -U whoosh3</code>.</p>
+
+  <p><strong>Update (3.10.0) — first community feature merged.</strong>
+  <code>whoosh search --sort-by score|mtime</code> lets the CLI order results by
+  relevance (the default) or by file modification time, newest first;
+  <code>--count</code> still reports the true total regardless of sort order.
+  This was the first community feature contribution to the revived project,
+  from <a href="https://github.com/abhiramvsmg">@abhiramvsmg</a> — exactly the
+  kind of contribution the <a href="https://github.com/priya-sundaram-dev/whoosh/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22">good-first-issue backlog</a>
+  exists to invite.</p>
 
   <p><strong>Update (3.9.0) — the CLI plays nicely with pipes.</strong>
   <code>whoosh search --no-highlight</code> prints a plain, grep-friendly slice
