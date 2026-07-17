@@ -139,6 +139,14 @@ reference (all flags, exit codes, and how it maps onto the API):
 - **Is Whoosh right for you?** An honest
   [comparison with SQLite FTS5, Tantivy, and search servers](https://priya-sundaram-dev.github.io/whoosh/docs/comparison.html)
   — including when to pick something else
+- **Guides & how-tos** (task-focused, copy-pasteable, verified against the
+  current release):
+  - [Performance tuning: why indexing is slow and how to make it fast](https://priya-sundaram-dev.github.io/whoosh/whoosh-performance-tuning-fast-indexing.html)
+    — batching, `limitmb`, `procs`, `multisegment`, and reusing searchers
+  - [Search a folder of PDFs & Markdown (build a local knowledge base)](https://priya-sundaram-dev.github.io/whoosh/whoosh-search-pdf-markdown-knowledge-base.html)
+    — incremental sync, extract-text hooks, highlighted snippets
+  - [Whoosh for RAG: BM25 keyword retrieval & hybrid search](https://priya-sundaram-dev.github.io/whoosh/whoosh-rag-hybrid-search.html)
+    — pure-Python retrieval for LLM pipelines, no vector DB required
 - **Docs site:** https://priya-sundaram-dev.github.io/whoosh/ (rebuilt; work in progress)
 - **Examples:** the [`examples/`](examples/) directory, including a
   reproducible [benchmark vs SQLite FTS5](examples/benchmark_vs_sqlite.py)
