@@ -7,6 +7,11 @@ All notable changes to this project are documented here. This project follows
 ## [Unreleased]
 
 ### Documentation
+- Rewrote the documentation landing page (`index.rst`). It previously opened
+  with stale boilerplate (a "Bitbucket page" label and a "mailing list" link)
+  and no description of the library. It now leads with a one-paragraph overview,
+  a link to the live in-browser demo, a pointer to the quickstart, and an honest
+  project-status note directing readers to the issue tracker and Discussions.
 - Fixed the runnable examples in the "Indexing and searching N-grams" guide
   (`ngrams.rst`). Both examples were missing their `from whoosh.analysis import ...`
   imports (copy-pasting them raised `NameError`), and the `NgramFilter` example's
