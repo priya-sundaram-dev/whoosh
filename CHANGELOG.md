@@ -6,6 +6,14 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Added
+- `whoosh index --dry-run`: preview which files *would* be indexed under the
+  current `--ext`/`--exclude` filters, then exit without creating, clearing, or
+  writing the `.whoosh_index` directory. Prints one relative path per line to
+  stdout (easy to pipe or `grep`) and a short summary count to stderr. The
+  preview reuses the exact same file-walking generator as a real run, so the
+  listed set matches what indexing would ingest. Thanks to @Nitjsefnie (gh#23).
+
 ## [3.15.0] - 2026-07-17
 
 ### Added
