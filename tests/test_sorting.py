@@ -1161,3 +1161,66 @@ def test_column_scoring():
             r = s.search(query.Term("tag", "foo"))
             # Note that higher scores are better, so higher letters come first
             assert [hit["id"] for hit in r] == ["d", "c", "b", "a"]
+
+
+def test_sortable_numeric_float():
+    # Regression test for upstream mchaput/whoosh#44: adding a document to an
+    # index with a sortable float NUMERIC field raised
+    # "struct.error: required argument is not an integer" because the column
+    # default (NaN for floats) was not encoded into the column's sortable
+    # (integer) representation.
+    schema = fields.Schema(
+        title=fields.TEXT(stored=True),
+        price=fields.NUMERIC(sortable=True, numtype=float, stored=True),
+    )
+    with TempIndex(schema) as ix:
+        with ix.writer() as w:
+            w.add_document(title="Big", price=20.0)
+            w.add_document(title="Cheap", price=5.5)
+            w.add_document(title="Pricey", price=99.9)
+            # Document with no value exercises the (NaN) default.
+            w.add_document(title="NoPrice")
+
+        with ix.searcher() as s:
+            r = s.search(query.Every(), sortedby="price")
+            prices = [hit.fields().get("price") for hit in r]
+            # The three real prices should sort ascending; the NaN-defaulted
+            # document sorts first.
+            assert prices[1:] == [5.5, 20.0, 99.9]
+
+
+def test_sortable_numeric_float_user_default():
+    # A user-supplied float default must also round-trip correctly.
+    schema = fields.Schema(
+        title=fields.TEXT(stored=True),
+        price=fields.NUMERIC(
+            sortable=True, numtype=float, default=0.0, stored=True
+        ),
+    )
+    with TempIndex(schema) as ix:
+        with ix.writer() as w:
+            w.add_document(title="x", price=2.5)
+            w.add_document(title="y")  # uses default 0.0
+
+        with ix.searcher() as s:
+            r = s.search(query.Every(), sortedby="price")
+            assert [hit["title"] for hit in r] == ["y", "x"]
+
+
+def test_sortable_numeric_int_still_sorts():
+    # Ensure the fix did not regress integer sortable fields; missing values
+    # default to the maximum and therefore sort last.
+    schema = fields.Schema(
+        t=fields.TEXT(stored=True),
+        n=fields.NUMERIC(sortable=True, stored=True),
+    )
+    with TempIndex(schema) as ix:
+        with ix.writer() as w:
+            w.add_document(t="a", n=3)
+            w.add_document(t="b", n=1)
+            w.add_document(t="d", n=7)
+            w.add_document(t="c")  # no value -> default (max), sorts last
+
+        with ix.searcher() as s:
+            r = s.search(query.Every(), sortedby="n")
+            assert [hit["t"] for hit in r] == ["b", "a", "d", "c"]

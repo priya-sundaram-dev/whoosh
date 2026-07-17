@@ -6,6 +6,19 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.11.3] - 2026-07-17
+
+### Fixed
+- Sortable float `NUMERIC` fields no longer raise
+  `struct.error: required argument is not an integer` when adding documents.
+  The column stores values in their sortable (unsigned-integer) representation,
+  but the column default (`NaN` for floats) was passed through unencoded, so
+  the column writer tried to pack a float into an integer typecode. The field's
+  default is now consistently kept as a raw value and encoded into the sortable
+  representation when the column is created, which also fixes user-supplied
+  `default=` values on sortable numeric fields. Fixes gh#44
+  (reported upstream at mchaput/whoosh#44).
+
 ## [3.11.2] - 2026-07-17
 
 ### Fixed

@@ -47,7 +47,7 @@ if TYPE_CHECKING:
 
 from whoosh import analysis, columns, formats
 from whoosh.system import emptybytes, pack_byte
-from whoosh.util.numeric import NaN, from_sortable, to_sortable, typecode_max
+from whoosh.util.numeric import NaN, from_sortable, to_sortable
 from whoosh.util.text import utf8decode, utf8encode
 from whoosh.util.times import datetime_to_long, long_to_datetime
 
@@ -666,10 +666,14 @@ class NUMERIC(FieldType):
         self.format = formats.Existence(field_boost=field_boost)
         self.min_value, self.max_value = self._min_max()
 
-        # Column configuration
+        # Column configuration. self.default is always stored as a *raw* value
+        # in the field's own number space; default_column() is responsible for
+        # encoding it into the column's sortable representation. For missing
+        # documents int fields default to the maximum representable value (so
+        # they sort last in ascending order) and float fields default to NaN.
         if default is None:
             if numtype is int:
-                default = typecode_max[self.sortable_typecode]
+                default = self.max_value
             else:
                 default = NaN
         elif not self.is_valid(default):
@@ -704,7 +708,14 @@ class NUMERIC(FieldType):
         return min_value, max_value
 
     def default_column(self):
-        return columns.NumericColumn(self.sortable_typecode, default=self.default)
+        # The column stores values in their *sortable* (unsigned integer)
+        # representation (see to_column_value), so the column default must be
+        # encoded the same way. Passing the raw self.default (which is NaN for
+        # float fields, or a large Python int for int fields) would make the
+        # column writer try to struct.pack a non-matching value into the
+        # sortable typecode and raise "required argument is not an integer".
+        default = to_sortable(self.numtype, self.bits, self.signed, self.default)
+        return columns.NumericColumn(self.sortable_typecode, default=default)
 
     def is_valid(self, x):
         try:
