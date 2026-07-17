@@ -147,6 +147,8 @@ reference (all flags, exit codes, and how it maps onto the API):
     — incremental sync, extract-text hooks, highlighted snippets
   - [Whoosh for RAG: BM25 keyword retrieval & hybrid search](https://priya-sundaram-dev.github.io/whoosh/whoosh-rag-hybrid-search.html)
     — pure-Python retrieval for LLM pipelines, no vector DB required
+  - [Spelling, "did you mean?", and fuzzy search](https://priya-sundaram-dev.github.io/whoosh/whoosh-spelling-fuzzy-did-you-mean.html)
+    — typo tolerance: suggestions, query correction, and fuzzy matching
 - **Docs site:** https://priya-sundaram-dev.github.io/whoosh/ (rebuilt; work in progress)
 - **Examples:** the [`examples/`](examples/) directory, including a
   reproducible [benchmark vs SQLite FTS5](examples/benchmark_vs_sqlite.py)
