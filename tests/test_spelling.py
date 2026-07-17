@@ -393,6 +393,29 @@ def test_field_spellable_flags():
     assert fields.BOOLEAN().spellable is False
 
 
+def test_multicorrector_suggest():
+    # gh#21: MultiCorrector._suggestions built a dict keyed by suggestion and
+    # returned ``seen.items()``, yielding ``(suggestion, score)`` tuples --
+    # reversed from the ``(score, suggestion)`` order every other corrector
+    # (and ``suggest()``) uses. That made ``MultiCorrector.suggest()`` raise
+    # ``TypeError: unsupported operand type(s) for -: 'int' and 'str'``.
+    import operator
+
+    c1 = spelling.ListCorrector(sorted(["hello", "help", "hero"]))
+    c2 = spelling.ListCorrector(sorted(["world", "word", "work"]))
+    mc = spelling.MultiCorrector([c1, c2], operator.add)
+
+    # Low-level tuples must be (score, suggestion) with an int/negative score
+    # first so that ``suggest()`` can sort by it.
+    for score, sug in mc._suggestions("helo", 2, 0):
+        assert isinstance(score, (int, float))
+        assert isinstance(sug, str)
+
+    # No crash, and suggestions are drawn from the correct sub-corrector.
+    assert mc.suggest("helo", limit=5)[0] in ("hello", "help", "hero")
+    assert mc.suggest("wrld", limit=5)[0] in ("world", "word", "work")
+
+
 def test_very_long_words():
     import sys
 

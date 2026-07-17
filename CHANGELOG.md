@@ -6,6 +6,16 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Fixed
+- `MultiCorrector.suggest()` no longer raises
+  `TypeError: unsupported operand type(s) for -: 'int' and 'str'`. Its internal
+  `_suggestions()` accumulated results in a dict keyed by suggestion and
+  returned `seen.items()`, which yields `(suggestion, score)` tuples — reversed
+  from the `(score, suggestion)` order that every other corrector and
+  `Corrector.suggest()` rely on. The tuples are now emitted in the correct
+  order, so merging suggestions from multiple correctors works again. Fixes
+  gh#21 (reported upstream at mchaput/whoosh#21).
+
 ## [3.11.3] - 2026-07-17
 
 ### Fixed

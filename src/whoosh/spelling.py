@@ -169,7 +169,11 @@ class MultiCorrector(Corrector):
                     seen[sug] = op(seen[sug], score)
                 else:
                     seen[sug] = score
-        return seen.items()
+        # ``_suggestions`` must yield ``(score, suggestion)`` tuples like every
+        # other corrector (``suggest()`` relies on this ordering). ``seen`` is
+        # keyed by suggestion, so ``seen.items()`` would yield them reversed as
+        # ``(suggestion, score)`` -- swap them back here.
+        return ((score, sug) for sug, score in seen.items())
 
 
 # Query correction
