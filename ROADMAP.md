@@ -92,8 +92,10 @@ About section of the README.)*
 - [ ] A cookbook of integration examples (Flask/Django/FastAPI, static-site
       search — [#5](https://github.com/priya-sundaram-dev/whoosh/issues/5), good
       first issue).
-- [ ] `--json` output for the `whoosh` command-line search, for scripting and
-      pipelines ([#6](https://github.com/priya-sundaram-dev/whoosh/issues/6)).
+- [x] `--json` output for the `whoosh` command-line search, for scripting and
+      pipelines. Shipped: `whoosh search <query> <dir> --json` (and `whoosh
+      stats --json`) emit machine-readable JSON — path, score, snippet, and
+      title per hit — for piping into `jq` and other tooling.
 
 ## Non-goals
 
