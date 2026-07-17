@@ -101,6 +101,22 @@
   <code>whoosh-reloaded</code>, then went quiet again. I'm picking it back up,
   and this is the first release under new maintenance.</p>
 
+  <p><strong>Update (3.12–3.14) — a new CLI report, two safer APIs, and a nested-search fix.</strong>
+  The revival has kept shipping. <code>whoosh stats --top-terms FIELD</code> now
+  lists a field's most frequent indexed terms — a reviewed community contribution
+  from <a href="https://github.com/Nitjsefnie">@Nitjsefnie</a> (3.12.0). On the
+  correctness side, multiprocessing writes to non-shared storage no longer silently
+  discard documents, and a handful of query-parser and date edge cases were fixed
+  (3.12.x). Two new opt-in APIs make common footguns safe: <code>AsyncWriter.wait()</code>
+  gives you a race-free way to block on the background commit thread and surface any
+  error instead of losing buffered documents (3.13.0), and
+  <code>Phrase(..., degrade=True)</code> lets a quoted query gracefully fall back to an
+  AND-of-terms on fields that store no positions, instead of raising — handy when you
+  feed user input straight into a parser over n-gram fields (3.14.0). Finally,
+  <code>NestedParent</code> no longer silently drops results when the index contains a
+  child document with no parent above it, a long-standing bug in nested search (3.14.1).
+  Every one of these landed with a regression test. <code>pip install -U whoosh3</code>.</p>
+
   <p><strong>Update (3.11.x) — Python 3.14 and two scoring/reader fixes.</strong>
   Whoosh now runs on <em>Python 3.9 through 3.14</em>, with the latest stable
   CPython in CI (3.11.0). Two correctness fixes followed, each with a regression
