@@ -25,13 +25,18 @@ slow down indexing by almost 200% compared to a stemming analyzer with an
 When you're indexing in large batches with a one-shot instance of the
 analyzer, consider using an unbounded cache::
 
+    from whoosh.analysis import StemFilter
+
     w = myindex.writer()
     # Get the analyzer object from a text field
-    stem_ana = w.schema["content"].format.analyzer
-    # Set the cachesize to -1 to indicate unbounded caching
-    stem_ana.cachesize = -1
-    # Reset the analyzer to pick up the changed attribute
-    stem_ana.clear()
+    field_analyzer = w.schema["content"].analyzer
+    # The analyzer is a pipeline of tokenizer + filters; find the StemFilter
+    for item in field_analyzer:
+        if isinstance(item, StemFilter):
+            # Set the cachesize to -1 to indicate unbounded caching
+            item.cachesize = -1
+            # Reset the filter to pick up the changed attribute
+            item.clear()
 
     # Use the writer to index documents...
 
