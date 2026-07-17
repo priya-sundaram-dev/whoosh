@@ -111,7 +111,7 @@ You can use the ``top`` keyword argument to control the number of fragments
 returned in each snippet::
 
     # Show a maximum of 5 fragments from the document
-    print hit.highlights("content", top=5)
+    print(hit.highlights("content", top=5))
 
 
 Fragment size

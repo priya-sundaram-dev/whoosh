@@ -12,7 +12,7 @@ mis-typed word::
     with ix.searcher() as s:
         corrector = s.corrector("text")
         for mistyped_word in mistyped_words:
-            print corrector.suggest(mistyped_word, limit=3)
+            print(corrector.suggest(mistyped_word, limit=3))
 
 See the :meth:`whoosh.spelling.Corrector.suggest` method documentation
 for information on the arguments.
@@ -65,7 +65,7 @@ To create a :class:`whoosh.spelling.Corrector` object from a sorted word list::
 
     from whoosh.spelling import ListCorrector
 
-    # word_list must be a sorted list of unicocde strings
+    # word_list must be a sorted list of unicode strings
     corrector = ListCorrector(word_list)
 
 
