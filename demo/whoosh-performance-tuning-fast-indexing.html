@@ -116,7 +116,7 @@ for doc_id, text in documents:
 w.commit()              # a single flush at the end
 </code></pre>
 
-  <p>Measured on 500 small documents (Python 3, whoosh3 3.11.1):</p>
+  <p>Measured on 500 small documents (Python 3, whoosh3 3.11.7):</p>
   <table>
     <tr><th>Approach</th><th>Time</th></tr>
     <tr><td>Writer + commit per document</td><td>4.68 s</td></tr>
@@ -253,7 +253,7 @@ finally:
 
   <hr />
   <p style="font-size:.85rem;color:var(--muted)">
-    All timings above were measured against whoosh3 3.11.1 on a single machine
+    All timings above were measured against whoosh3 3.11.7 on a single machine
     before publishing; exact numbers depend on your hardware, document size, and
     schema, so treat them as ratios rather than absolutes. "Whoosh" is the
     pure-Python search library originally by Matt Chaput; this is an actively
