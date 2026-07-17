@@ -89,6 +89,13 @@ class Storage:
 
     readonly = False
     supports_mmap = False
+    # Whether this storage can be shared between processes so that a
+    # multiprocessing writer (``index.writer(procs=N)``) can hand job files
+    # to sub-processes. Only storages backed by a real, shared filesystem
+    # (e.g. FileStorage) can do this. In-memory or per-process storages must
+    # leave this False so the writer falls back to single-process writing
+    # instead of silently losing documents (see gh#38).
+    supports_multiproc_writing = False
 
     def __iter__(self):
         return iter(self.list())
@@ -398,6 +405,9 @@ class FileStorage(Storage):
     """
 
     supports_mmap = True
+    # Files live in a real directory shared by all processes, so the
+    # multiprocessing writer can safely pass job filenames to sub-processes.
+    supports_multiproc_writing = True
 
     def __init__(self, path, supports_mmap=True, readonly=False, debug=False):
         """

@@ -471,9 +471,29 @@ class FileIndex(Index):
 
     def writer(self, procs=1, **kwargs) -> "IndexWriter":
         if procs > 1:
-            from whoosh.multiproc import MpWriter
+            # The multiprocessing writer hands job files to sub-processes via a
+            # shared filesystem. Storages that aren't shared between processes
+            # (e.g. RamStorage) can't do this -- previously that silently lost
+            # every document (gh#38). Fall back to a single-process writer with
+            # a warning instead.
+            if getattr(self.storage, "supports_multiproc_writing", False):
+                from whoosh.multiproc import MpWriter
 
-            return MpWriter(self, procs=procs, **kwargs)
+                return MpWriter(self, procs=procs, **kwargs)
+            else:
+                import warnings
+
+                warnings.warn(
+                    "Multiprocessing writing (procs=%d) is not supported by "
+                    "%s because it is not shared between processes; falling "
+                    "back to a single-process writer. Use FileStorage (an "
+                    "on-disk index) for multiprocessing writes."
+                    % (procs, type(self.storage).__name__),
+                    stacklevel=2,
+                )
+                from whoosh.writing import SegmentWriter
+
+                return SegmentWriter(self, **kwargs)
         else:
             from whoosh.writing import SegmentWriter
 

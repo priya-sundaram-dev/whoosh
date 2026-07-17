@@ -6,6 +6,20 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.12.4] - 2026-07-17
+
+### Fixed
+- Multiprocessing writing (`index.writer(procs=N)` with `N > 1`) on a
+  non-shared storage such as `RamStorage` no longer silently discards every
+  document. The multiprocessing writer passes job files to sub-processes
+  through a shared filesystem, which an in-memory storage cannot provide, so
+  the sub-processes never saw the documents and the commit produced an empty
+  index. Whoosh now detects storages that don't support cross-process writing
+  (via the new `Storage.supports_multiproc_writing` flag, `True` only for
+  `FileStorage`) and transparently falls back to a correct single-process
+  writer with a warning. On-disk indexes still use the real multiprocessing
+  writer (gh#38).
+
 ## [3.12.3] - 2026-07-17
 
 ### Fixed

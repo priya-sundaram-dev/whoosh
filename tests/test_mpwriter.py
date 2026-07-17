@@ -285,3 +285,53 @@ def test_finish_segment():
             w.add_document(a=str(i) * 10)
 
         w.commit()
+
+
+def test_ramstorage_procs_fallback_indexes_all_docs():
+    # gh#38: RamStorage can't be shared between processes, so a multiprocessing
+    # writer used to silently drop every document. Now it falls back to a
+    # single-process writer (with a warning) and indexes everything correctly.
+    check_multi()
+
+    import warnings
+
+    from whoosh.filedb.filestore import RamStorage
+    from whoosh.writing import SegmentWriter
+
+    schema = fields.Schema(content=fields.TEXT(stored=True))
+    ix = RamStorage().create_index(schema)
+
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        w = ix.writer(procs=2, multisegment=True)
+        # Should fall back to a plain single-process writer...
+        assert isinstance(w, SegmentWriter)
+        # ...with a warning telling the user why.
+        assert any("single-process" in str(x.message) for x in caught)
+
+    for i in range(250):
+        w.add_document(content=f"doc number {i} hello")
+    w.commit()
+
+    with ix.searcher() as s:
+        assert s.doc_count() == 250
+        q = query.Term("content", "hello")
+        assert len(list(s.search(q, limit=None))) == 250
+
+
+def test_filestorage_still_uses_mpwriter():
+    # The fallback must not affect on-disk indexes: FileStorage supports
+    # multiprocessing writing and should still get a real MpWriter.
+    check_multi()
+
+    from whoosh.multiproc import MpWriter
+
+    schema = fields.Schema(content=fields.TEXT(stored=True))
+    with TempIndex(schema) as ix:
+        w = ix.writer(procs=2, multisegment=True)
+        assert isinstance(w, MpWriter)
+        for i in range(50):
+            w.add_document(content=f"doc {i} hello")
+        w.commit()
+        with ix.searcher() as s:
+            assert s.doc_count() == 50
