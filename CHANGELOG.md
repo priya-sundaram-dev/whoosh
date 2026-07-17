@@ -6,6 +6,8 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.11.4] - 2026-07-17
+
 ### Fixed
 - `MultiCorrector.suggest()` no longer raises
   `TypeError: unsupported operand type(s) for -: 'int' and 'str'`. Its internal
