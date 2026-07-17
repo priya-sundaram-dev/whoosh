@@ -328,7 +328,7 @@ and so on.
 
     >>> list(searcher.documents(indexeddate=u"20051225"))
     [{"title": u"Christmas presents"}, {"title": u"Turkey dinner report"}]
-    >>> print searcher.document(path=u"/a/b/c")
+    >>> print(searcher.document(path=u"/a/b/c"))
     {"title": "Document C"}
 
 These methods have some limitations:
