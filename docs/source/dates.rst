@@ -148,7 +148,7 @@ change in future versions)::
     errors = []
     def add_error(msg):
         errors.append(msg)
-    qp.add_plugin(DateParserPlug(callback=add_error))
+    qp.add_plugin(DateParserPlugin(callback=add_error))
 
     q = qp.parse(u"date:blarg")
     # errors == [u"blarg"]
