@@ -82,7 +82,7 @@
   <div class="tldr">
     <strong>TL;DR.</strong> If Whoosh indexing feels slow, the culprit is almost
     always <strong>opening a new writer (and committing) for every document</strong>.
-    Batch your writes into a single writer and you can see an <span class="win">~18×</span>
+    Batch your writes into a single writer and you can see a <span class="win">~20×</span>
     speedup with no other changes. From there: raise <code>limitmb</code>, use
     <code>multisegment=True</code> for bulk loads, <code>optimize</code> read-heavy
     indexes, and <strong>reuse one searcher</strong> across queries.
@@ -116,12 +116,12 @@ for doc_id, text in documents:
 w.commit()              # a single flush at the end
 </code></pre>
 
-  <p>Measured on 500 small documents (Python 3, whoosh3 3.11.7):</p>
+  <p>Measured on 500 small documents (Python 3, whoosh3 3.15.0):</p>
   <table>
     <tr><th>Approach</th><th>Time</th></tr>
-    <tr><td>Writer + commit per document</td><td>4.68 s</td></tr>
-    <tr><td>Single writer, one commit</td><td><span class="win">0.27 s</span></td></tr>
-    <tr><td colspan="2"><strong>≈ 18× faster</strong>, same result, same index.</td></tr>
+    <tr><td>Writer + commit per document</td><td>4.9 s</td></tr>
+    <tr><td>Single writer, one commit</td><td><span class="win">0.22 s</span></td></tr>
+    <tr><td colspan="2"><strong>≈ 22× faster</strong>, same result, same index.</td></tr>
   </table>
 
   <div class="note">
@@ -153,7 +153,7 @@ w.commit()
     <li><strong><code>limitmb</code></strong> — the biggest lever after batching.
       Raising it means fewer intermediate flushes. On a 20,000-document corpus,
       bumping <code>limitmb</code> and enabling <code>multisegment</code> shaved
-      indexing from <strong>13.8 s to 12.3 s</strong> (~11%) on top of already
+      indexing from <strong>~6.8 s to ~5.8 s</strong> (~15%) on top of already
       batching. The win grows with corpus size and available RAM.</li>
     <li><strong><code>multisegment=True</code></strong> — great for a one-time
       bulk import: it avoids the merge step by leaving each pool's output as its
@@ -253,7 +253,7 @@ finally:
 
   <hr />
   <p style="font-size:.85rem;color:var(--muted)">
-    All timings above were measured against whoosh3 3.11.7 on a single machine
+    All timings above were measured against whoosh3 3.15.0 on a single machine
     before publishing; exact numbers depend on your hardware, document size, and
     schema, so treat them as ratios rather than absolutes. "Whoosh" is the
     pure-Python search library originally by Matt Chaput; this is an actively
