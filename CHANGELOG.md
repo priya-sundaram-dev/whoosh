@@ -6,6 +6,8 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.16.0] - 2026-07-17
+
 ### Added
 - `whoosh index --dry-run`: preview which files *would* be indexed under the
   current `--ext`/`--exclude` filters, then exit without creating, clearing, or
