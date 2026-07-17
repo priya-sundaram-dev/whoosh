@@ -52,7 +52,7 @@ Usage
   *ten* documents of a results object::
 
         keywords = [keyword for keyword, score
-                    in results.key_terms("content", docs=10, numterms=5)
+                    in results.key_terms("content", docs=10, numterms=5)]
 
 * Extract keywords for an arbitrary set of documents. *This requires that the
   field is either vectored or stored*.
