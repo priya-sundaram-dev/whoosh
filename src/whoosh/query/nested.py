@@ -127,6 +127,11 @@ class NestedParent(WrappingQuery):
             docnum = m.id()
             parentdoc = bits.before(docnum + 1)
             nextparent = bits.after(docnum) or maxdoc
+            if parentdoc is None:
+                # Orphan child with no parent before it -- nothing to delete for
+                # it; skip past to the next parent group (see gh#31).
+                m.skip_to(nextparent)
+                continue
             yield from range(parentdoc, nextparent)
             m.skip_to(nextparent)
 
@@ -153,28 +158,47 @@ class NestedParent(WrappingQuery):
             child = self.child
             pplimit = self.per_parent_limit
 
-            # The next document returned by this matcher is the parent of the
-            # child's current document. We don't have to worry about whether
-            # the parent is deleted, because the query that gave us the parents
-            # wouldn't return deleted documents.
-            self._nextdoc = self.comb.before(child.id() + 1)
-            # The next parent after the child matcher's current document
-            nextparent = self.comb.after(child.id()) or self.maxdoc
+            # A matching child document may not belong to any parent group -- for
+            # example, a document that satisfies the child query but was indexed
+            # before the first parent, or in a gap between groups. Such an
+            # "orphan" child has no parent to return, so we skip past it and keep
+            # looking. We must *not* stop the whole matcher just because one such
+            # child exists, otherwise every later, legitimately-parented match is
+            # silently dropped (see gh#31).
+            while child.is_active():
+                # The next document returned by this matcher is the parent of the
+                # child's current document. We don't have to worry about whether
+                # the parent is deleted, because the query that gave us the
+                # parents wouldn't return deleted documents.
+                parentdoc = self.comb.before(child.id() + 1)
+                # The next parent at or after the child matcher's current document
+                nextparent = self.comb.after(child.id()) or self.maxdoc
 
-            # Sum the scores of all matching documents under the parent
-            count = 1
-            scores = []
-            while child.is_active() and child.id() < nextparent:
-                if pplimit and count > pplimit:
+                if parentdoc is None:
+                    # This child has no parent before it. Skip every child up to
+                    # (but not including) the first parent, then try again.
                     child.skip_to(nextparent)
-                    break
+                    continue
 
-                scores.append(child.score())
-                child.next()
-                count += 1
+                # Sum the scores of all matching documents under the parent
+                count = 1
+                scores = []
+                while child.is_active() and child.id() < nextparent:
+                    if pplimit and count > pplimit:
+                        child.skip_to(nextparent)
+                        break
 
-            score = self.score_fn(scores) if scores else 0
-            self._nextscore = score
+                    scores.append(child.score())
+                    child.next()
+                    count += 1
+
+                self._nextdoc = parentdoc
+                self._nextscore = self.score_fn(scores) if scores else 0
+                return
+
+            # No more parented children remain.
+            self._nextdoc = None
+            self._nextscore = 0
 
         def id(self):
             return self._nextdoc

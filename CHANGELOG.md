@@ -6,6 +6,19 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.14.1] - 2026-07-17
+
+### Fixed
+- `NestedParent` no longer silently drops results when the index contains a
+  document that matches the child query but does not belong to any parent group
+  (an "orphan" child — for example a matching document indexed before the first
+  parent, or in a gap between groups). Previously, encountering such a child
+  would cause `NestedParent.before()` to return `None`, which terminated the
+  whole matcher and dropped every subsequent, legitimately-parented match. The
+  matcher now skips orphan children and continues. The same guard was added to
+  `NestedParent.deletion_docs()` (which had a latent `range(None, ...)` crash on
+  the same input) (gh#31).
+
 ## [3.14.0] - 2026-07-17
 
 ### Added

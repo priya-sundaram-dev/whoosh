@@ -418,3 +418,41 @@ def test_nested_skip():
             r3 = s.search(complex_query)
             assert r3.scored_length() == 1
             assert [hit["id"] for hit in r3] == ["chapter_3"]
+
+
+def test_nested_parent_orphan_child_gh31():
+    # Regression for gh#31: a document that matches the child query but does not
+    # belong to any parent group (an "orphan") must not cause the NestedParent
+    # matcher to silently drop every subsequently-parented match.
+    schema = fields.Schema(
+        kind=fields.ID(stored=True),
+        name=fields.ID(stored=True),
+        fn=fields.ID(stored=True),
+    )
+
+    def search(docs):
+        ix = RamStorage().create_index(schema)
+        with ix.writer() as w:
+            for d in docs:
+                w.add_document(**d)
+        with ix.searcher() as s:
+            q = query.NestedParent(
+                query.Term("kind", "parent"), query.Term("fn", "match")
+            )
+            r = s.search(q, limit=None)
+            return [hit["name"] for hit in r]
+
+    parent = lambda nm: {"kind": "parent", "name": nm}
+    match = {"kind": "child", "fn": "match"}
+    nomatch = {"kind": "child", "fn": "nomatch"}
+
+    # Orphan matching child *before* the first parent used to kill the query.
+    assert search([match, parent("A"), match]) == ["A"]
+    # Orphan(s) between two groups.
+    assert search([parent("A"), match, match, parent("B"), match]) == ["A", "B"]
+    # Multiple orphans at the start.
+    assert search([match, match, parent("A"), match]) == ["A"]
+    # Only orphans -> no results, but no crash.
+    assert search([match, match]) == []
+    # Normal case unaffected.
+    assert search([parent("A"), match, parent("B"), nomatch]) == ["A"]
