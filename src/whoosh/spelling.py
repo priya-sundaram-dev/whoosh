@@ -63,6 +63,12 @@ class Corrector:
 
         heap = []
         for item in _suggestions(text, maxdist, prefix):
+            # The word being checked is never itself a "correction" -- see the
+            # ``text`` parameter docs above. Sub-correctors may legitimately
+            # yield it (e.g. when it exists in the index/word list), so filter
+            # it out here in one place for every corrector.
+            if item[1] == text:
+                continue
             # Note that the *higher* scores (item[0]) are better!
             if len(heap) < limit:
                 heappush(heap, item)
@@ -136,17 +142,22 @@ class ListCorrector(Corrector):
                     yield (0 - mxd), sug
 
     class Skipper:
+        # ``find_all_matches`` calls this lookup with query strings that are
+        # monotonically non-decreasing, so we keep a cursor (``self.i``) as a
+        # lower bound to avoid re-scanning the whole list each time. The cursor
+        # must never skip past a candidate we haven't compared yet: bisect from
+        # the current cursor position (not one past it) so ``data[self.i]``
+        # itself remains eligible.
         def __init__(self, data):
             self.data = data
             self.i = 0
 
         def __call__(self, w):
-            if self.data[self.i] == w:
-                return w
-            self.i += 1
-            pos = bisect_left(self.data, w, self.i)
-            if pos < len(self.data):
-                return self.data[pos]
+            data = self.data
+            pos = bisect_left(data, w, self.i)
+            self.i = pos
+            if pos < len(data):
+                return data[pos]
             else:
                 return None
 

@@ -74,11 +74,16 @@ Merging two or more correctors
 
 You can combine suggestions from two sources (for example, the contents
 of an index field and a word list) using a
-:class:`whoosh.spelling.MultiCorrector`::
+:class:`whoosh.spelling.MultiCorrector`. In addition to the list of
+sub-correctors, you must pass an ``op`` callable that is used to combine the
+scores when the same suggestion comes from more than one sub-corrector
+(for example, the built-in :func:`max`)::
+
+    from whoosh.spelling import ListCorrector, MultiCorrector
 
     c1 = searcher.corrector("content")
-    c2 = spelling.ListCorrector(word_list)
-    corrector = MultiCorrector([c1, c2])
+    c2 = ListCorrector(word_list)
+    corrector = MultiCorrector([c1, c2], max)
 
 
 Correcting user queries
@@ -116,14 +121,17 @@ attributes:
 
 
 You can use a :class:`whoosh.highlight.Formatter` object to format the
-corrected query string. For example, use the
+corrected query string. Call the
+:meth:`whoosh.spelling.Correction.format_string` method on the returned
+correction object, passing the formatter. For example, use the
 :class:`~whoosh.highlight.HtmlFormatter` to format the corrected string
 as HTML::
 
     from whoosh import highlight
 
     hf = highlight.HtmlFormatter()
-    corrected = s.correct_query(q, qstring, formatter=hf)
+    corrected = s.correct_query(q, qstring)
+    html = corrected.format_string(hf)
 
 See the documentation for
 :meth:`whoosh.searching.Searcher.correct_query` for information on the

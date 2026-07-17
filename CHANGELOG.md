@@ -6,6 +6,29 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.16.1] - 2026-07-17
+
+### Fixed
+- `ListCorrector` (and `MultiCorrector` built on top of it) failed to suggest
+  a correction whose only close match was the **first** word in the sorted word
+  list. The internal `Skipper` cursor unconditionally advanced past its current
+  position before searching, so the very first lookup permanently skipped
+  `wordlist[0]`. For example, `ListCorrector(["apple", ...]).suggest("aple")`
+  returned `[]` instead of `["apple"]`. The cursor now uses the current
+  position as an inclusive lower bound, and a brute-force equivalence test
+  guards against future regressions.
+- `Corrector.suggest()` no longer returns the word being checked as one of its
+  own corrections, matching the documented behavior. Previously, checking a word
+  that exists in the index or word list (e.g. `suggest("apple")` when `apple`
+  is indexed) listed `apple` itself as a "did you mean" suggestion.
+
+### Documentation
+- "Correcting errors in user queries": fixed two examples that no longer matched
+  the API. `MultiCorrector` requires an `op` argument to combine scores
+  (e.g. `MultiCorrector([c1, c2], max)`), and a corrected query is formatted with
+  the returned correction's `format_string(formatter)` method rather than a
+  (nonexistent) `formatter=` keyword on `correct_query()`.
+
 ## [3.16.0] - 2026-07-17
 
 ### Added

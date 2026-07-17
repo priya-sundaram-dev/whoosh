@@ -64,7 +64,9 @@ def test_reader_corrector():
 
         with ix.reader() as r:
             sp = spelling.ReaderCorrector(r, "text", schema["text"])
-            assert sp.suggest("koala", maxdist=1) == ["koala", "zoala"]
+            # The word being checked is never suggested as its own correction,
+            # even when it exists in the index (see Corrector.suggest docs).
+            assert sp.suggest("koala", maxdist=1) == ["zoala"]
 
             target = ["kaori", "koala", "oola"]
             sugs = sp.suggest("kaola", maxdist=2)
@@ -439,6 +441,61 @@ def test_very_long_words():
             for string in strings2:
                 w.add_document(text=string)
             w.optimize = True
+
+
+def test_list_corrector_first_word_not_skipped():
+    # Regression: ListCorrector.Skipper was a forward-only cursor that
+    # unconditionally advanced past the current position before bisecting, so
+    # the first lookup (a string just below data[0]) permanently skipped the
+    # first word in the list. As a result ListCorrector never suggested a
+    # correction whose only close match was the first word.
+    corr = spelling.ListCorrector(sorted(["apple", "apricot", "banana", "berry"]))
+    assert corr.suggest("aple", limit=3) == ["apple"]
+    assert corr.suggest("appel", limit=3) == ["apple"]
+    assert corr.suggest("banan", limit=3) == ["banana"]
+    assert corr.suggest("berr", limit=3) == ["berry"]
+
+
+def test_list_corrector_matches_brute_force():
+    # The automaton-based ListCorrector must agree with a brute-force
+    # levenshtein scan for a variety of word lists and typos.
+    import random
+
+    random.seed(1234)
+    alpha = "abcdefghijklmnop"
+
+    def rw(n):
+        return "".join(random.choice(alpha) for _ in range(n))
+
+    for _ in range(200):
+        words = sorted({rw(random.randint(2, 7)) for _ in range(random.randint(5, 40))})
+        corr = spelling.ListCorrector(words)
+        typo = rw(random.randint(2, 7))
+        k = random.choice([1, 2])
+        expected = set()
+        for dist in range(1, k + 1):
+            expected |= {
+                w for w in words if w != typo and levenshtein(typo, w) <= dist
+            }
+        got = set(corr.suggest(typo, limit=1000, maxdist=k))
+        assert got == expected, (typo, k, sorted(expected - got), sorted(got - expected))
+
+
+def test_suggest_excludes_input_word():
+    # Corrector.suggest documents that the word being checked is never
+    # returned as one of its own corrections, even when it exists in the
+    # index or word list.
+    lc = spelling.ListCorrector(sorted(["op", "ok", "on", "xp"]))
+    assert "op" not in lc.suggest("op")
+
+    schema = fields.Schema(text=fields.TEXT())
+    with TempIndex(schema) as ix:
+        with ix.writer() as w:
+            w.add_document(text="apple apply ample")
+        with ix.reader() as r:
+            sp = spelling.ReaderCorrector(r, "text", schema["text"])
+            sugs = sp.suggest("apple", maxdist=2)
+            assert "apple" not in sugs
 
 
 # def test_add_spelling():
