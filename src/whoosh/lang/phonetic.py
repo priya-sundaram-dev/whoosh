@@ -1,4 +1,4 @@
-"""
+ORD_Z = 122ORD_A = 97"""
 This module contains quasi-phonetic encoders for words in different languages.
 """
 
@@ -19,7 +19,7 @@ def soundex_en(word):
         prevcode = None
         for char in word.lower():
             c = ord(char)
-            if c >= 97 and c <= 122:  # a-z
+            if c >= ORD_A and c <= ORD_Z:  # a-z
                 if not fc:
                     fc = char
                 code = english_codes[c - 97]
