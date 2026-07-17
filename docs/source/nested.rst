@@ -165,12 +165,26 @@ documents. You must manually delete and re-add document groups to update them.
 To delete nested document groups, use the ``Writer.delete_by_query()``
 method with a ``NestedParent`` query::
 
-    # Delete the "Accumulator" class
+    # Delete the "Accumulator" class group
     all_parents = query.Term("kind", "class")
-    to_delete = query.Term("name", "Accumulator")
+    # Match a *child* of the group you want to delete. NestedParent returns the
+    # parent of any matching child, and delete_by_query() then removes the whole
+    # contiguous group (parent + children). Here "get result" is a method under
+    # the Accumulator class:
+    to_delete = query.Term("name", "result")
     q = query.NestedParent(all_parents, to_delete)
     with myindex.writer() as w:
         w.delete_by_query(q)
+
+.. note::
+
+    The second argument to ``NestedParent`` is a query over **child**
+    documents, not the parent. Matching the parent document itself (for
+    example ``query.Term("name", "Accumulator")`` above) will *not* match the
+    group, because ``NestedParent`` only returns parents of matching children.
+    If you need to select a group by a value stored on the parent, add that
+    value to the child documents at index time (or use the query-time-join
+    technique below).
 
 
 Using query-time joins
