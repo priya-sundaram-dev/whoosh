@@ -28,7 +28,7 @@ Then import it as ``whoosh`` (the package name is unchanged; only the
 distribution name on PyPI is ``whoosh3``)::
 
     import whoosh
-    print(whoosh.__version__)   # (3, 0, 2) or newer
+    print(whoosh.__version__)   # (3, 16, 1) or newer
 
 
 When should I use Whoosh?
