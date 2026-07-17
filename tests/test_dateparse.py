@@ -525,3 +525,27 @@ def test_final_ranges(p=english):
         {"year": 2010, "month": 9, "day": 21},
         {"year": 5000, "month": 10, "day": 25},
     )
+
+
+def test_dateparserplugin_default_basedate():
+    # gh#50: DateParserPlugin with no basedate must not crash on range queries.
+    # timespan().disambiguated() requires a non-None basedate, so the plugin
+    # must default self.basedate to the current time (per its docstring).
+    from whoosh import fields
+    from whoosh.qparser import QueryParser
+    from whoosh.qparser.dateparse import DateParserPlugin
+
+    schema = fields.Schema(text=fields.TEXT, date=fields.DATETIME)
+
+    qp = QueryParser("text", schema)
+    plugin = DateParserPlugin()
+    assert plugin.basedate is not None
+    qp.add_plugin(plugin)
+    # Should parse without AttributeError: 'NoneType' object has no attribute 'year'
+    q = qp.parse("date:[oct 1970 to dec 8 2010]")
+    assert q is not None
+
+    # An explicitly supplied basedate must still be respected.
+    bd = datetime(2020, 1, 1, tzinfo=timezone.utc)
+    plugin2 = DateParserPlugin(basedate=bd)
+    assert plugin2.basedate == bd

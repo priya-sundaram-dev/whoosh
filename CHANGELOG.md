@@ -6,6 +6,18 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.11.5] - 2026-07-17
+
+### Fixed
+- `DateParserPlugin` no longer raises
+  `AttributeError: 'NoneType' object has no attribute 'year'` on date-range
+  queries when constructed without an explicit `basedate`. The plugin's
+  docstring promised it would fall back to the current time, but `self.basedate`
+  was left as `None`; helpers such as `timespan().disambiguated()` require a
+  concrete base date. `basedate` now defaults to the current UTC time, matching
+  the documented behavior, while an explicitly supplied `basedate` is still
+  respected. Fixes gh#50 (reported upstream at mchaput/whoosh#50).
+
 ## [3.11.4] - 2026-07-17
 
 ### Fixed

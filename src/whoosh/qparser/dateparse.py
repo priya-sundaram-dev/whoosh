@@ -822,6 +822,8 @@ class DateParserPlugin(plugins.Plugin):
             normal query words accidentally being parsed as dates sometimes.
         """
 
+        if basedate is None:
+            basedate = datetime.now(tz=timezone.utc)
         self.basedate = basedate
         if dateparser is None:
             dateparser = English()
