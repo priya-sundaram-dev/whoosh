@@ -22,10 +22,11 @@ tokenizer with roman languages leads to spaces in the tokens.
 
 ::
 
+    >>> from whoosh.analysis import NgramTokenizer
     >>> ngt = NgramTokenizer(minsize=2, maxsize=4)
-    >>> [token.text for token in ngt(u"hi there")]
-    [u'hi', u'hi ', u'hi t',u'i ', u'i t', u'i th', u' t', u' th', u' the', u'th',
-    u'the', u'ther', u'he', u'her', u'here', u'er', u'ere', u're']
+    >>> [token.text for token in ngt("hi there")]
+    ['hi', 'hi ', 'hi t', 'i ', 'i t', 'i th', ' t', ' th', ' the', 'th',
+    'the', 'ther', 'he', 'her', 'here', 'er', 'ere', 're']
 
 :class:`whoosh.analysis.NgramFilter` breaks individual tokens into N-grams as
 part of an analysis pipeline. This is more useful for languages with word
@@ -33,11 +34,13 @@ separation.
 
 ::
 
+    >>> from whoosh.analysis import StandardAnalyzer, NgramFilter
     >>> my_analyzer = StandardAnalyzer() | NgramFilter(minsize=2, maxsize=4)
-    >>> [token.text for token in my_analyzer(u"rendering shaders")]
-    [u'ren', u'rend', u'end', u'ende', u'nde', u'nder', u'der', u'deri', u'eri',
-    u'erin', u'rin', u'ring', u'ing', u'sha', u'shad', u'had', u'hade', u'ade',
-    u'ader', u'der', u'ders', u'ers']
+    >>> [token.text for token in my_analyzer("rendering shaders")]
+    ['re', 'ren', 'rend', 'en', 'end', 'ende', 'nd', 'nde', 'nder', 'de', 'der',
+    'deri', 'er', 'eri', 'erin', 'ri', 'rin', 'ring', 'in', 'ing', 'ng', 'sh',
+    'sha', 'shad', 'ha', 'had', 'hade', 'ad', 'ade', 'ader', 'de', 'der', 'ders',
+    'er', 'ers', 'rs']
 
 Whoosh includes two pre-configured field types for N-grams:
 :class:`whoosh.fields.NGRAM` and :class:`whoosh.fields.NGRAMWORDS`. The only

@@ -7,6 +7,14 @@ All notable changes to this project are documented here. This project follows
 ## [Unreleased]
 
 ### Documentation
+- Fixed the runnable examples in the "Indexing and searching N-grams" guide
+  (`ngrams.rst`). Both examples were missing their `from whoosh.analysis import ...`
+  imports (copy-pasting them raised `NameError`), and the `NgramFilter` example's
+  documented output was simply wrong: with `minsize=2, maxsize=4` it omitted every
+  2-gram (showing `['ren', 'rend', ...]` instead of the real `['re', 'ren',
+  'rend', ...]`), so a user checking their output against the docs would think the
+  library was broken. The output is now the exact Python 3 result, and the `u''`
+  prefixes were removed.
 - Fixed the runnable examples in the "Stemming and variations" guide
   (`stemming.rst`). The `StemFilter` example was missing its
   `from whoosh.analysis import RegexTokenizer, StemFilter` import (copy-pasting
