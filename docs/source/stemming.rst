@@ -120,7 +120,8 @@ keyword argument to the parser initialization method::
 
     from whoosh import qparser, query
 
-    qp = qparser.QueryParser("content", termclass=query.Variations)
+    qp = qparser.QueryParser("content", schema=myindex.schema,
+                             termclass=query.Variations)
 
 Variations has pros and cons.
 
