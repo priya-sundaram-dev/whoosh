@@ -549,3 +549,31 @@ def test_dateparserplugin_default_basedate():
     bd = datetime(2020, 1, 1, tzinfo=timezone.utc)
     plugin2 = DateParserPlugin(basedate=bd)
     assert plugin2.basedate == bd
+
+
+def test_disambiguated_default_basedate():
+    # gh#50 (follow-up): disambiguated() documents basedate as optional and its
+    # docstrings even show calls with no argument, but passing None used to
+    # raise "AttributeError: 'NoneType' object has no attribute 'year'" when a
+    # missing field (e.g. the year of a range end) had to be filled from the
+    # basedate. Both disambiguated() methods must default to the current time.
+    now = datetime.now(tz=timezone.utc)
+
+    # adatetime.disambiguated() with no argument
+    adt = adatetime(year=2009, month=10, day=31).disambiguated()
+    assert adt.start.year == 2009 and adt.end.year == 2009
+
+    # timespan.disambiguated(None) where the end is missing its year: this is
+    # the exact path that previously crashed.
+    ts = timespan(adatetime(year=1970, month=10), adatetime(month=12, day=8))
+    d = ts.disambiguated(None)
+    assert d.start.year == 1970
+    # end year is filled from the (now-defaulted) basedate
+    assert d.end.year == now.year
+
+    # An explicit basedate is still honoured.
+    bd = datetime(2020, 1, 1, tzinfo=timezone.utc)
+    d2 = timespan(
+        adatetime(year=1970, month=10), adatetime(month=12, day=8)
+    ).disambiguated(bd)
+    assert d2.end.year == 2020

@@ -275,7 +275,7 @@ class adatetime:
             ms = 999999
         return datetime(y, m, d, h, mn, s, ms, tzinfo=timezone.utc)
 
-    def disambiguated(self, basedate):
+    def disambiguated(self, basedate=None):
         """Returns either a ``datetime`` or unambiguous ``timespan`` version
         of this object.
 
@@ -285,11 +285,17 @@ class adatetime:
 
         This method raises an error if the ``adatetime`` object has no year.
 
+        :param basedate: a ``datetime`` used as the reference point for
+            resolving ambiguous fields. If not supplied (or ``None``), the
+            current UTC time is used.
+
         >>> adt = adatetime(year=2009, month=10, day=31)
         >>> adt.disambiguated()
         timespan(datetime(2009, 10, 31, 0, 0, 0, 0), datetime(2009, 10, 31, 23, 59 ,59, 999999)
         """
 
+        if basedate is None:
+            basedate = datetime.now(tz=timezone.utc)
         dt = self
         if not is_ambiguous(dt):
             return fix(dt)
@@ -326,8 +332,13 @@ class timespan:
     def __repr__(self):
         return f"{self.__class__.__name__}({self.start!r}, {self.end!r})"
 
-    def disambiguated(self, basedate, debug=0):
+    def disambiguated(self, basedate=None, debug=0):
         """Returns an unambiguous version of this object.
+
+        :param basedate: a ``datetime`` used as the reference point for
+            resolving ambiguous fields (for example, filling in a missing year
+            for the end of a range). If not supplied (or ``None``), the current
+            UTC time is used.
 
         >>> start = adatetime(year=2009, month=2)
         >>> end = adatetime(year=2009, month=10)
@@ -337,6 +348,9 @@ class timespan:
         >>> td.disambiguated(datetime.now())
         timespan(datetime(2009, 2, 28, 0, 0, 0, 0), datetime(2009, 10, 31, 23, 59 ,59, 999999)
         """
+
+        if basedate is None:
+            basedate = datetime.now(tz=timezone.utc)
 
         # - If year is in start but not end, use basedate.year for end
         # -- If year is in start but not end, but startdate is > basedate,

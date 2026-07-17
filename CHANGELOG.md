@@ -6,6 +6,17 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.12.2] - 2026-07-17
+
+### Fixed
+- Date handling: `adatetime.disambiguated()` and `timespan.disambiguated()`
+  now default `basedate` to the current UTC time when it is omitted or `None`,
+  matching their documented behaviour (their docstrings even show calls with no
+  argument). Previously, passing `None` — or resolving a range whose end was
+  missing a field such as the year, e.g. `date:[oct 1970 to dec 8]` — raised
+  `AttributeError: 'NoneType' object has no attribute 'year'`. An explicitly
+  supplied `basedate` is still honoured (gh#50, reported by @CodeOptimist).
+
 ## [3.12.1] - 2026-07-17
 
 ### Fixed
