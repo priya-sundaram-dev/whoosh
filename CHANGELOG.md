@@ -6,6 +6,16 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Fixed
+- `Searcher.correct_query()` no longer raises
+  `TypeError: 'int' object is not iterable` when the schema contains a
+  `NUMERIC`, `DATETIME`, or `BOOLEAN` field. These field types store terms as
+  sortable non-text bytes, so they can't be used as a source of
+  Damerau-Levenshtein spelling suggestions; they are now skipped when building
+  default correctors (you can still pass an explicit corrector for them via the
+  `correctors` argument). Field types gained a `spellable` class flag that
+  drives this behaviour. Fixes gh#55 (reported upstream at mchaput/whoosh#55).
+
 ### Changed
 - Extended public-API type annotations to the `Searcher` document-lookup
   methods: `doc_count()`, `doc_count_all()`, `reader()`, `document()`,

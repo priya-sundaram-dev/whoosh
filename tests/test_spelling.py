@@ -320,6 +320,79 @@ def test_correct_correct():
             assert string == "dworska"
 
 
+def test_correct_query_with_numeric_field():
+    # Regression test for gh#55: correcting a query against a schema that
+    # contains a NUMERIC field used to raise
+    # "TypeError: 'int' object is not iterable" because correct_query built a
+    # spelling corrector for every field, including numeric ones whose decoded
+    # terms are ints (not strings) and choke the Levenshtein automaton.
+    from whoosh import qparser
+
+    schema = fields.Schema(title=fields.TEXT(spelling=True), price=fields.NUMERIC)
+    with TempIndex(schema) as ix:
+        with ix.writer() as w:
+            w.add_document(title=u"hello world", price=10)
+            w.add_document(title=u"goodbye moon", price=20)
+
+        with ix.searcher() as s:
+            qtext = u"price:15 helo"
+            qp = qparser.QueryParser("title", ix.schema)
+            q = qp.parse(qtext, ix.schema)
+            # Must not raise; the numeric term is left untouched and the text
+            # typo is corrected.
+            c = s.correct_query(q, qtext)
+            assert c.string == "price:15 hello"
+
+
+def test_correct_query_with_datetime_field():
+    # gh#55: DATETIME extends NUMERIC, so it must be skipped for spelling too.
+    from datetime import datetime
+
+    from whoosh import qparser
+
+    schema = fields.Schema(title=fields.TEXT(spelling=True), when=fields.DATETIME)
+    with TempIndex(schema) as ix:
+        with ix.writer() as w:
+            w.add_document(title=u"hello world", when=datetime(2026, 1, 1))
+            w.add_document(title=u"goodbye moon", when=datetime(2026, 2, 2))
+
+        with ix.searcher() as s:
+            qtext = u"helo"
+            qp = qparser.QueryParser("title", ix.schema)
+            q = qp.parse(qtext, ix.schema)
+            c = s.correct_query(q, qtext)
+            assert c.string == "hello"
+
+
+def test_correct_query_with_boolean_field():
+    # gh#55: BOOLEAN terms are fixed byte tokens, not free text.
+    from whoosh import qparser
+
+    schema = fields.Schema(title=fields.TEXT(spelling=True), done=fields.BOOLEAN)
+    with TempIndex(schema) as ix:
+        with ix.writer() as w:
+            w.add_document(title=u"hello world", done=True)
+            w.add_document(title=u"goodbye moon", done=False)
+
+        with ix.searcher() as s:
+            qtext = u"helo"
+            qp = qparser.QueryParser("title", ix.schema)
+            q = qp.parse(qtext, ix.schema)
+            c = s.correct_query(q, qtext)
+            assert c.string == "hello"
+
+
+def test_field_spellable_flags():
+    # The `spellable` class attribute drives which fields get an automatic
+    # corrector in Searcher.correct_query (gh#55).
+    assert fields.TEXT().spellable is True
+    assert fields.KEYWORD().spellable is True
+    assert fields.ID().spellable is True
+    assert fields.NUMERIC().spellable is False
+    assert fields.DATETIME().spellable is False
+    assert fields.BOOLEAN().spellable is False
+
+
 def test_very_long_words():
     import sys
 

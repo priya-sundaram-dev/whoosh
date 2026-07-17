@@ -981,12 +981,21 @@ class Searcher:
         correctors = d
 
         # Fill in default corrector objects for fields that don't have a custom
-        # one in the "correctors" dictionary
+        # one in the "correctors" dictionary. Skip fields whose terms aren't
+        # text (NUMERIC, DATETIME, BOOLEAN, ...): the spelling automaton works
+        # on strings, so feeding it a decoded int/float/bool raises
+        # "TypeError: 'int' object is not iterable" (see gh#55). Users can
+        # still force a corrector for such a field by passing it explicitly in
+        # the ``correctors`` argument.
         fieldnames = self.schema.names()
         for fieldname in fieldnames:
             fieldname = aliases.get(fieldname, fieldname)
-            if fieldname not in correctors:
-                correctors[fieldname] = self.reader().corrector(fieldname)
+            if fieldname in correctors:
+                continue
+            fieldobj = self.schema[fieldname]
+            if not getattr(fieldobj, "spellable", True):
+                continue
+            correctors[fieldname] = self.reader().corrector(fieldname)
 
         # Get any missing terms in the query in the fields we're correcting
         if terms is None:

@@ -303,6 +303,15 @@ class FieldType:
 
     # Spelling
 
+    #: Whether this field's terms are textual and can therefore be used as a
+    #: source of spelling suggestions. Text-like fields (``TEXT``, ``KEYWORD``,
+    #: ``ID``, ...) keep the default ``True``. Field types that store terms as
+    #: sortable non-text bytes (``NUMERIC``, ``DATETIME``, ``BOOLEAN``)
+    #: override this to ``False``: their decoded terms are numbers/booleans,
+    #: not strings, so running the Damerau-Levenshtein automaton over them
+    #: raises ``TypeError: 'int' object is not iterable`` (see gh#55).
+    spellable = True
+
     def separate_spelling(self):
         """
         Returns True if the field stores unstemmed words in a separate field for
@@ -570,6 +579,10 @@ class NUMERIC(FieldType):
     ...
 
     """
+
+    # NUMERIC terms are sortable numeric bytes that decode to ints/floats, not
+    # text, so they can't be used for Levenshtein spelling suggestions (gh#55).
+    spellable = False
 
     def __init__(
         self,
@@ -970,6 +983,10 @@ class BOOLEAN(FieldType):
     bytestrings = (b"f", b"t")
     trues = frozenset("t true yes 1".split())
     falses = frozenset("f false no 0".split())
+
+    # BOOLEAN terms are the fixed byte tokens b"t"/b"f", not free text, so
+    # they're not a meaningful source of spelling suggestions (see gh#55).
+    spellable = False
 
     def __init__(self, stored: bool = False, field_boost: float = 1.0) -> None:
         """
