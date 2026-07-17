@@ -7,6 +7,13 @@ All notable changes to this project are documented here. This project follows
 ## [Unreleased]
 
 ### Documentation
+- Fixed the runnable examples in the "Stemming and variations" guide
+  (`stemming.rst`). The `StemFilter` example was missing its
+  `from whoosh.analysis import RegexTokenizer, StemFilter` import (copy-pasting
+  it raised `NameError`), and the example outputs were modernized from Python 2
+  (`[u"fundament", ...]` and `set([...])`) to the actual Python 3 output. The
+  `variations()` example is now shown via `sorted(...)` since it returns a
+  `set` with no meaningful order.
 - Fixed the runnable examples in the "About analyzers" guide (`analysis.rst`).
   The interactive `LowercaseFilter(tokenizer(...))` example raised
   `TypeError: LowercaseFilter() takes no arguments` because `LowercaseFilter`

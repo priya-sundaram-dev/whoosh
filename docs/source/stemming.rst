@@ -44,11 +44,12 @@ analyzer chain.
 
 ::
 
+    >>> from whoosh.analysis import RegexTokenizer, StemFilter
     >>> rext = RegexTokenizer()
-    >>> stream = rext(u"fundamentally willows")
+    >>> stream = rext("fundamentally willows")
     >>> stemmer = StemFilter()
     >>> [token.text for token in stemmer(stream)]
-    [u"fundament", u"willow"]
+    ['fundament', 'willow']
 
 The :func:`whoosh.analysis.StemmingAnalyzer` is a pre-packaged analyzer that
 combines a tokenizer, lower-case filter, optional stop filter, and stem filter::
@@ -87,12 +88,15 @@ variations of the word.
 ::
 
     >>> from whoosh.lang.morph_en import variations
-    >>> variations("rendered")
-    set(['rendered', 'rendernesses', 'render', 'renderless', 'rendering',
-    'renderness', 'renderes', 'renderer', 'renderements', 'rendereless',
-    'renderenesses', 'rendere', 'renderment', 'renderest', 'renderement',
-    'rendereful', 'renderers', 'renderful', 'renderings', 'renders', 'renderly',
-    'renderely', 'rendereness', 'renderments'])
+    >>> sorted(variations("rendered"))
+    ['render', 'rendere', 'rendered', 'rendereful', 'rendereless', 'renderely',
+    'renderement', 'renderements', 'rendereness', 'renderenesses', 'renderer',
+    'renderers', 'renderes', 'renderest', 'renderful', 'rendering', 'renderings',
+    'renderless', 'renderly', 'renderment', 'renderments', 'renderness',
+    'rendernesses', 'renders']
+
+(``variations()`` returns a ``set``, so the raw order isn't meaningful;
+``sorted(...)`` is used here just to show the contents stably.)
 
 Many of the generated variations for a given word will not be valid words, but
 it's fairly fast for Whoosh to check which variations are actually in the
