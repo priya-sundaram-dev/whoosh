@@ -66,8 +66,10 @@ field you want to search as the user types. You can save space in the index by
 turning off positions in the field using ``phrase=False``, since phrase
 searching on N-gram fields usually doesn't make much sense::
 
-    # For example, to search the "title" field as the user types
-    analyzer = analysis.NgramWordAnalyzer()
+    # For example, to search the "title" field as the user types.
+    # NgramWordAnalyzer requires a minimum n-gram size; pass a maximum
+    # too if you want a range (here: 2- to 4-character grams).
+    analyzer = analysis.NgramWordAnalyzer(minsize=2, maxsize=4)
     title_field = fields.TEXT(analyzer=analyzer, phrase=False)
     schema = fields.Schema(title=title_field)
 
@@ -187,9 +189,10 @@ What fields are in the index?
 
 Is term X in the index?
 -----------------------
-::
 
-    return ("content", "wobble") in searcher
+Membership testing lives on the reader (``searcher.reader()``)::
+
+    return ("content", "wobble") in searcher.reader()
 
 
 How many times does term X occur in the index?
