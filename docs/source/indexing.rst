@@ -227,12 +227,22 @@ to disk.
 
     Deletes any documents that match the given query.
 
-::
+The ``delete_*`` methods are available both on an ``IndexWriter`` (where the
+deletion is saved when you ``commit()`` the writer) and, as a convenience, on
+the ``Index`` itself. The convenience methods on ``Index`` open a writer, apply
+the deletion, and commit it for you, so you do not call ``commit()`` afterwards::
 
-    # Delete document by its path -- this field must be indexed
+    # Convenience method on the Index -- opens a writer and commits for you.
+    # The "path" field must be indexed.
     ix.delete_by_term('path', u'/a/b/c')
-    # Save the deletion to disk
-    ix.commit()
+
+To batch several deletions (and additions) into a single commit, use a writer
+explicitly instead::
+
+    writer = ix.writer()
+    writer.delete_by_term('path', u'/a/b/c')
+    # ... more deletions or add_document() calls ...
+    writer.commit()  # save all the changes to disk at once
 
 In the ``filedb`` backend, "deleting" a document simply adds the document number
 to a list of deleted documents stored with the index. When you search the index,
