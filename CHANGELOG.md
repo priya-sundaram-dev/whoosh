@@ -6,14 +6,6 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
-### Added
-- `whoosh stats --top-terms FIELD` lists the most frequent indexed terms in
-  FIELD, most-frequent-first, with their total frequencies; `--top N` caps
-  the list (default 10). Unknown fields and field types without term
-  frequencies (e.g. NUMERIC/DATETIME) print a friendly error to stderr and
-  exit 2 instead of a traceback. The `--json` payload is unchanged.
-  Implements gh#24.
-
 ### Development
 - Added `benchmark/regression.py`, a deterministic, standard-library-only
   performance-regression harness. It times index build, incremental adds, and
@@ -22,6 +14,16 @@ All notable changes to this project are documented here. This project follows
   when any metric regresses beyond a tolerance (default 25%). Maintainers run
   it against the previous release before cutting a new one. This is developer
   tooling only; it does not change the installed package.
+
+## [3.12.0] - 2026-07-17
+
+### Added
+- `whoosh stats --top-terms FIELD` lists the most frequent indexed terms in
+  FIELD, most-frequent-first, with their total frequencies; `--top N` caps
+  the list (default 10). Unknown fields and field types without term
+  frequencies (e.g. NUMERIC/DATETIME) print a friendly error to stderr and
+  exit 2 instead of a traceback. The `--json` payload is unchanged.
+  Implements gh#24. Thanks to @Nitjsefnie for the contribution.
 
 ## [3.11.7] - 2026-07-17
 
