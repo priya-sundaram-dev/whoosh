@@ -155,6 +155,25 @@ tools like ``jq``::
 
     $ whoosh stats ~/notes --json
 
+To see what a field actually contains, ``--top-terms FIELD`` lists that field's
+most frequent indexed terms, most-frequent-first, with their total
+frequencies. Use ``--top N`` to cap the list (default 10)::
+
+    $ whoosh stats ~/notes --top-terms body --top 5
+    ...
+    Top terms in 'body':
+      312  the
+      190  and
+      143  index
+       98  search
+       71  python
+
+This is a quick way to eyeball a corpus or sanity-check your analyzer. Naming a
+field that does not exist, or a field type that does not store term frequencies
+(such as ``NUMERIC`` or ``DATETIME``), prints a short error to stderr and exits
+``2`` rather than a traceback. The term listing is human-readable output only —
+the ``--json`` payload is unchanged.
+
 
 Exit codes
 ==========
