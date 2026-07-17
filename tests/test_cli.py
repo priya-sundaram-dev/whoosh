@@ -388,6 +388,53 @@ def test_index_exclude(tmp_path, capsys):
     assert rc == 1  # Should find no matches
 
 
+def test_index_dry_run_lists_files_without_touching_index(tmp_path, capsys):
+    """--dry-run lists the files that would be indexed and never creates
+    the index, honoring --ext/--exclude filters."""
+    (tmp_path / "keep.txt").write_text("keep me", encoding="utf-8")
+    (tmp_path / "notes.md").write_text("some notes", encoding="utf-8")
+    # A file whose extension is not indexed by default -> must not be listed.
+    (tmp_path / "photo.png").write_bytes(b"\x89PNG not really text")
+    # A file the exclude filter should drop -> must not be listed.
+    build_dir = tmp_path / "build"
+    build_dir.mkdir()
+    (build_dir / "generated.txt").write_text("generated", encoding="utf-8")
+
+    rc = run(["index", tmp_path, "--dry-run", "--exclude", "build/*"])
+    assert rc == 0
+    out, err = capsys.readouterr()
+
+    # Matching, non-excluded files are listed (one relative path per line).
+    assert "keep.txt" in out
+    assert "notes.md" in out
+    # Non-matching extension is excluded from the listing.
+    assert "photo.png" not in out
+    # Excluded path is excluded from the listing.
+    assert "generated.txt" not in out
+    assert os.path.join("build", "generated.txt") not in out
+    # A short summary count is printed.
+    assert "2 files" in err
+
+    # A dry run must never create/clear/write the index.
+    assert not os.path.isdir(tmp_path / cli.INDEX_DIRNAME)
+
+
+def test_index_dry_run_leaves_existing_index_untouched(corpus, capsys):
+    """--dry-run against an already-indexed directory must not clear or
+    rewrite the existing .whoosh_index."""
+    assert run(["index", corpus]) == 0
+    capsys.readouterr()
+    index_dir = corpus / cli.INDEX_DIRNAME
+    before = sorted(os.listdir(index_dir))
+
+    rc = run(["index", corpus, "--dry-run"])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "alpha.txt" in out
+    # The existing index files are untouched (not cleared or rewritten).
+    assert sorted(os.listdir(index_dir)) == before
+
+
 def test_stats_no_index_errors(tmp_path, capsys):
     rc = run(["stats", tmp_path])
     assert rc == 2

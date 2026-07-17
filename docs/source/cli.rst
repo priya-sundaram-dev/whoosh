@@ -56,6 +56,17 @@ You can exclude specific folders or files using `--exclude` with glob patterns. 
 
     $ whoosh index ~/notes --exclude "build/*" --exclude "*.min.js"
 
+Preview which files *would* be indexed — under the current ``--ext`` and
+``--exclude`` filters — without building anything, using ``--dry-run``. It
+prints one relative path per line to stdout (easy to pipe or ``grep``) and a
+short summary count to stderr, then exits without creating, clearing, or
+writing the ``.whoosh_index`` directory::
+
+    $ whoosh index ~/notes --dry-run --exclude "build/*"
+    ideas.md
+    todo.txt
+    Would index 2 files under /home/you/notes
+
 Re-index incrementally with ``--update``. Only files whose modification time
 changed are re-read, and files that were deleted are dropped from the index —
 so keeping a large tree fresh is cheap::
