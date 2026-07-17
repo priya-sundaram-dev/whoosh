@@ -24,7 +24,7 @@ Locking
 
 Only one thread/process can write to an index at a time. When you open a writer,
 it locks the index. If you try to open a writer on the same index in another
-thread/process, it will raise `` whoosh.store.LockError``.
+thread/process, it will raise :class:`whoosh.index.LockError`.
 
 In a multi-threaded or multi-process environment your code needs to be aware
 that opening a writer may raise this exception if a writer is already open.
