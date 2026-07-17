@@ -680,21 +680,24 @@ class PhrasePlugin(Plugin):
     wordexpr = rcompile(r"\S+")
 
     class PhraseNode(syntax.TextNode):
-        def __init__(self, text, textstartchar, slop=1):
+        def __init__(self, text, textstartchar, slop=1, degrade=False):
             syntax.TextNode.__init__(self, text)
             self.textstartchar = textstartchar
             self.slop = slop
+            self.degrade = degrade
 
         def r(self):
             return f"{self.__class__.__name__} {self.text!r}~{self.slop}"
 
         def apply(self, fn):
-            return self.__class__(
+            node = self.__class__(
                 self.type,
                 [fn(node) for node in self.nodes],
                 slop=self.slop,
                 boost=self.boost,
             )
+            node.degrade = self.degrade
+            return node
 
         def query(self, parser):
             text = self.text
@@ -731,28 +734,53 @@ class PhrasePlugin(Plugin):
                     char_ranges.append((sc + match.start(), sc + match.end()))
 
             qclass = parser.phraseclass
-            q = qclass(
-                fieldname,
-                words,
-                slop=self.slop,
-                boost=self.boost,
-                char_ranges=char_ranges,
-            )
+            kwargs = {
+                "slop": self.slop,
+                "boost": self.boost,
+                "char_ranges": char_ranges,
+            }
+            # Only pass degrade to query classes that understand it (e.g.
+            # Phrase), so a custom phraseclass without the argument still works.
+            if getattr(self, "degrade", False):
+                try:
+                    q = qclass(fieldname, words, degrade=True, **kwargs)
+                except TypeError:
+                    q = qclass(fieldname, words, **kwargs)
+            else:
+                q = qclass(fieldname, words, **kwargs)
             return attach(q, self)
 
     class PhraseTagger(RegexTagger):
+        def __init__(self, expr, degrade=False):
+            super().__init__(expr)
+            self.degrade = degrade
+
         def create(self, parser, match):
             text = match.group("text")
             textstartchar = match.start("text")
             slopstr = match.group("slop")
             slop = int(slopstr) if slopstr else 1
-            return PhrasePlugin.PhraseNode(text, textstartchar, slop)
+            node = PhrasePlugin.PhraseNode(text, textstartchar, slop)
+            node.degrade = self.degrade
+            return node
 
-    def __init__(self, expr='"(?P<text>.*?)"(~(?P<slop>[1-9][0-9]*))?'):
+    def __init__(self, expr='"(?P<text>.*?)"(~(?P<slop>[1-9][0-9]*))?', degrade=False):
+        """
+        :param expr: a regular expression for matching quoted phrases.
+        :param degrade: if True, phrase queries produced by this plugin will
+            fall back to matching all of the words (an ``AND`` of the terms)
+            when the searched field does not store positions, instead of
+            raising :class:`~whoosh.query.QueryError`. This is convenient for
+            schemas that mix positional and non-positional (e.g.
+            ``NGRAMWORDS``) fields and accept quoted user input. Defaults to
+            False, preserving the strict behavior.
+        """
+
         self.expr = expr
+        self.degrade = degrade
 
     def taggers(self, parser):
-        return [(self.PhraseTagger(self.expr), 0)]
+        return [(self.PhraseTagger(self.expr, degrade=self.degrade), 0)]
 
 
 class SequencePlugin(Plugin):

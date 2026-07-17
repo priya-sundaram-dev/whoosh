@@ -134,7 +134,9 @@ class Ordered(Sequence):
 class Phrase(qcore.Query):
     """Matches documents containing a given phrase."""
 
-    def __init__(self, fieldname, words, slop=1, boost=1.0, char_ranges=None):
+    def __init__(
+        self, fieldname, words, slop=1, boost=1.0, char_ranges=None, degrade=False
+    ):
         """
         :param fieldname: the field to search.
         :param words: a list of words (unicode strings) in the phrase.
@@ -145,6 +147,14 @@ class Phrase(qcore.Query):
         :param char_ranges: if a Phrase object is created by the query parser,
             it will set this attribute to a list of (startchar, endchar) pairs
             corresponding to the words in the phrase
+        :param degrade: if True, and the field does not store term positions
+            (so a true phrase match is impossible), fall back to matching
+            documents that contain all of the words (an ``AND`` of the terms)
+            instead of raising :class:`~whoosh.query.QueryError`. This is
+            useful for fields such as ``NGRAMWORDS`` that are frequently
+            searched with quoted strings but cannot support phrase semantics.
+            The default is False, which preserves the strict behavior of
+            raising an error.
         """
 
         self.fieldname = fieldname
@@ -152,6 +162,7 @@ class Phrase(qcore.Query):
         self.slop = slop
         self.boost = boost
         self.char_ranges = char_ranges
+        self.degrade = degrade
 
     def __eq__(self, other):
         return (
@@ -221,6 +232,7 @@ class Phrase(qcore.Query):
             slop=self.slop,
             boost=self.boost,
             char_ranges=self.char_ranges,
+            degrade=self.degrade,
         )
 
     def replace(self, fieldname, oldtext, newtext):
@@ -249,8 +261,17 @@ class Phrase(qcore.Query):
 
         field = searcher.schema[fieldname]
         if not field.format or not field.format.supports("positions"):
+            if self.degrade:
+                # The field can't support a true phrase match, but the caller
+                # has asked us to degrade gracefully: match documents that
+                # contain all of the words instead of raising.
+                return self._and_query().matcher(searcher, context)
             raise qcore.QueryError(
-                f"Phrase search: {self.fieldname!r} field has no positions"
+                f"Phrase search: {self.fieldname!r} field has no positions. "
+                f"Configure the field with phrase=True (or a format that stores "
+                f"positions) to enable phrase queries, or build the phrase with "
+                f"Phrase(..., degrade=True) to fall back to matching all of the "
+                f"words instead."
             )
 
         terms = []

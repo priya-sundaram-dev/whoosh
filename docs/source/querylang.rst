@@ -32,7 +32,21 @@ Find documents containing the phrase ``all was well``::
     "all was well"
 
 Note that a field must store Position information for phrase searching to work in
-that field.
+that field. If you run a phrase query against a field that does not store
+positions (for example an ``NGRAMWORDS`` field), Whoosh raises a
+``QueryError`` by default, since a true phrase match is impossible. If you would
+rather have the phrase quietly fall back to matching documents that contain
+*all* of the words (an ``AND`` of the terms), build the phrase with
+``degrade=True``::
+
+    from whoosh.query import Phrase
+    q = Phrase("ngram_field", ["web", "3d"], degrade=True)
+
+or configure the query parser's phrase plugin to degrade for all quoted input::
+
+    from whoosh.qparser import QueryParser, PhrasePlugin
+    qp = QueryParser("ngram_field", ix.schema)
+    qp.replace_plugin(PhrasePlugin(degrade=True))
 
 Normally when you specify a phrase, the maximum difference in position between
 each word in the phrase is 1 (that is, the words must be right next to each

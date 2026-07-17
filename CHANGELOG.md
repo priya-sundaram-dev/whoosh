@@ -6,6 +6,26 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.14.0] - 2026-07-17
+
+### Added
+- `Phrase(..., degrade=True)` and `PhrasePlugin(degrade=True)`: an opt-in way to
+  make a phrase (quoted) query fall back to matching documents that contain
+  *all* of the words (an `AND` of the terms) when the searched field does not
+  store term positions — for example `NGRAMWORDS` fields, which use a frequency
+  format and cannot support true phrase matching. Previously such a query
+  always raised `QueryError: field has no positions`, which surfaced as a hard
+  crash for applications (notably django-haystack) that accept quoted user
+  input against ngram fields. The default behavior is unchanged (strict phrase
+  matching still raises), so this is fully backward compatible (gh#27,
+  django-haystack#632).
+
+### Changed
+- The `QueryError` raised when running a phrase query against a field with no
+  positions is now actionable: it explains that the field needs a
+  position-storing format (or `phrase=True`) and points to the new
+  `degrade=True` fallback (gh#27).
+
 ## [3.13.0] - 2026-07-17
 
 ### Added

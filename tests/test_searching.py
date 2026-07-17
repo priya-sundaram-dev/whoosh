@@ -1875,3 +1875,65 @@ def test_function_weighting():
             )
             m = q.matcher(s, s.context())
             assert not m.supports_block_quality()
+
+
+def test_phrase_on_positionless_field_raises_actionable_error():
+    # A field without positions (NGRAMWORDS uses a Frequency format) cannot
+    # support a real phrase match. By default this should raise a QueryError
+    # whose message tells the user how to fix it (gh#27,
+    # django-haystack#632).
+    schema = fields.Schema(text=fields.NGRAMWORDS(stored=True))
+    st = RamStorage()
+    ix = st.create_index(schema)
+    with ix.writer() as w:
+        w.add_document(text="web 3d graphics rocks")
+
+    with ix.searcher() as s:
+        q = query.Phrase("text", ["web", "3d"])
+        with pytest.raises(query.QueryError) as exc:
+            s.search(q)
+        msg = str(exc.value)
+        assert "no positions" in msg
+        # The message should be actionable.
+        assert "degrade=True" in msg
+
+
+def test_phrase_degrade_matches_all_words_on_positionless_field():
+    # With degrade=True, a phrase over a positionless field falls back to an
+    # AND of the words instead of crashing (gh#27, django-haystack#632).
+    schema = fields.Schema(id=fields.STORED, text=fields.NGRAMWORDS)
+    st = RamStorage()
+    ix = st.create_index(schema)
+    with ix.writer() as w:
+        w.add_document(id="match", text="web 3d graphics rocks")
+        w.add_document(id="partial", text="web development only")
+        w.add_document(id="none", text="totally unrelated")
+
+    with ix.searcher() as s:
+        q = query.Phrase("text", ["web", "3d"], degrade=True)
+        r = s.search(q)
+        # Only the doc containing BOTH words should match.
+        assert [hit["id"] for hit in r] == ["match"]
+
+        # normalize() must preserve the degrade flag.
+        assert q.normalize().degrade is True
+
+
+def test_phrase_plugin_degrade_option():
+    # The PhrasePlugin can be configured to degrade so quoted user input over
+    # a positionless field returns results instead of raising (gh#27).
+    schema = fields.Schema(id=fields.STORED, text=fields.NGRAMWORDS)
+    st = RamStorage()
+    ix = st.create_index(schema)
+    with ix.writer() as w:
+        w.add_document(id="a", text="web 3d graphics")
+        w.add_document(id="b", text="web only here")
+
+    with ix.searcher() as s:
+        qp = qparser.QueryParser("text", ix.schema)
+        qp.replace_plugin(qparser.PhrasePlugin(degrade=True))
+        q = qp.parse('"web 3d"')
+        assert isinstance(q, query.Phrase)
+        assert q.degrade is True
+        r = s.search(q)
+        assert [hit["id"] for hit in r] == ["a"]
