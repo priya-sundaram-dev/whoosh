@@ -983,3 +983,42 @@ def test_numeric_range_with_negative_boost():
     assert nr.endexcl == False
     assert nr.boost == -1.0
     assert nr.constantscore == True
+
+
+def test_multiterm_boost_propagates_to_score():
+    """gh#42: boosts on MultiTerm queries (Prefix/Wildcard/etc.) must
+    propagate to the final score, matching how Term boost behaves.
+
+    Previously ``MultiTerm.matcher`` built its generated ``Term`` sub-queries
+    without the parent boost, so ``Prefix("f", "app", boost=5)`` scored the
+    same as ``boost=1``. The boost is now carried by the generated terms.
+    """
+    from whoosh.analysis import SimpleAnalyzer
+
+    schema = fields.Schema(title=fields.TEXT(analyzer=SimpleAnalyzer()))
+    ix = RamStorage().create_index(schema)
+    with ix.writer() as w:
+        w.add_document(title="apple")
+        w.add_document(title="apricot")
+        w.add_document(title="banana")
+
+    with ix.searcher() as s:
+        # --- single-matching-term prefix ("app" -> only "apple") ---
+        base = s.search(query.Prefix("title", "app", boost=1.0), limit=None)
+        boosted = s.search(query.Prefix("title", "app", boost=5.0), limit=None)
+        assert len(base) == len(boosted) == 1
+        # boost should scale the score, and by the same factor a Term would
+        assert boosted[0].score == pytest.approx(base[0].score * 5.0)
+        term_base = s.search(query.Term("title", "apple", boost=1.0), limit=None)
+        term_boosted = s.search(query.Term("title", "apple", boost=5.0), limit=None)
+        assert boosted[0].score == pytest.approx(term_boosted[0].score)
+        assert base[0].score == pytest.approx(term_base[0].score)
+
+        # --- multi-matching-term prefix ("ap" -> apple + apricot) ---
+        mbase = s.search(query.Prefix("title", "ap", boost=1.0), limit=None)
+        mboost = s.search(query.Prefix("title", "ap", boost=5.0), limit=None)
+        assert len(mbase) == len(mboost) == 2
+        for hb, hn in zip(sorted(mboost, key=lambda h: h.docnum),
+                          sorted(mbase, key=lambda h: h.docnum)):
+            # applied exactly once (not doubled by the wrapping Or)
+            assert hb.score == pytest.approx(hn.score * 5.0)

@@ -219,12 +219,17 @@ class MultiTerm(qcore.Query):
         constantscore = self.constantscore
 
         reader = searcher.reader()
-        qs = [Term(fieldname, word) for word in self._btexts(reader) if word]
+        qs = [
+            Term(fieldname, word, boost=self.boost)
+            for word in self._btexts(reader)
+            if word
+        ]
         if not qs:
             return matching.NullMatcher()
 
         if len(qs) == 1:
-            # If there's only one term, just use it
+            # If there's only one term, just use it. The generated Term already
+            # carries this query's boost, so the score reflects it (gh#42).
             m = qs[0].matcher(searcher, context)
         else:
             if constantscore:
@@ -236,8 +241,10 @@ class MultiTerm(qcore.Query):
                     from whoosh.searching import SearchContext
 
                     context = SearchContext(weighting=None)
-            # Or the terms together
-            m = Or(qs, boost=self.boost).matcher(searcher, context)
+            # Or the terms together. The generated Term sub-queries already
+            # carry this query's boost (gh#42), so the Or itself must not
+            # re-apply it (that would multiply the boost twice).
+            m = Or(qs).matcher(searcher, context)
         return m
 
 

@@ -6,6 +6,18 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.11.6] - 2026-07-17
+
+### Fixed
+- Boosts on `MultiTerm` queries (`Prefix`, `Wildcard`, `FuzzyTerm`,
+  `TermRange`, and friends) are now applied to the final score. Previously
+  `MultiTerm.matcher()` expanded the query into generated `Term` sub-queries
+  *without* carrying the parent's boost, so e.g. `Prefix("f", "app", boost=5)`
+  scored identically to `boost=1`. The generated terms now carry the boost, and
+  the wrapping `Or` no longer re-applies it (which would have multiplied the
+  boost twice for multi-term expansions). Fixes gh#42 (reported upstream at
+  mchaput/whoosh#42).
+
 ## [3.11.5] - 2026-07-17
 
 ### Fixed
