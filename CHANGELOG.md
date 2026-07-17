@@ -6,6 +6,8 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.11.2] - 2026-07-17
+
 ### Fixed
 - `Searcher.correct_query()` no longer raises
   `TypeError: 'int' object is not iterable` when the schema contains a
