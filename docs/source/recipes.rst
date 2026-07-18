@@ -163,7 +163,19 @@ Which terms matched in each hit?
         print("Matched:", hit.matched_terms())
 
         # Which terms from the query didn't match in this hit?
-        print("Didn't match:", myquery.all_terms() - hit.matched_terms())
+        matched = {(fname, text.decode()) for fname, text in hit.matched_terms()}
+        print("Didn't match:", myquery.all_terms() - matched)
+
+.. note::
+
+   :meth:`~whoosh.searching.Hit.matched_terms` returns a *list* of
+   ``(fieldname, term_bytes)`` tuples, where the term is raw ``bytes`` (e.g.
+   ``b"wobble"``). :meth:`~whoosh.query.Query.all_terms` returns a *set* of
+   ``(fieldname, term_str)`` tuples, where the term is ``str``. To subtract one
+   from the other you must build a comparable set: wrap ``matched_terms()`` in a
+   ``set`` and decode each term to ``str`` (as shown above). Comparing the raw
+   list against the set directly raises ``TypeError``, and comparing ``bytes``
+   against ``str`` never matches.
 
 
 Global information
