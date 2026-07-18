@@ -264,7 +264,7 @@ stored       bool            If True, the value of this field is stored
 unique       bool            If True, the value of this field may be used to
                              replace documents with the same value when the user
                              calls
-                             :meth:`~whoosh.writing.IndexWriter.document_update`
+                             :meth:`~whoosh.writing.IndexWriter.update_document`
                              on an ``IndexWriter``.
 ============ =============== ======================================================
 
