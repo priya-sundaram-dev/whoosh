@@ -93,7 +93,13 @@ About section of the README.)*
 
 - [ ] Optional accelerators behind extras, without breaking pure-Python
       install.
-- [ ] Better Unicode/tokenizer coverage and documented analyzer recipes.
+- [x] Better Unicode/tokenizer coverage and documented analyzer recipes. The
+      [stemming & folding guide](https://priya-sundaram-dev.github.io/whoosh/docs/stemming.html)
+      now documents the NFC-vs-NFD normalization pitfall (the default tokenizer
+      drops combining marks, so decomposed spellings silently fail to match
+      composed ones) and ships a reusable `NormalizingRegexTokenizer` recipe,
+      guarded by a regression test. Further analyzer recipes will follow as
+      users ask for them.
 - [x] A cookbook of integration examples. Shipped in
       [`examples/`](examples/): a runnable
       [FastAPI search service](examples/fastapi_app.py), a

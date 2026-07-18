@@ -658,3 +658,34 @@ def test_ngramwords_tokenizer():
         minsize=3, maxsize=50, tokenizer=tk, stored=True, queryor=True
     )
     schema = fields.Schema(tags=tags)
+
+
+def test_unicode_normalization_recipe():
+    # Guards the "Unicode normalization" recipe documented in
+    # docs/source/stemming.rst: a RegexTokenizer subclass that normalizes its
+    # input before tokenizing, so NFC and NFD spellings of the same word
+    # produce identical tokens and thus index/query consistently.
+    import unicodedata
+
+    class NormalizingRegexTokenizer(analysis.RegexTokenizer):
+        def __init__(self, form="NFKC", *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.form = form
+
+        def __call__(self, value, *args, **kwargs):
+            value = unicodedata.normalize(self.form, value)
+            return super().__call__(value, *args, **kwargs)
+
+    ana = NormalizingRegexTokenizer("NFKC") | analysis.LowercaseFilter()
+
+    nfc = unicodedata.normalize("NFC", "caf\u00e9")   # composed é
+    nfd = unicodedata.normalize("NFD", "cafe\u0301")  # e + combining acute
+    assert nfc != nfd  # sanity: the raw strings really do differ
+
+    nfc_tokens = [t.text for t in ana(nfc)]
+    nfd_tokens = [t.text for t in ana(nfd)]
+    assert nfc_tokens == nfd_tokens == ["caf\u00e9"]
+
+    # NFKC also folds compatibility characters (full-width Latin, ligatures).
+    assert [t.text for t in ana("\uff48\uff45\uff4c\uff4c\uff4f")] == ["hello"]
+    assert [t.text for t in ana("\ufb01le")] == ["file"]  # ﬁ ligature -> fi

@@ -206,3 +206,77 @@ required by ``CharsetTokenizer`` and ``CharsetFilter``::
 
 (The Sphinx charset table format is described at
 http://www.sphinxsearch.com/docs/current.html#conf-charset-table )
+
+
+Unicode normalization
+=====================
+
+The same "word" can be represented by more than one sequence of Unicode code
+points. The most common case is accented letters: ``é`` can be a single code
+point (U+00E9, "composed" / NFC form) or a plain ``e`` followed by a combining
+acute accent (U+0065 U+0301, "decomposed" / NFD form). The two strings look
+identical but are *not* equal, and — more importantly — Whoosh's default
+:class:`~whoosh.analysis.RegexTokenizer` treats them differently: the combining
+mark is not a word character, so ``"cafe\u0301"`` (NFD) tokenizes to ``cafe``
+while the composed ``"café"`` (NFC) tokenizes to ``café``.
+
+The practical consequence: if a document is indexed in one normalization form
+and the query arrives in another (which happens all the time — different
+operating systems, editors, IMEs, and copy-paste sources emit different forms),
+the search silently fails to match. macOS filenames, for example, are typically
+NFD, while most Linux tools and web forms produce NFC.
+
+The fix is to normalize text to a single canonical form *before* tokenizing, so
+that both the indexer and the query parser see the same code points. Because the
+normalization has to happen before the regex splits the string, the cleanest
+recipe is a tokenizer that normalizes its input first::
+
+    import unicodedata
+    from whoosh.analysis import RegexTokenizer, LowercaseFilter
+
+    class NormalizingRegexTokenizer(RegexTokenizer):
+        """A RegexTokenizer that Unicode-normalizes its input first.
+
+        ``form`` is any form accepted by :func:`unicodedata.normalize`
+        (``"NFC"``, ``"NFD"``, ``"NFKC"`` or ``"NFKD"``). ``"NFKC"`` is a good
+        default: it composes accents *and* folds compatibility characters such
+        as full-width Latin letters and ligatures.
+        """
+
+        def __init__(self, form="NFKC", *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.form = form
+
+        def __call__(self, value, *args, **kwargs):
+            value = unicodedata.normalize(self.form, value)
+            return super().__call__(value, *args, **kwargs)
+
+    my_analyzer = NormalizingRegexTokenizer("NFKC") | LowercaseFilter()
+
+With this analyzer, both the NFC and NFD spellings of ``café`` produce the same
+token, so indexing and searching line up regardless of where the text came
+from::
+
+    >>> import unicodedata
+    >>> nfc = unicodedata.normalize("NFC", "café")
+    >>> nfd = unicodedata.normalize("NFD", "café")
+    >>> [t.text for t in my_analyzer(nfc)]
+    ['café']
+    >>> [t.text for t in my_analyzer(nfd)]
+    ['café']
+
+Choosing a form:
+
+* **NFC** — composed; the most common form on the web and the safest default if
+  you only care about accent equivalence.
+* **NFKC** — composed *and* compatibility-folded; also maps full-width Latin
+  (``ｈｅｌｌｏ`` → ``hello``), ligatures (``ﬁ`` → ``fi``) and similar look-alikes
+  to their canonical equivalents. Recommended for general-purpose search.
+* **NFD / NFKD** — decomposed forms. Combine these with
+  :class:`~whoosh.analysis.CharsetFilter` (see above) if you want to *strip*
+  accents entirely rather than just canonicalize them, since decomposition
+  separates the base letter from the combining marks.
+
+The key rule is simply to use the **same** normalization for both indexing and
+querying. As long as your schema field and your query parser share one analyzer,
+that happens automatically.
