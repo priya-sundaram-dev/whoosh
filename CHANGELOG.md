@@ -6,6 +6,24 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.16.5] - 2026-07-18
+
+### Fixed
+- Strict phrase highlighting (`hit.highlights(..., strict_phrase=True)`) now
+  works when the source text contains any uppercase letters. Previously the
+  phrase scanner compared the analyzer-normalized (lower-cased, stemmed) phrase
+  words against the *raw* source text re-split on whitespace, so a document
+  like `"... Java Developer ..."` never matched the query phrase `java
+  developer` and strict highlighting silently returned an empty string. The
+  scanner now derives its word sequence from the analyzed tokens themselves, so
+  casing and tokenization always line up. This also keeps the highlighted token
+  indices correctly aligned with the source when punctuation or contractions
+  would have thrown off a naive `str.split()`. Added regression tests covering
+  the exact-phrase and slop branches with mixed-case input. Fixes the "exact
+  matching does not work" confusion reported upstream at mchaput/whoosh#29,
+  where a phrase search correctly matched only adjacent occurrences but the
+  highlighter appeared to mark every stray occurrence of each word.
+
 ### Documentation
 - Clarified the meaning of the `~N` phrase "slop" factor. The `Phrase`
   docstring previously described `slop` as "the number of words allowed

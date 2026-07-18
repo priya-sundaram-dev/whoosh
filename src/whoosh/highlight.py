@@ -192,13 +192,21 @@ def set_matched_filter_phrases(tokens, text, terms, phrases):
 
     """
     Implementation note: Because the Token object follows a Singleton pattern,
-    we can only read each one once. Because phrase matching requires rescanning,
-    we require a rendered token list (the text parameter) instead. The function must
-    still yield Token objects at the end, so the text list is used as a way to build a list
-    of Token indices (the matches set). The yield loop at the end uses this
-    to properly set .matched on the yielded Token objects.
+    tokenizers yield one Token instance over and over, so we cannot hold onto
+    the objects while we rescan for phrases. Instead we take a copy of each
+    token up front (``scanned``) and build a parallel list of the tokens'
+    *analyzed* text (``words``). Using the analyzed text -- rather than
+    re-splitting the raw source with ``text.split()`` -- is essential: the
+    query's phrase words have already been run through the field analyzer
+    (lower-cased, stemmed, etc.), so they only line up with the analyzed token
+    text, never with the raw source words. It also keeps token indices in
+    ``matches`` aligned one-to-one with the tokens we yield at the end, which
+    naive whitespace splitting does not guarantee (punctuation, contractions,
+    and multi-token terms all break that assumption).
     """
-    text = text.split()
+    scanned = [t.copy() for t in tokens]
+    words = [t.text for t in scanned]
+    text = words
     matches = set()
 
     # Match phrases
@@ -265,7 +273,7 @@ def set_matched_filter_phrases(tokens, text, terms, phrases):
                 matches.add(i)
                 break
 
-    for i, t in enumerate(tokens):
+    for i, t in enumerate(scanned):
         t.matched = i in matches
         yield t
 

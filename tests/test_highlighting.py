@@ -107,6 +107,60 @@ def test_phrase_strict_ignores_stray_terms():
         assert "python</b> <b" in strict or "python</b>\u00a0<b" in strict
 
 
+def test_phrase_strict_mixed_case_gh29():
+    # Regression for mchaput/whoosh#29: with mixed-case source text, strict
+    # phrase highlighting used to return an empty string. The scanner compared
+    # the analyzer-normalized (lower-cased) phrase words against the *raw*
+    # source words re-split on whitespace, so "java" never equalled "Java" and
+    # no match was ever recorded. It must now highlight only the words that
+    # form a real adjacent phrase match, regardless of source casing.
+    schema = fields.Schema(body=fields.TEXT(stored=True))
+    ix = RamStorage().create_index(schema)
+    w = ix.writer()
+    w.add_document(
+        body="we are looking for a Java Developer in CA area. "
+        "Java developer should have a strong knowledge in java programming. "
+        "He/she must be able to work as GUI developer"
+    )
+    w.commit()
+
+    q = qparser.QueryParser("body", ix.schema).parse('"java developer"')
+    with ix.searcher() as s:
+        hit = s.search(q, terms=True)[0]
+        hl = highlight.Highlighter(fragmenter=highlight.WholeFragmenter())
+
+        strict = hl.highlight_hit(hit, "body", strict_phrase=True)
+        # The two real "Java Developer" / "Java developer" occurrences are the
+        # only phrase matches; each contributes two highlighted words.
+        assert strict.count('class="match') == 4
+        # The stray "java" in "java programming" and "developer" in
+        # "GUI developer" must NOT be highlighted under strict phrase mode.
+        assert "java</b> programming" not in strict
+        assert "GUI <b" not in strict
+
+        # Sanity: non-strict still highlights every individual term occurrence.
+        loose = hl.highlight_hit(hit, "body", strict_phrase=False)
+        assert loose.count('class="match') > 4
+
+
+def test_phrase_strict_slop_mixed_case_gh29():
+    # Same root cause as gh#29, exercised through the slop branch: intervening
+    # words are allowed but casing must still be normalized before comparison.
+    schema = fields.Schema(body=fields.TEXT(stored=True))
+    ix = RamStorage().create_index(schema)
+    w = ix.writer()
+    w.add_document(body="One Two Three four One six Three")
+    w.commit()
+
+    q = query.Phrase("body", ["one", "three"], slop=2)
+    with ix.searcher() as s:
+        hit = s.search(q, terms=True)[0]
+        hl = highlight.Highlighter(fragmenter=highlight.WholeFragmenter())
+        strict = hl.highlight_hit(hit, "body", strict_phrase=True)
+        # Both slop windows ("One Two Three" and "One six Three") match.
+        assert strict.count('class="match') == 4
+
+
 def test_sentence_fragment():
     text = (
         "This is the first sentence. This one doesn't have the word. "
