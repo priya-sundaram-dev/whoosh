@@ -335,3 +335,45 @@ def test_filestorage_still_uses_mpwriter():
         w.commit()
         with ix.searcher() as s:
             assert s.doc_count() == 50
+
+
+def test_mpwriter_stored_only_no_postings():
+    # Regression test for mchaput/whoosh#35: a sub-writer that only received
+    # documents producing no indexed postings (e.g. STORED-only documents, or
+    # TEXT that tokenizes to nothing) used to crash with
+    # "IndexError: list index out of range" at pool.runs[0] in
+    # finish_subsegment, silently losing those documents.
+    check_multi()
+
+    schema = fields.Schema(id=fields.ID(stored=True), data=fields.STORED)
+    with TempIndex(schema) as ix:
+        # batchsize=1 + procs=2 forces each doc into its own job so a sub-writer
+        # ends up with only postings-free documents.
+        w = ix.writer(procs=2, multisegment=False, batchsize=1)
+        for i in range(4):
+            w.add_document(id=str(i), data={"x": i})
+        w.commit()
+        with ix.searcher() as s:
+            assert s.doc_count() == 4
+            assert sorted(int(h["id"]) for h in s.documents()) == [0, 1, 2, 3]
+
+
+def test_mpwriter_mixed_postings_and_empty():
+    # Some sub-writers get real text (postings), others get empty text (no
+    # postings). All documents must survive and searches must return the right
+    # hits. (Companion to the #35 regression above, exercising the merge path
+    # where a None run is skipped alongside real runs.)
+    check_multi()
+
+    schema = fields.Schema(id=fields.ID(stored=True), text=fields.TEXT(stored=True))
+    with TempIndex(schema) as ix:
+        w = ix.writer(procs=3, multisegment=False, batchsize=1)
+        for i in range(6):
+            text = "hello world number %d" % i if i % 2 == 0 else ""
+            w.add_document(id=str(i), text=text)
+        w.commit()
+        with ix.searcher() as s:
+            assert s.doc_count() == 6
+            assert sorted(int(h["id"]) for h in s.documents()) == [0, 1, 2, 3, 4, 5]
+            r = s.search(query.Term("text", "hello"), limit=None)
+            assert sorted(int(h["id"]) for h in r) == [0, 2, 4]

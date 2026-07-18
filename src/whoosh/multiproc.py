@@ -44,8 +44,13 @@ def finish_subsegment(writer, k=64):
     # while reducing.
     writer.pool.reduce_to(1, k)
 
-    # The filename of the single remaining run
-    runname = writer.pool.runs[0]
+    # The filename of the single remaining run. A sub-writer that only
+    # received documents with no indexed postings (e.g. documents made up
+    # entirely of STORED fields, or TEXT that tokenizes to nothing) produces
+    # no runs at all, leaving pool.runs empty. Guard against that instead of
+    # raising IndexError -- the segment's per-document data still needs to be
+    # returned so those documents are not silently lost.
+    runname = writer.pool.runs[0] if writer.pool.runs else None
     # The indexed field names
     fieldnames = writer.pool.fieldnames
     # The segment object (parent can use this to re-open the files created
@@ -334,8 +339,13 @@ class MpWriter(SegmentWriter):
             docmap = self.write_per_doc(fieldnames, pdr)
             assert docmap is None
 
-            items = self._read_and_renumber_run(runname, basedoc)
-            sources.append(items)
+            # A sub-writer whose documents produced no postings returns
+            # runname=None (see finish_subsegment). Its per-document data has
+            # already been written above; there is simply no postings run to
+            # merge, so skip it.
+            if runname is not None:
+                items = self._read_and_renumber_run(runname, basedoc)
+                sources.append(items)
 
         # Create a MultiLengths object combining the length files from the
         # subtask segments

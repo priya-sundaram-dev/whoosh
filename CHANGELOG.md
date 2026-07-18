@@ -6,6 +6,18 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.16.3] - 2026-07-18
+
+### Fixed
+- Multiprocessing writer: committing with `procs > 1` and `multisegment=False`
+  no longer crashes a sub-writer with `IndexError: list index out of range`
+  (in `finish_subsegment`, at `pool.runs[0]`) when a sub-writer received only
+  documents that produce no indexed postings — for example documents made up
+  entirely of `STORED` fields, or `TEXT` that tokenizes to nothing. Previously
+  such a sub-writer died silently, risking lost documents; now its
+  per-document (stored) data is merged correctly and all documents survive.
+  Reported upstream as mchaput/whoosh#35.
+
 ## [3.16.2] - 2026-07-18
 
 ### Fixed
