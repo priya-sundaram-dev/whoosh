@@ -400,15 +400,15 @@ For example, if you were creating a ``BEFORE`` operator::
 
 Create an OpTagger for your operator::
 
-    btagger = qparser.OperatorPlugin.OpTagger(pattern, BeforeGroup,
-                                              qparser.InfixOperator)
+    btagger = qparser.OperatorsPlugin.OpTagger(pattern, BeforeGroup,
+                                               qparser.InfixOperator)
 
 By default, infix operators are left-associative. To make a right-associative
 infix operator, do this::
 
-    btagger = qparser.OperatorPlugin.OpTagger(pattern, BeforeGroup,
-                                              qparser.InfixOperator,
-                                              leftassoc=False)
+    btagger = qparser.OperatorsPlugin.OpTagger(pattern, BeforeGroup,
+                                               qparser.InfixOperator,
+                                               leftassoc=False)
 
 Create an :class:`~whoosh.qparser.plugins.OperatorsPlugin` instance with your
 new operator, and replace the default operators plugin in your query parser::
