@@ -87,10 +87,10 @@ display to the user.
 
     >>> # Show the best hit's stored fields
     >>> results[0]
-    {"title": u"Hello World in Python", "path": u"/a/b/c"}
+    <Hit {'path': '/a/b/c', 'title': 'Hello World in Python'}>
     >>> results[0:2]
-    [{"title": u"Hello World in Python", "path": u"/a/b/c"},
-    {"title": u"Foo", "path": u"/bar"}]
+    [<Hit {'path': '/a/b/c', 'title': 'Hello World in Python'}>,
+    <Hit {'path': '/bar', 'title': 'Foo'}>]
 
 By default, ``Searcher.search(myquery)`` limits the number of hits to 20, So the
 number of scored hits in the ``Results`` object may be less than the number of

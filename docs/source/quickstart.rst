@@ -29,7 +29,7 @@ A quick introduction
     ...     results = searcher.search(query)
     ...     results[0]
     ...
-    {"title": u"First document", "path": u"/a"}
+    <Hit {'path': '/a', 'title': 'First document'}>
 
 
 The ``Index`` and ``Schema`` objects
@@ -215,7 +215,7 @@ Once you have a ``Searcher`` and a query object, you can use the ``Searcher``'s
     >>> print(len(results))
     1
     >>> print(results[0])
-    {"title": "Second try", "path": "/b", "icon": "/icons/sheep.png"}
+    <Hit {'icon': '/icons/sheep.png', 'path': '/b', 'title': 'Second try'}>
 
 The default ``QueryParser`` implements a query language very similar to
 Lucene's. It lets you connect terms with ``AND`` or ``OR``, eleminate terms with
