@@ -660,23 +660,13 @@ def test_ngramwords_tokenizer():
     schema = fields.Schema(tags=tags)
 
 
-def test_unicode_normalization_recipe():
-    # Guards the "Unicode normalization" recipe documented in
-    # docs/source/stemming.rst: a RegexTokenizer subclass that normalizes its
+def test_unicode_normalization_tokenizer():
+    # Exercises the built-in NormalizingRegexTokenizer: it normalizes its
     # input before tokenizing, so NFC and NFD spellings of the same word
     # produce identical tokens and thus index/query consistently.
     import unicodedata
 
-    class NormalizingRegexTokenizer(analysis.RegexTokenizer):
-        def __init__(self, form="NFKC", *args, **kwargs):
-            super().__init__(*args, **kwargs)
-            self.form = form
-
-        def __call__(self, value, *args, **kwargs):
-            value = unicodedata.normalize(self.form, value)
-            return super().__call__(value, *args, **kwargs)
-
-    ana = NormalizingRegexTokenizer("NFKC") | analysis.LowercaseFilter()
+    ana = analysis.NormalizingRegexTokenizer("NFKC") | analysis.LowercaseFilter()
 
     nfc = unicodedata.normalize("NFC", "caf\u00e9")   # composed é
     nfd = unicodedata.normalize("NFD", "cafe\u0301")  # e + combining acute
@@ -689,3 +679,30 @@ def test_unicode_normalization_recipe():
     # NFKC also folds compatibility characters (full-width Latin, ligatures).
     assert [t.text for t in ana("\uff48\uff45\uff4c\uff4c\uff4f")] == ["hello"]
     assert [t.text for t in ana("\ufb01le")] == ["file"]  # ﬁ ligature -> fi
+
+
+def test_normalizing_tokenizer_form_validation_and_equality():
+    # Unknown forms are rejected up front rather than failing later inside
+    # unicodedata.normalize with a less helpful message.
+    with pytest.raises(ValueError):
+        analysis.NormalizingRegexTokenizer("BOGUS")
+
+    # Default form is NFKC.
+    assert analysis.NormalizingRegexTokenizer().form == "NFKC"
+
+    # Equality depends on the form (and the regex), so analyzers that differ
+    # only in normalization form are not considered equal -- this matters for
+    # caching keyed on analyzer identity.
+    assert analysis.NormalizingRegexTokenizer("NFC") == analysis.NormalizingRegexTokenizer("NFC")
+    assert analysis.NormalizingRegexTokenizer("NFC") != analysis.NormalizingRegexTokenizer("NFKC")
+    assert analysis.NormalizingRegexTokenizer("NFC") != analysis.RegexTokenizer()
+
+    # NFD decomposes accents into a base letter plus a combining mark. The
+    # combining mark is not a word character, so the default regex drops it --
+    # this is the "strip accents by decomposing" behaviour, and it is stable
+    # regardless of whether the input arrived composed (NFC) or decomposed.
+    import unicodedata
+    nfd = analysis.NormalizingRegexTokenizer("NFD")
+    from_nfc = [t.text for t in nfd(unicodedata.normalize("NFC", "caf\u00e9"))]
+    from_nfd = [t.text for t in nfd(unicodedata.normalize("NFD", "cafe\u0301"))]
+    assert from_nfc == from_nfd == ["cafe"]

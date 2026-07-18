@@ -228,34 +228,22 @@ NFD, while most Linux tools and web forms produce NFC.
 
 The fix is to normalize text to a single canonical form *before* tokenizing, so
 that both the indexer and the query parser see the same code points. Because the
-normalization has to happen before the regex splits the string, the cleanest
-recipe is a tokenizer that normalizes its input first::
+normalization has to happen before the regex splits the string, a plain filter
+placed after the tokenizer is too late — the combining mark has already been
+stripped. Whoosh ships
+:class:`~whoosh.analysis.NormalizingRegexTokenizer` for exactly this: it is a
+:class:`~whoosh.analysis.RegexTokenizer` that normalizes its whole input first::
 
-    import unicodedata
-    from whoosh.analysis import RegexTokenizer, LowercaseFilter
-
-    class NormalizingRegexTokenizer(RegexTokenizer):
-        """A RegexTokenizer that Unicode-normalizes its input first.
-
-        ``form`` is any form accepted by :func:`unicodedata.normalize`
-        (``"NFC"``, ``"NFD"``, ``"NFKC"`` or ``"NFKD"``). ``"NFKC"`` is a good
-        default: it composes accents *and* folds compatibility characters such
-        as full-width Latin letters and ligatures.
-        """
-
-        def __init__(self, form="NFKC", *args, **kwargs):
-            super().__init__(*args, **kwargs)
-            self.form = form
-
-        def __call__(self, value, *args, **kwargs):
-            value = unicodedata.normalize(self.form, value)
-            return super().__call__(value, *args, **kwargs)
+    from whoosh.analysis import NormalizingRegexTokenizer, LowercaseFilter
 
     my_analyzer = NormalizingRegexTokenizer("NFKC") | LowercaseFilter()
 
-With this analyzer, both the NFC and NFD spellings of ``café`` produce the same
-token, so indexing and searching line up regardless of where the text came
-from::
+The ``form`` argument is any form accepted by :func:`unicodedata.normalize`
+(``"NFC"``, ``"NFD"``, ``"NFKC"`` or ``"NFKD"``); it defaults to ``"NFKC"``,
+which composes accents *and* folds compatibility characters such as full-width
+Latin letters and ligatures. With this analyzer, both the NFC and NFD spellings
+of ``café`` produce the same token, so indexing and searching line up regardless
+of where the text came from::
 
     >>> import unicodedata
     >>> nfc = unicodedata.normalize("NFC", "café")

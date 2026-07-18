@@ -112,6 +112,7 @@ from whoosh.analysis.tokenizers import (
     CharsetTokenizer,
     CommaSeparatedTokenizer,
     IDTokenizer,
+    NormalizingRegexTokenizer,
     PathTokenizer,
     RegexTokenizer,
     SpaceSeparatedTokenizer,

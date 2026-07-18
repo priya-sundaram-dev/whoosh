@@ -24,6 +24,7 @@ Tokenizers
 
 .. autoclass:: IDTokenizer
 .. autoclass:: RegexTokenizer
+.. autoclass:: NormalizingRegexTokenizer
 .. autoclass:: CharsetTokenizer
 .. autofunction:: SpaceSeparatedTokenizer
 .. autofunction:: CommaSeparatedTokenizer

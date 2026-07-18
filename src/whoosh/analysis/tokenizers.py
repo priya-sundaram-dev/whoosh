@@ -25,6 +25,8 @@
 # those of the authors and should not be interpreted as representing official
 # policies, either expressed or implied, of Matt Chaput.
 
+import unicodedata
+
 from whoosh.analysis.acore import Composable, Token
 from whoosh.util.text import rcompile
 
@@ -196,6 +198,78 @@ class RegexTokenizer(Tokenizer):
                     t.startchar = prevend
                     t.endchar = len(value)
                 yield t
+
+
+class NormalizingRegexTokenizer(RegexTokenizer):
+    """
+    A :class:`RegexTokenizer` that Unicode-normalizes its input *before*
+    tokenizing.
+
+    The same "word" can be represented by more than one sequence of Unicode
+    code points -- for example ``é`` can be a single code point (U+00E9,
+    composed / NFC) or a plain ``e`` followed by a combining acute accent
+    (U+0065 U+0301, decomposed / NFD). The two strings look identical but are
+    not equal, and the default :class:`RegexTokenizer` treats them differently
+    (the combining mark is not a word character), so a document indexed in one
+    form silently fails to match a query written in the other. Because the
+    normalization has to happen before the regex splits the string, a plain
+    filter placed after the tokenizer is too late -- the combining mark has
+    already been stripped. This tokenizer normalizes the whole string first so
+    that indexing and querying always see the same code points.
+
+    >>> import unicodedata
+    >>> nrt = NormalizingRegexTokenizer("NFKC")
+    >>> [t.text for t in nrt(unicodedata.normalize("NFC", "café"))]
+    ['café']
+    >>> [t.text for t in nrt(unicodedata.normalize("NFD", "café"))]
+    ['café']
+
+    ``"NFKC"`` (the default) is a good general-purpose choice: it composes
+    accents *and* folds compatibility characters such as full-width Latin
+    letters (``ｈｅｌｌｏ`` → ``hello``) and ligatures (``ﬁ`` → ``fi``). Use
+    ``"NFC"`` if you only want accent equivalence, or one of the decomposed
+    forms (``"NFD"`` / ``"NFKD"``) together with
+    :class:`~whoosh.analysis.filters.CharsetFilter` if you want to strip
+    accents entirely.
+
+    .. note::
+        Normalization can change the length of the text (NFC composes two code
+        points into one, NFKC expands ligatures), so the character offsets
+        recorded when ``chars=True`` refer to positions in the *normalized*
+        string, not the original. This is only relevant if you rely on those
+        offsets to slice the original document (for example, some custom
+        highlighting). Use the same analyzer for indexing and querying and this
+        does not affect matching.
+    """
+
+    def __init__(self, form="NFKC", expression=default_pattern, gaps=False):
+        """
+        :param form: the normalization form to apply, any value accepted by
+            :func:`unicodedata.normalize` -- ``"NFC"``, ``"NFD"``, ``"NFKC"``
+            or ``"NFKD"``. Defaults to ``"NFKC"``.
+        :param expression: passed through to :class:`RegexTokenizer`.
+        :param gaps: passed through to :class:`RegexTokenizer`.
+        """
+
+        if form not in ("NFC", "NFD", "NFKC", "NFKD"):
+            raise ValueError(
+                f"Unknown normalization form {form!r}; expected one of "
+                "'NFC', 'NFD', 'NFKC', 'NFKD'"
+            )
+        super().__init__(expression=expression, gaps=gaps)
+        self.form = form
+
+    def __eq__(self, other):
+        return (
+            self.__class__ is other.__class__
+            and self.form == other.form
+            and self.expression.pattern == other.expression.pattern
+        )
+
+    def __call__(self, value, *args, **kwargs):
+        assert isinstance(value, str), f"{value!r} is not unicode"
+        value = unicodedata.normalize(self.form, value)
+        return super().__call__(value, *args, **kwargs)
 
 
 class CharsetTokenizer(Tokenizer):

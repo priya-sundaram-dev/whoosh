@@ -6,15 +6,26 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Added
+- New built-in `NormalizingRegexTokenizer` (`whoosh.analysis`): a
+  `RegexTokenizer` that Unicode-normalizes its input *before* tokenizing. This
+  fixes a subtle correctness bug where the same word indexed in one
+  normalization form silently fails to match a query written in another — the
+  default `RegexTokenizer` treats a combining accent as a non-word character, so
+  the decomposed (NFD) spelling `cafe\u0301` tokenizes to `cafe` while the
+  composed (NFC) `café` tokenizes to `café`. Because the normalization has to
+  happen before the regex splits the string, a post-tokenizer filter is too
+  late. The `form` argument accepts `"NFC"`, `"NFD"`, `"NFKC"` (default) or
+  `"NFKD"`; NFKC also folds compatibility characters such as full-width Latin
+  letters and ligatures. This promotes what was previously a documented recipe
+  into batteries-included functionality.
+
 ### Documentation
-- Added a **Unicode normalization** section to the stemming/folding guide
-  (`docs/source/stemming.rst`) covering the NFC-vs-NFD pitfall: the default
-  `RegexTokenizer` drops combining marks, so a decomposed (NFD) spelling of a
-  word tokenizes differently from its composed (NFC) form and silently fails to
-  match across normalization boundaries (macOS filenames are NFD, most web input
-  is NFC). Documents a reusable `NormalizingRegexTokenizer` recipe that
-  normalizes text *before* tokenizing so indexing and querying line up, plus
-  guidance on choosing NFC/NFKC/NFD/NFKD.
+- Rewrote the **Unicode normalization** section of the stemming/folding guide
+  (`docs/source/stemming.rst`) to use the new built-in
+  `NormalizingRegexTokenizer` instead of a copy-paste recipe, keeping the
+  explanation of the NFC-vs-NFD pitfall (macOS filenames are NFD, most web input
+  is NFC) and the guidance on choosing NFC/NFKC/NFD/NFKD.
 - Documented the Windows file-locking path end-to-end in the concurrency guide
   (`docs/source/threads.rst`): the OS-level lock backends (`fcntl` vs.
   `msvcrt`), why a crash never leaves the index permanently locked, and the two
@@ -26,9 +37,12 @@ All notable changes to this project are documented here. This project follows
   searchers rather than holding handles across a rebuild.
 
 ### Tests
-- Added `test_unicode_normalization_recipe` guarding the documented
-  `NormalizingRegexTokenizer` recipe: NFC and NFD spellings of `café` tokenize
-  identically, and NFKC folds full-width Latin and ligatures.
+- Added `test_unicode_normalization_tokenizer` and
+  `test_normalizing_tokenizer_form_validation_and_equality` covering the new
+  built-in `NormalizingRegexTokenizer`: NFC and NFD spellings of `café` tokenize
+  identically, NFKC folds full-width Latin and ligatures, unknown forms raise
+  `ValueError`, and equality is keyed on the normalization form (so caches don't
+  confuse analyzers that differ only in form).
 - Added `test_index_files_deletable_after_close` guarding the close-then-delete
   contract (readers, searchers, and writers release their file handles so index
   files can be removed/replaced). Nearly a no-op on POSIX; catches leaked
