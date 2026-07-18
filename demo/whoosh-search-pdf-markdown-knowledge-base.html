@@ -85,7 +85,7 @@
     it's keeping it in sync as files change. Store each file's
     <strong>modification time</strong>, skip unchanged files on re-runs, and
     <strong>delete entries for files that disappeared</strong>. Everything below is
-    a single self-contained script (~60 lines), verified against whoosh3 3.14.1.
+    a single self-contained script (~60 lines), verified against whoosh3 3.16.3.
   </div>
 
   <p>
@@ -205,7 +205,7 @@ def get_index(index_dir):
 (1, 1, 1)        # 1 added, 1 updated, 1 removed</code></pre>
   <p>
     <span class="win">Those exact numbers came out of the script above</span> against
-    whoosh3 3.14.1 — the mtime check makes re-runs a no-op, so you can call this on a
+    whoosh3 3.16.3 — the mtime check makes re-runs a no-op, so you can call this on a
     timer or a file-watch event cheaply.
   </p>
 
@@ -272,7 +272,7 @@ notes.txt  (score 1.44)
   <hr />
   <p style="font-size:.85rem;color:var(--muted)">
     The indexing counts and the search output above came from running the exact code
-    in this guide against whoosh3 3.14.1 before publishing; PDF and Markdown extraction
+    in this guide against whoosh3 3.16.3 before publishing; PDF and Markdown extraction
     quality depends on the extractor library and your files. "Whoosh" is the pure-Python
     search library originally by Matt Chaput; this is an actively maintained continuation.
   </p>
