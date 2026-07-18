@@ -27,7 +27,7 @@
   "description": "A hands-on walkthrough of the whoosh command-line tool: index a folder and search your files ranked by relevance (BM25) instead of raw grep matches.",
   "author": { "@type": "Person", "name": "Priya Sundaram" },
   "datePublished": "2026-07-15",
-  "dateModified": "2026-07-15",
+  "dateModified": "2026-07-18",
   "mainEntityOfPage": "https://priya-sundaram-dev.github.io/whoosh/search-files-command-line.html",
   "about": ["command line search", "grep alternative", "full-text search", "BM25", "ranking", "Python", "Whoosh", "CLI"]
 }
@@ -96,9 +96,10 @@
   </p>
 
   <p>
-    The <code>whoosh</code> CLI gives you that with two commands:
-    <code>whoosh index</code> to build the index, and <code>whoosh search</code>
-    to query it. Here's the whole thing, start to finish.
+    The <code>whoosh</code> CLI gives you that with three commands:
+    <code>whoosh index</code> to build the index, <code>whoosh search</code>
+    to query it, and <code>whoosh stats</code> to inspect it. Here's the whole
+    thing, start to finish.
   </p>
 
   <h2>Install</h2>
@@ -129,23 +130,42 @@ Indexed /home/you/notes
     faster on a big tree:
   </p>
   <pre><code>$ whoosh index . --update</code></pre>
+  <p>
+    Skip generated or vendored files with <code>--exclude</code> (a glob, and
+    you can repeat it), and preview exactly what <em>would</em> be indexed —
+    without creating or touching an index — with <code>--dry-run</code>:
+  </p>
+  <pre><code>$ whoosh index . --exclude 'build/*' --dry-run
+Would index 4 files under /home/you/proj
+README.txt
+docs/install.md
+docs/quickstart.md
+src/index.py</code></pre>
+  <p>
+    <code>--dry-run</code> is the safe way to tune your <code>--ext</code> and
+    <code>--exclude</code> filters before committing to a build — it never
+    writes, clears, or creates <code>.whoosh_index/</code>.
+  </p>
 
   <h2>Search it</h2>
   <p>
     Now query. Results come back <strong>ranked</strong>, with the matched terms
     highlighted and a relevance score:
   </p>
-  <pre><code>$ whoosh search "ranking"
-2 matches for 'ranking':
+  <pre><code>$ whoosh search "search"
+3 matches for 'search':
 
-1. docs/ranking.md  (score 1.40)
-   RANKING Whoosh RANKS results with BM25F by default. Relevance beats
+1. README.txt  (score 1.50)
+   Project SEARCH tools. Fast, pure-Python full-text SEARCH with Whoosh
 
-2. notes/todo.txt  (score 1.11)
-   Remember to benchmark the BM25 RANKING against a naive grep baseline</code></pre>
+2. src/index.py  (score 0.92)
+   every text file under path for full-text SEARCH
+
+3. docs/quickstart.md  (score 0.85)
+   add documents to an index, then run a SEARCH query. Whoosh is pure Python, so there is no</code></pre>
   <p>
-    Notice the file that's genuinely <em>about</em> ranking sorts above the one
-    that merely mentions it in passing. That ordering is the whole point — it's
+    Notice the file that's genuinely <em>about</em> search sorts above the ones
+    that merely mention it in passing. That ordering is the whole point — it's
     what a raw substring search can't give you.
   </p>
 
@@ -155,16 +175,51 @@ Indexed /home/you/notes
     phrases, and field-scoped terms, straight from the shell:
   </p>
   <pre><code># boolean
-$ whoosh search "bm25 OR grep"
+$ whoosh search "pip OR schema"
 
 # exact phrase
-$ whoosh search '"did you mean"'
+$ whoosh search '"pure Python"'
 
 # exclude a term
-$ whoosh search "ranking NOT draft"
+$ whoosh search "search NOT python"
 
-# scope to a field (title = file name, body = file contents)
+# scope to a field inline (title = file name, body = file contents)
 $ whoosh search "body:install"</code></pre>
+  <p>
+    You can also scope with the <code>--field</code> flag, which is repeatable
+    and reads more clearly for a whole query. By default a search covers both
+    <code>title</code> and <code>body</code>; pin it to one:
+  </p>
+  <pre><code>$ whoosh search "index" --field body</code></pre>
+
+  <h2>Order by recency, and size the snippets</h2>
+  <p>
+    Relevance is the default sort, but sometimes "what did I touch most
+    recently?" is the real question. <code>--sort-by mtime</code> orders hits
+    by file modification time, newest first — handy for notes and work logs:
+  </p>
+  <pre><code>$ whoosh search "search OR python" --sort-by mtime --no-highlight --snippet-chars 50
+4 matches for 'search OR python':
+
+1. README.txt  (score 3.00)
+   Project search tools. Fast, pure-Python full-text...
+
+2. src/index.py  (score 2.00)
+   # Build a Whoosh index from a folder of documents....
+
+3. docs/quickstart.md  (score 1.00)
+   # Quickstart Create a schema, add documents to an...
+
+4. docs/install.md  (score 0.00)
+   # Installation Install with pip: `pip install whoo...</code></pre>
+  <p>
+    Here the newest file (<code>README.txt</code>) comes first regardless of how
+    strongly it matches — the order is by modification time, not relevance. Two
+    more knobs there: <code>--snippet-chars N</code> controls how much context
+    each result shows (default 200), and <code>--no-highlight</code> prints a
+    plain, grep-friendly leading slice of the body with no match markup — nice
+    when you're piping into another tool.
+  </p>
 
   <h2>Output for humans and for scripts</h2>
   <p>
@@ -177,7 +232,11 @@ $ whoosh search "body:install"</code></pre>
       <tr><td><code>--json</code></td><td>Machine-readable results — pipe straight into <code>jq</code>.</td></tr>
       <tr><td><code>--count</code></td><td>Just the number of matching documents.</td></tr>
       <tr><td><code>--html</code></td><td><code>&lt;mark&gt;…&lt;/mark&gt;</code> highlights instead of UPPERCASE.</td></tr>
+      <tr><td><code>--no-highlight</code></td><td>Plain leading slice of the body, no match markup — grep-friendly.</td></tr>
       <tr><td><code>--fields</code></td><td>Choose which stored fields appear in the output.</td></tr>
+      <tr><td><code>--field</code></td><td>Restrict the search to a field (repeatable; default title + body).</td></tr>
+      <tr><td><code>--snippet-chars</code></td><td>How much context to show per result (default 200).</td></tr>
+      <tr><td><code>--sort-by</code></td><td><code>score</code> (default) or <code>mtime</code> for newest-first.</td></tr>
       <tr><td><code>--limit</code></td><td>Cap the number of results (default 10).</td></tr>
     </tbody>
   </table>
@@ -190,6 +249,40 @@ $ whoosh search "install" --json --fields path
     Because <code>--json</code> is stable and quiet, you can build small tools on
     top of it — a "search my notes" alias, a pre-commit doc check, a fuzzy file
     opener — without ever leaving the shell.
+  </p>
+
+  <h2>Inspect the index with <code>whoosh stats</code></h2>
+  <p>
+    Once you've built an index, <code>whoosh stats</code> tells you what's in it
+    — how many documents, which fields, and how much disk it uses:
+  </p>
+  <pre><code>$ whoosh stats
+Index: /home/you/proj/.whoosh_index
+  documents:   4
+  fields:      4
+    - body (TEXT)
+    - mtime (NUMERIC)
+    - path (ID)
+    - title (TEXT)
+  size on disk: 17.4 KB  (3 files)
+  last updated: 2026-07-18 03:04:32</code></pre>
+  <p>
+    Add <code>--top-terms FIELD</code> to see the most frequent indexed terms —
+    a quick way to understand what a corpus is actually about (and a reminder
+    that <code>body</code> is stemmed, so <code>install</code> and
+    <code>installation</code> collapse to one term, <code>instal</code>):
+  </p>
+  <pre><code>$ whoosh stats --top-terms body --top 6
+Top terms in 'body':
+  4  search
+  4  instal
+  3  whoosh
+  3  text
+  3  python
+  3  index</code></pre>
+  <p>
+    Both commands also take <code>--json</code>, so index health checks drop
+    straight into a script or a CI step.
   </p>
 
   <h2>When to reach for this (and when not to)</h2>
