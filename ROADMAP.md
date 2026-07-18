@@ -97,9 +97,10 @@ About section of the README.)*
       [stemming & folding guide](https://priya-sundaram-dev.github.io/whoosh/docs/stemming.html)
       now documents the NFC-vs-NFD normalization pitfall (the default tokenizer
       drops combining marks, so decomposed spellings silently fail to match
-      composed ones) and ships a reusable `NormalizingRegexTokenizer` recipe,
-      guarded by a regression test. Further analyzer recipes will follow as
-      users ask for them.
+      composed ones), and Whoosh ships a built-in `NormalizingRegexTokenizer`
+      (added in 3.17.0) that normalizes input before tokenizing, guarded by
+      regression tests. Further analyzer recipes will follow as users ask for
+      them.
 - [x] A cookbook of integration examples. Shipped in
       [`examples/`](examples/): a runnable
       [FastAPI search service](examples/fastapi_app.py), a
