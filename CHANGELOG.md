@@ -13,6 +13,10 @@ All notable changes to this project are documented here. This project follows
   `AttributeError` when copy-pasted. The class is `qparser.OperatorsPlugin`.
 - Updated the stale `whoosh --version` sample output in the CLI guide
   (`docs/source/cli.rst`) from `3.16.1` to match the current release.
+- Corrected the default search limit in the searching guide
+  (`docs/source/searching.rst`): the prose said `Searcher.search()` limits hits
+  to 20 by default, but the actual default is 10 (matching the adjacent
+  `scored_length()` example and the `Searcher.search` implementation).
 
 ## [3.17.0] - 2026-07-18
 
