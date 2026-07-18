@@ -65,8 +65,9 @@ About section of the README.)*
       rather than duplicating it (see whoosh-reloaded#114 / de-odex/whoosh-novo).
 - [ ] Resource-lifecycle hardening: readers/searchers as context managers with
       explicit `close()` (shipped) — document and test the Windows file-lock
-      path end-to-end for downstreams like paperless-ngx and MoinMoin
-      ([#4](https://github.com/priya-sundaram-dev/whoosh/issues/4), help wanted).
+      path end-to-end for downstreams like paperless-ngx and MoinMoin.
+      *(help wanted — see the
+      [`help wanted` label](https://github.com/priya-sundaram-dev/whoosh/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22).)*
 
 ## Next
 
@@ -89,9 +90,13 @@ About section of the README.)*
 - [ ] Optional accelerators behind extras, without breaking pure-Python
       install.
 - [ ] Better Unicode/tokenizer coverage and documented analyzer recipes.
-- [ ] A cookbook of integration examples (Flask/Django/FastAPI, static-site
-      search — [#5](https://github.com/priya-sundaram-dev/whoosh/issues/5), good
-      first issue).
+- [x] A cookbook of integration examples. Shipped in
+      [`examples/`](examples/): a runnable
+      [FastAPI search service](examples/fastapi_app.py), a
+      [static-site search index builder](examples/static_site_search.py),
+      plus autocomplete, faceted search, "did you mean?" spelling suggestions,
+      custom analyzers, highlighting, and scoring/sorting recipes. More
+      framework integrations (Flask/Django) welcome — contributions invited.
 - [x] `--json` output for the `whoosh` command-line search, for scripting and
       pipelines. Shipped: `whoosh search <query> <dir> --json` (and `whoosh
       stats --json`) emit machine-readable JSON — path, score, snippet, and
