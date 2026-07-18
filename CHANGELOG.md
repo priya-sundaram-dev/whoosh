@@ -6,6 +6,22 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.16.2] - 2026-07-18
+
+### Fixed
+- `whoosh stats --top-terms FIELD` now prints a clear, actionable error when
+  the named field cannot have text terms ranked — for example a `NUMERIC` or
+  `DATETIME` field such as the built-in `mtime`. Previously it surfaced a
+  leaked low-level decode message (`invalid literal for int() with base 10`).
+  It now reports, e.g., `error: field 'mtime' (NUMERIC) does not store text
+  terms, so it has no top terms to list; try a TEXT field` and exits `2`.
+
+### Documentation
+- "Command-line search": corrected the documented `whoosh --version` and
+  `whoosh --help` output, which still showed an old version string
+  (`3.5.0`) and an outdated usage line. Added an example of the improved
+  `--top-terms` error for non-text fields.
+
 ## [3.16.1] - 2026-07-17
 
 ### Fixed

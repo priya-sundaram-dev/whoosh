@@ -494,7 +494,11 @@ def test_stats_top_terms_field_without_frequencies(corpus, capsys):
     rc = run(["stats", corpus, "--top-terms", "mtime"])
     assert rc == 2
     err = capsys.readouterr().err
-    assert "cannot list top terms" in err
+    # Clear, actionable message rather than a leaked low-level decode error.
+    assert "does not store text terms" in err
+    assert "mtime" in err
+    assert "NUMERIC" in err
+    assert "invalid literal" not in err  # no leaked int() error
     assert "Traceback" not in err
 
 

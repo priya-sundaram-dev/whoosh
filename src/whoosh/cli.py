@@ -413,13 +413,26 @@ def cmd_stats(args: argparse.Namespace) -> int:
         if fieldname not in schema.names():
             print(f"error: no field {fieldname!r} in index", file=sys.stderr)
             return 2
+        field = schema[fieldname]
+        # NUMERIC (and DATETIME, which subclasses it) store terms in an
+        # encoded binary form that has no meaningful text representation or
+        # frequency ranking, so "top terms" does not apply to them. Detect
+        # this up front and give a clear, actionable message instead of
+        # surfacing a low-level decoding error.
+        from whoosh.fields import NUMERIC as _NUMERIC
+        if isinstance(field, _NUMERIC):
+            ftype = type(field).__name__
+            print(
+                f"error: field {fieldname!r} ({ftype}) does not store text "
+                f"terms, so it has no top terms to list; try a TEXT field",
+                file=sys.stderr,
+            )
+            return 2
         try:
             with ix.reader() as r:
                 top_terms = r.most_frequent_terms(fieldname, number=args.top)
         except Exception as exc:  # noqa: BLE001
-            # Field types without term frequencies (e.g. NUMERIC, DATETIME)
-            # raise assorted low-level decoding errors; show a clear message
-            # instead of a traceback.
+            # Any remaining edge case: show a clear message, not a traceback.
             print(f"error: cannot list top terms for field {fieldname!r}: {exc}",
                   file=sys.stderr)
             return 2

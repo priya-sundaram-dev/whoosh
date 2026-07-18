@@ -27,13 +27,13 @@ The import package is still ``whoosh`` (so it is a drop-in for existing code),
 and the installed console command is ``whoosh``::
 
     $ whoosh --help
-    usage: whoosh [-h] {index,search,stats} ...
+    usage: whoosh [-h] [-V] {index,search,stats} ...
 
 Check your installed version at any time with ``whoosh --version`` or
 ``whoosh -V``::
 
     $ whoosh --version
-    whoosh 3.5.0
+    whoosh 3.16.1 (https://github.com/priya-sundaram-dev/whoosh)
 
 
 Index a folder
@@ -180,10 +180,15 @@ frequencies. Use ``--top N`` to cap the list (default 10)::
        71  python
 
 This is a quick way to eyeball a corpus or sanity-check your analyzer. Naming a
-field that does not exist, or a field type that does not store term frequencies
-(such as ``NUMERIC`` or ``DATETIME``), prints a short error to stderr and exits
-``2`` rather than a traceback. The term listing is human-readable output only —
-the ``--json`` payload is unchanged.
+field that does not exist, or a field type that has no text terms to rank
+(such as ``NUMERIC`` or ``DATETIME``), prints a short, clear error to stderr
+and exits ``2`` rather than a traceback::
+
+    $ whoosh stats ~/notes --top-terms mtime
+    error: field 'mtime' (NUMERIC) does not store text terms, so it has no top terms to list; try a TEXT field
+
+The term listing is human-readable output only — the ``--json`` payload is
+unchanged.
 
 
 Exit codes
