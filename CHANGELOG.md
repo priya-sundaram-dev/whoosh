@@ -6,6 +6,19 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.16.4] - 2026-07-18
+
+### Fixed
+- Fields now reject a bare `Filter` passed where a full analyzer is expected
+  (for example `TEXT(analyzer=CharsetFilter(accent_map))`). A `Filter` can only
+  transform tokens produced by a tokenizer, so used alone it previously failed
+  much later during indexing with a cryptic
+  `TypeError: CharsetFilter.__call__() got an unexpected keyword argument
+  'mode'`. `TEXT` and `KEYWORD` now raise `FieldConfigurationError` at
+  construction time with an actionable message
+  (e.g. `RegexTokenizer() | CharsetFilter(...)`). Fixes gh#41 (reported
+  upstream at mchaput/whoosh#41).
+
 ## [3.16.3] - 2026-07-18
 
 ### Fixed

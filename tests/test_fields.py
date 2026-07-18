@@ -710,3 +710,36 @@ def test_valid_date_string():
     assert query.start == expected_start, "Start date is not correct"
     assert query.end == expected_end, "End date is not correct"
     assert query.boost == 1.0, "Boost value is not correct"
+
+
+def test_filter_as_analyzer_raises_clear_error():
+    # Passing a bare Filter where a full analyzer is expected used to fail
+    # deep in indexing with a cryptic "unexpected keyword argument 'mode'"
+    # TypeError (gh#41). It should now fail fast with a clear message.
+    from whoosh import analysis
+    from whoosh.support.charset import accent_map
+
+    with pytest.raises(fields.FieldConfigurationError) as exc:
+        fields.TEXT(analyzer=analysis.CharsetFilter(accent_map))
+    msg = str(exc.value)
+    assert "Filter" in msg
+    assert "RegexTokenizer" in msg
+
+    with pytest.raises(fields.FieldConfigurationError):
+        fields.KEYWORD(analyzer=analysis.LowercaseFilter())
+
+    # A proper tokenizer|filter composite must still be accepted, and folding
+    # should work end to end.
+    ana = (
+        analysis.RegexTokenizer()
+        | analysis.LowercaseFilter()
+        | analysis.CharsetFilter(accent_map)
+    )
+    schema = fields.Schema(name=fields.TEXT(analyzer=ana, stored=True))
+    ix = RamStorage().create_index(schema)
+    w = ix.writer()
+    w.add_document(name="René Descartes")
+    w.commit()
+    with ix.searcher() as s:
+        q = qparser.QueryParser("name", schema).parse("rene")
+        assert [h["name"] for h in s.search(q)] == ["René Descartes"]

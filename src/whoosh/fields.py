@@ -62,6 +62,37 @@ class UnknownFieldError(Exception):
     pass
 
 
+def _check_analyzer(analyzer):
+    """Validate that ``analyzer`` can be used as a field analyzer and return it.
+
+    A field analyzer must be able to turn raw text into a stream of tokens, so
+    it has to be a :class:`whoosh.analysis.Tokenizer` or an
+    :class:`whoosh.analysis.Analyzer` (typically a tokenizer composed with one
+    or more filters). Passing a bare :class:`whoosh.analysis.Filter` (for
+    example ``TEXT(analyzer=CharsetFilter(accent_map))``) used to fail much
+    later during indexing with a cryptic
+    ``TypeError: ... unexpected keyword argument 'mode'`` (see gh#41). Catch it
+    early with an actionable message.
+    """
+
+    if analyzer is None:
+        return analyzer
+    if isinstance(analyzer, analysis.Filter):
+        raise FieldConfigurationError(
+            f"{type(analyzer).__name__} is a Filter, not a complete analyzer, "
+            "so it cannot tokenize text on its own. Combine it with a "
+            "tokenizer first, e.g. "
+            f"`RegexTokenizer() | {type(analyzer).__name__}(...)`, and pass the "
+            "resulting analyzer to the field."
+        )
+    if not callable(analyzer):
+        raise FieldConfigurationError(
+            f"{analyzer!r} is not a valid analyzer; expected a Tokenizer or "
+            "Analyzer (see whoosh.analysis)."
+        )
+    return analyzer
+
+
 # Field Types
 
 
@@ -1117,7 +1148,7 @@ class KEYWORD(FieldType):
 
         if not analyzer:
             analyzer = analysis.KeywordAnalyzer(lowercase=lowercase, commas=commas)
-        self.analyzer = analyzer
+        self.analyzer = _check_analyzer(analyzer)
 
         # Store field lengths and weights along with doc ID
         self.format = formats.Frequency(field_boost=field_boost)
@@ -1188,7 +1219,7 @@ class TEXT(FieldType):
         """
 
         if analyzer:
-            self.analyzer = analyzer
+            self.analyzer = _check_analyzer(analyzer)
         elif lang:
             self.analyzer = analysis.LanguageAnalyzer(lang)
         else:
