@@ -266,11 +266,15 @@ For ``update_document`` to work, you must have marked at least one of the fields
 in the schema as "unique". Whoosh will then use the contents of the "unique"
 field(s) to search for documents to delete::
 
+    import os, os.path
+    from whoosh import index
     from whoosh.fields import Schema, ID, TEXT
 
     schema = Schema(path = ID(unique=True), content=TEXT)
 
-    ix = index.create_in("index")
+    if not os.path.exists("index"):
+        os.mkdir("index")
+    ix = index.create_in("index", schema)
     writer = ix.writer()
     writer.add_document(path=u"/a", content=u"The first document")
     writer.add_document(path=u"/b", content=u"The second document")
@@ -319,13 +323,13 @@ Indexing everything from scratch is pretty easy. Here's a simple example::
       writer.commit()
 
 
-    def get_schema()
+    def get_schema():
       return Schema(path=ID(unique=True, stored=True), content=TEXT)
 
 
     def add_doc(writer, path):
       fileobj = open(path, "rb")
-      content = fileobj.read()
+      content = fileobj.read().decode("utf-8")
       fileobj.close()
       writer.add_document(path=path, content=content)
 
@@ -337,12 +341,14 @@ To start we'll need to store each document's last-modified time, so we can check
 if the file has changed. In this example, we'll just use the mtime for
 simplicity::
 
-    def get_schema()
+    from whoosh.fields import Schema, ID, STORED, TEXT
+
+    def get_schema():
       return Schema(path=ID(unique=True, stored=True), time=STORED, content=TEXT)
 
     def add_doc(writer, path):
       fileobj = open(path, "rb")
-      content = fileobj.read()
+      content = fileobj.read().decode("utf-8")
       fileobj.close()
       modtime = os.path.getmtime(path)
       writer.add_document(path=path, content=content, time=modtime)
@@ -357,7 +363,7 @@ incremental indexing::
         incremental_index(dirname)
 
 
-    def incremental_index(dirname)
+    def incremental_index(dirname):
         ix = index.open_dir(dirname)
 
         # The set of all paths in the index
