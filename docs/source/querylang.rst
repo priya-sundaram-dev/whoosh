@@ -50,10 +50,28 @@ or configure the query parser's phrase plugin to degrade for all quoted input::
 
 Normally when you specify a phrase, the maximum difference in position between
 each word in the phrase is 1 (that is, the words must be right next to each
-other in the document). For example, the following matches if a document has
-``library`` within 5 words after `` whoosh``::
+other in the document). You can add a ``~N`` "slop" factor to allow the words
+to be further apart, where ``N`` is the maximum allowed difference in position
+between each adjacent pair of words::
 
-    " whoosh library"~5
+    "whoosh library"~5
+
+Because two adjacent words differ in position by 1, a slop of ``N`` permits up
+to ``N - 1`` other words *between* each pair. So ``"whoosh library"~2`` matches
+when at most one word separates ``whoosh`` and ``library``, and ``~5`` allows
+up to four words between them.
+
+.. note::
+
+    Slop is measured in *indexed* positions, not raw source words. Words that
+    the field's analyzer removes -- such as stop words filtered by
+    :class:`~whoosh.analysis.StopFilter` or short tokens dropped by ``minsize``
+    (both active in the default :class:`~whoosh.analysis.StandardAnalyzer`) --
+    are never indexed and therefore do not count toward the distance. This is
+    why a proximity search can appear to "skip over" filler words like *the*,
+    *a*, and *and*: after analysis those words simply are not there. If you
+    need every word to count, index the field with an analyzer that does not
+    remove tokens, e.g. ``TEXT(analyzer=RegexTokenizer() | LowercaseFilter())``.
 
 
 Boolean operators

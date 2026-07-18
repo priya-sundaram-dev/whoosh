@@ -427,3 +427,62 @@ def test_span_direct_wildcard_spans():
         while m.is_active():
             m.spans()
             m.next()
+
+
+def test_phrase_slop_semantics_gh48():
+    # Regression / documentation-pinning test for the meaning of the ~N slop
+    # factor in phrase (proximity) queries. slop is the maximum allowed
+    # difference in position between adjacent words; because adjacent words
+    # differ by 1, a slop of N permits up to N-1 words *between* each pair.
+    # See mchaput/whoosh#48, where the docstring wrongly described slop as
+    # "words allowed between", causing off-by-one confusion.
+    from whoosh.qparser import QueryParser
+
+    # Analyzer that keeps every token, so positions are faithful and the
+    # slop math is not obscured by stop-word / minsize removal.
+    ana = analysis.RegexTokenizer() | analysis.LowercaseFilter()
+    schema = fields.Schema(content=fields.TEXT(analyzer=ana, phrase=True, stored=True))
+    st = RamStorage()
+
+    def matches(content, slop):
+        ix = st.create_index(schema)
+        w = ix.writer()
+        w.add_document(content=content)
+        w.commit()
+        with ix.searcher() as s:
+            q = QueryParser("content", ix.schema).parse(f'"hello world"~{slop}')
+            return len(s.search(q)) > 0
+
+    # words_between -> minimum slop that matches should be words_between + 1
+    cases = {
+        0: "hello world",
+        1: "hello a world",
+        2: "hello a b world",
+        3: "hello a b c world",
+    }
+    for words_between, content in cases.items():
+        expected_min_slop = words_between + 1
+        # Just below the threshold must NOT match; at/above it must match.
+        assert not matches(content, expected_min_slop - 1), (
+            content,
+            expected_min_slop - 1,
+        )
+        assert matches(content, expected_min_slop), (content, expected_min_slop)
+
+
+def test_phrase_slop_skips_removed_stopwords_gh48():
+    # With the default StandardAnalyzer, stop words and short tokens are
+    # removed, so a proximity search "skips over" them. Two content words that
+    # are far apart in the source but adjacent after analysis match at slop 1.
+    from whoosh.qparser import QueryParser
+
+    schema = fields.Schema(content=fields.TEXT(phrase=True, stored=True))
+    st = RamStorage()
+    ix = st.create_index(schema)
+    w = ix.writer()
+    # "the a an" are all stop words -> removed; hello/world become adjacent
+    w.add_document(content="hello the a an world")
+    w.commit()
+    with ix.searcher() as s:
+        q = QueryParser("content", ix.schema).parse('"hello world"~1')
+        assert len(s.search(q)) == 1

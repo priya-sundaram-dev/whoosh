@@ -6,6 +6,19 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Documentation
+- Clarified the meaning of the `~N` phrase "slop" factor. The `Phrase`
+  docstring previously described `slop` as "the number of words allowed
+  between each word", which is off by one and contradicted its own claim that
+  the default of 1 means an exact match. `slop` is actually the maximum
+  allowed difference in *position* between adjacent words (1 = adjacent), so a
+  slop of `N` permits up to `N - 1` intervening words. Both the docstring and
+  the query-language guide now state this precisely and note that words the
+  analyzer removes (stop words, short tokens) are never indexed and so do not
+  count toward the distance — the source of the "proximity search ignores
+  filler words" confusion. Added regression tests pinning the slop-to-distance
+  relationship. Addresses the confusion reported upstream at mchaput/whoosh#48.
+
 ## [3.16.4] - 2026-07-18
 
 ### Fixed

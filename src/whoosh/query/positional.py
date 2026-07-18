@@ -140,8 +140,18 @@ class Phrase(qcore.Query):
         """
         :param fieldname: the field to search.
         :param words: a list of words (unicode strings) in the phrase.
-        :param slop: the number of words allowed between each "word" in the
-            phrase; the default of 1 means the phrase must match exactly.
+        :param slop: the maximum allowed difference in position between each
+            adjacent pair of words in the phrase. The default of 1 means the
+            words must be immediately adjacent (an exact phrase match). Because
+            adjacent words differ in position by 1, the number of intervening
+            words that ``slop`` permits between a pair is ``slop - 1``: for
+            example, ``"hello world"~2`` (slop 2) matches when at most one
+            other word appears between ``hello`` and ``world``, and ``~3``
+            allows up to two intervening words. Note that words removed by the
+            field's analyzer (such as stop words filtered by
+            :class:`~whoosh.analysis.StopFilter`, or short tokens dropped by
+            ``minsize``) do not count toward the position difference, since
+            they are never indexed.
         :param boost: a boost factor that to apply to the raw score of
             documents matched by this query.
         :param char_ranges: if a Phrase object is created by the query parser,
