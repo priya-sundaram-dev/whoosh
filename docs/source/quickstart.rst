@@ -225,13 +225,17 @@ clauses together with ``AND`` (so by default, all terms you specify must be in
 the document for the document to match)::
 
     >>> print(parser.parse(u"render shade animate"))
-    And([Term("content", "render"), Term("content", "shade"), Term("content", "animate")])
+    (content:render AND content:shade AND content:animate)
 
     >>> print(parser.parse(u"render OR (title:shade tags:animate)"))
-    Or([Term("content", "render"), And([Term("title", "shade"), Term("tags", "animate")])])
+    (content:render OR (title:shade AND tags:animate))
 
     >>> print(parser.parse(u"rend*"))
-    Prefix("content", "rend")
+    content:rend*
+
+(Note: ``print(query)`` shows the human-readable form of a query. To see the
+underlying object structure instead, use ``repr(query)``, which would show e.g.
+``And([Term('content', 'render'), ...])``.)
 
 Whoosh includes extra features for dealing with search results, such as
 

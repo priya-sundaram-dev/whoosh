@@ -17,6 +17,14 @@ All notable changes to this project are documented here. This project follows
   (`docs/source/searching.rst`): the prose said `Searcher.search()` limits hits
   to 20 by default, but the actual default is 10 (matching the adjacent
   `scored_length()` example and the `Searcher.search` implementation).
+- Fixed the query-parser output examples in the quick-start guide
+  (`docs/source/quickstart.rst`): the snippets call `print(parser.parse(...))`,
+  which prints the human-readable form of a query (e.g.
+  `(content:render AND content:shade AND content:animate)`), but the documented
+  output showed the `repr()` form (`And([Term(...), ...])`) instead. New users
+  copy-pasting the examples saw output that did not match the docs. Corrected the
+  three samples to the actual `print()` output and added a note explaining the
+  difference between `print()`/`str()` and `repr()` for queries.
 
 ## [3.17.0] - 2026-07-18
 
