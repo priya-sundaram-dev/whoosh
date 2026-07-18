@@ -67,13 +67,22 @@ Usage
   document numbers.
 
   For example, let's say you have an index of emails. To extract key terms from
-  the ``content`` field of emails whose ``emailto`` field contains
+  the ``body`` field of emails whose ``emailto`` field equals
   ``matt@whoosh.ca``::
 
         with email_index.searcher() as s:
             docnums = s.document_numbers(emailto=u"matt@whoosh.ca")
             keywords = [keyword for keyword, score
                         in s.key_terms(docnums, "body")]
+
+  .. note::
+     :meth:`~whoosh.searching.Searcher.document_numbers` matches on indexed
+     *terms*, so the value you pass must be a single term. For a field like
+     ``emailto`` that holds a whole address, declare it as
+     :class:`whoosh.fields.ID` (or another non-tokenizing field). A tokenizing
+     field such as :class:`~whoosh.fields.TEXT` would split
+     ``matt@whoosh.ca`` into separate tokens, and matching on the full string
+     would silently return no documents.
 
 * Extract keywords from arbitrary text not in the index.
 
