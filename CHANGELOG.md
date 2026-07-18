@@ -6,6 +6,23 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Documentation
+- Documented the Windows file-locking path end-to-end in the concurrency guide
+  (`docs/source/threads.rst`): the OS-level lock backends (`fcntl` vs.
+  `msvcrt`), why a crash never leaves the index permanently locked, and the two
+  Windows-specific gotchas that bite long-running downstreams like paperless-ngx
+  and MoinMoin — mandatory (not advisory) locks that make `LockError` handling
+  required, and open reader/searcher handles that block segment deletion during
+  `commit()`/`optimize()` with `PermissionError` (WinError 32). Added guidance
+  to use readers/searchers as context managers and to `refresh()` long-lived
+  searchers rather than holding handles across a rebuild.
+
+### Tests
+- Added `test_index_files_deletable_after_close` guarding the close-then-delete
+  contract (readers, searchers, and writers release their file handles so index
+  files can be removed/replaced). Nearly a no-op on POSIX; catches leaked
+  handles on Windows before a release ships.
+
 ## [3.16.5] - 2026-07-18
 
 ### Fixed

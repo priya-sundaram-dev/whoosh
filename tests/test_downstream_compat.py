@@ -141,3 +141,57 @@ def test_iso_date_parsing_for_search_apps(datestr):
 
     parsed = English().date_from(datestr, datetime.datetime(2024, 6, 1))
     assert parsed is not None
+
+
+def test_index_files_deletable_after_close(tmp_path):
+    """Readers, searchers, and writers must release their file handles on
+    close so the index directory can be deleted or an index file replaced.
+
+    On POSIX this is almost always true (deletion of an open file succeeds),
+    so this test is nearly a no-op there. It matters most on **Windows**,
+    where an open file handle blocks ``os.remove``/``os.rename`` with
+    ``PermissionError`` (WinError 32, "The process cannot access the file
+    because it is being used by another process"). Downstreams such as
+    paperless-ngx and MoinMoin rebuild/optimize indexes on Windows and hit
+    exactly this path, so we guard the close-then-delete contract in CI.
+    """
+    import os
+    import shutil
+
+    from whoosh.fields import TEXT, Schema
+    from whoosh.index import create_in, open_dir
+
+    idx_dir = tmp_path / "ix"
+    idx_dir.mkdir()
+
+    schema = Schema(content=TEXT(stored=True))
+    ix = create_in(str(idx_dir), schema)
+
+    writer = ix.writer()
+    writer.add_document(content="alpha beta gamma")
+    writer.add_document(content="beta gamma delta")
+    writer.commit()
+
+    # Exercise the reader and searcher context-manager paths, which are the
+    # documented way to guarantee handles are released.
+    with ix.reader() as reader:
+        assert reader.doc_count() == 2
+    with ix.searcher() as searcher:
+        from whoosh.qparser import QueryParser
+
+        q = QueryParser("content", ix.schema).parse("beta")
+        assert len(searcher.search(q)) == 2
+
+    ix.close()
+
+    # Every on-disk index file must now be removable. On Windows a leaked
+    # handle would raise PermissionError here; on POSIX this simply confirms
+    # the files exist and unlink cleanly.
+    seg_files = [f for f in os.listdir(str(idx_dir))]
+    assert seg_files, "expected the index to have written segment files"
+    for name in seg_files:
+        os.remove(os.path.join(str(idx_dir), name))
+
+    # And the whole directory should tear down without EBUSY/PermissionError.
+    shutil.rmtree(str(idx_dir))
+    assert not idx_dir.exists()

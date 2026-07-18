@@ -57,6 +57,59 @@ Locking the index is accomplished by acquiring an exclusive file lock on the
 after the file lock is released, so the fact that the file exists **does not**
 mean the index is locked.
 
+Under the hood the write lock uses an OS-level file lock: ``fcntl.flock`` on
+UNIX/macOS and ``msvcrt.locking`` on Windows (see
+:mod:`whoosh.util.filelock`). OS-level locks are released automatically if the
+process crashes, so a stale ``_WRITELOCK`` file left behind by a crash does
+**not** keep the index permanently locked — the next writer can acquire it.
+
+
+Windows
+-------
+
+Whoosh runs on Windows, but the platform's file semantics differ from
+UNIX/macOS in two ways that matter for long-running services (for example
+paperless-ngx or MoinMoin re-indexing on Windows):
+
+1. **File locks are mandatory, not advisory.** ``msvcrt.locking`` takes a
+   real kernel lock, so a second writer reliably fails fast with
+   :class:`whoosh.index.LockError` instead of silently interleaving writes.
+   This is the safe behaviour, but it means you must handle ``LockError``
+   (retry, back off, or queue the write) rather than assuming a writer is
+   always available.
+
+2. **An open file handle blocks deletion and rename.** On Windows you cannot
+   ``os.remove`` or ``os.rename`` a file while any handle to it is open;
+   the call raises ``PermissionError`` (WinError 32, *"The process cannot
+   access the file because it is being used by another process"*). Whoosh
+   deletes and replaces segment files during ``commit()`` and ``optimize()``,
+   so a **reader or searcher that is still open on an old segment can make a
+   concurrent commit/optimize fail on Windows** even though the same code runs
+   fine on Linux and macOS.
+
+   The fix is to make sure readers and searchers are closed before (or
+   promptly after) writing. Use them as context managers so their handles are
+   released deterministically rather than whenever the garbage collector runs::
+
+       # Preferred: handles released at the end of the block.
+       with ix.searcher() as s:
+           results = s.search(query)
+           # ... use results inside the block ...
+
+       # Now it is safe to write, optimize, or rebuild on Windows.
+       with ix.writer() as w:
+           w.add_document(...)
+
+   If you keep a long-lived searcher for performance, refresh it (see
+   :meth:`whoosh.searching.Searcher.refresh` below) rather than holding a
+   handle to a segment that a later ``optimize()`` needs to delete. Relying on
+   CPython reference-counting to close readers "eventually" is not enough on
+   Windows and is not guaranteed on other implementations such as PyPy.
+
+The close-then-delete contract is guarded by a regression test
+(``test_index_files_deletable_after_close``) so it keeps working release to
+release.
+
 
 Versioning
 ==========

@@ -63,11 +63,15 @@ About section of the README.)*
       correct only, never fabricated. Deeper coverage of *internal* modules can
       follow incrementally as needed; coordinating with community typing work
       rather than duplicating it (see whoosh-reloaded#114 / de-odex/whoosh-novo).
-- [ ] Resource-lifecycle hardening: readers/searchers as context managers with
-      explicit `close()` (shipped) — document and test the Windows file-lock
-      path end-to-end for downstreams like paperless-ngx and MoinMoin.
-      *(help wanted — see the
-      [`help wanted` label](https://github.com/priya-sundaram-dev/whoosh/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22).)*
+- [x] Resource-lifecycle hardening: readers/searchers as context managers with
+      explicit `close()` (shipped). The Windows file-lock path is now
+      documented end-to-end in the
+      [concurrency guide](https://priya-sundaram-dev.github.io/whoosh/docs/threads.html)
+      — the `fcntl`/`msvcrt` lock backends, crash-safe lock release, mandatory
+      (not advisory) Windows locks, and the open-handle-blocks-delete gotcha
+      that bites downstreams like paperless-ngx and MoinMoin during
+      `commit()`/`optimize()` — and the close-then-delete contract is guarded
+      by a regression test (`test_index_files_deletable_after_close`).
 
 ## Next
 
