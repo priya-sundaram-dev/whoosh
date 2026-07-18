@@ -6,6 +6,12 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Documentation
+- Fixed the "Creating custom operators" example in the query-parser guide
+  (`docs/source/parsing.rst`): it referenced the nonexistent
+  `qparser.OperatorPlugin` (singular) in the `OpTagger` snippets, which raised
+  `AttributeError` when copy-pasted. The class is `qparser.OperatorsPlugin`.
+
 ## [3.17.0] - 2026-07-18
 
 ### Added
