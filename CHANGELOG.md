@@ -6,6 +6,8 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.17.0] - 2026-07-18
+
 ### Added
 - New built-in `NormalizingRegexTokenizer` (`whoosh.analysis`): a
   `RegexTokenizer` that Unicode-normalizes its input *before* tokenizing. This
