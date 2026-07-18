@@ -11,6 +11,8 @@ All notable changes to this project are documented here. This project follows
   (`docs/source/parsing.rst`): it referenced the nonexistent
   `qparser.OperatorPlugin` (singular) in the `OpTagger` snippets, which raised
   `AttributeError` when copy-pasted. The class is `qparser.OperatorsPlugin`.
+- Updated the stale `whoosh --version` sample output in the CLI guide
+  (`docs/source/cli.rst`) from `3.16.1` to match the current release.
 
 ## [3.17.0] - 2026-07-18
 

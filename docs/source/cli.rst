@@ -33,7 +33,7 @@ Check your installed version at any time with ``whoosh --version`` or
 ``whoosh -V``::
 
     $ whoosh --version
-    whoosh 3.16.1 (https://github.com/priya-sundaram-dev/whoosh)
+    whoosh 3.17.0 (https://github.com/priya-sundaram-dev/whoosh)
 
 
 Index a folder
