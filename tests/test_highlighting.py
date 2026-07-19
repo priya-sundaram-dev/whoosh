@@ -368,6 +368,44 @@ def test_pinpoint():
         assert hi.highlight_hit(hit, "text") == "golf hotel india JULIET kilo lima mike"
 
 
+def test_pinpoint_multiterm_retokenize():
+    # Regression: when PinpointFragmenter falls back to the retokenizing path
+    # (the field does not store characters, so can_load_chars() is False) and a
+    # query matches *more than one* term, the fragmenter used to read the
+    # analyzer's single, reused Token object at list-comprehension time. That
+    # made every matched entry point at the *last* token in the stream, so the
+    # wrong word (or nothing) got highlighted. It must snapshot each matched
+    # token instead. See highlight.PinpointFragmenter.fragment_tokens.
+    schema = fields.Schema(text=fields.TEXT(stored=True))  # note: no chars=True
+    ix = RamStorage().create_index(schema)
+    with ix.writer() as w:
+        w.add_document(text="The quick brown fox jumps over the lazy dog")
+
+    with ix.searcher() as s:
+        qp = qparser.QueryParser("text", ix.schema)
+        r = s.search(qp.parse('"quick brown"'), terms=True)
+        hit = r[0]
+
+        hi = highlight.Highlighter(
+            fragmenter=highlight.PinpointFragmenter(),
+            formatter=highlight.UppercaseFormatter(),
+        )
+        # This field can't load chars, so we exercise the retokenize fallback.
+        assert not hi.can_load_chars(r, "text")
+
+        out = hi.highlight_hit(hit, "text", top=1)
+        # Both matched terms must be highlighted, and the unmatched trailing
+        # word "dog" must NOT be.
+        assert "QUICK" in out and "BROWN" in out
+        assert "DOG" not in out
+
+        # A two-term (non-phrase) query hits the same code path.
+        r2 = s.search(qp.parse("brown fox"), terms=True)
+        out2 = hi.highlight_hit(r2[0], "text", top=1)
+        assert "BROWN" in out2 and "FOX" in out2
+        assert "DOG" not in out2
+
+
 def test_highlight_wildcards():
     schema = fields.Schema(text=fields.TEXT(stored=True))
     ix = RamStorage().create_index(schema)

@@ -7,6 +7,15 @@ All notable changes to this project are documented here. This project follows
 ## [Unreleased]
 
 ### Fixed
+- `PinpointFragmenter` highlighted the wrong word (often the last token in the
+  document, e.g. rendering `dog` for a `"quick brown"` query) whenever a search
+  matched more than one term *and* the field did not store character positions
+  (so highlighting fell back to re-tokenizing the stored text). The
+  non-retokenizing fragmenter collected matched tokens with a list
+  comprehension over the analyzer's token stream, but the analyzer yields a
+  single Token object that it mutates in place — so every collected reference
+  pointed at the same, already-advanced token. It now snapshots each matched
+  token with `Token.copy()`. Added a regression test.
 - The legacy `whoosh2` backwards-compatibility codec (`whoosh.codec.whoosh2`)
   imported `NoGraphError` from `whoosh.reading`, but that name was removed from
   `reading.py` when the on-disk word graph was dropped — so

@@ -550,7 +550,14 @@ class PinpointFragmenter(Fragmenter):
         return False
 
     def fragment_tokens(self, text, tokens):
-        matched = [t for t in tokens if t.matched]
+        # ``tokens`` may be a lazy stream of *reused* Token objects (the
+        # analyzer yields the same Token instance over and over, mutating it in
+        # place). Because this fragmenter is non-retokenizing, it builds
+        # fragments directly from the token positions, so it must snapshot each
+        # matched token with ``.copy()`` — otherwise the list comprehension
+        # would hold references to a single shared object whose ``text`` and
+        # char offsets have already advanced to the last token in the stream.
+        matched = [t.copy() for t in tokens if t.matched]
         return self.fragment_matches(text, matched)
 
     @staticmethod
