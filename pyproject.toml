@@ -87,7 +87,7 @@ warn_redundant_casts = true
 # ==========================================================================
 
 [tool.ruff]
-target-version = "py38"
+target-version = "py39"
 
 [tool.ruff.lint]
 select = [
