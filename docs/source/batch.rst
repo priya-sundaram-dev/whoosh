@@ -111,3 +111,32 @@ So, while ``multisegment=True`` is much faster than a normal writer, you should
 only use it for large batch indexing jobs (or perhaps only for indexing from
 scratch). It should not be the only method you use for indexing, because
 otherwise the number of segments will tend to increase forever!
+
+
+The ``start_method`` parameter
+==============================
+
+By default, the multiprocessing writer launches its sub-processes using the
+interpreter's default start method (historically ``"fork"`` on POSIX systems).
+On CPython 3.12 and later, using ``fork`` from a multi-threaded parent process
+emits a ``DeprecationWarning``, and CPython is moving away from ``fork`` as the
+default start method in future versions.
+
+If you see that warning, or you want behavior that is stable across Python
+versions and platforms, pass an explicit ``start_method``::
+
+    from whoosh import index
+
+    ix = index.open_dir("indexdir")
+    writer = ix.writer(procs=4, start_method="spawn")
+
+Valid values are the names returned by
+:func:`multiprocessing.get_all_start_methods` for your platform, typically
+``"fork"``, ``"spawn"`` and ``"forkserver"``. When you leave ``start_method``
+unset, Whoosh keeps its original behavior and uses the interpreter default.
+
+.. note::
+   The ``"spawn"`` and ``"forkserver"`` start methods re-import your program in
+   each sub-process, so on those methods your top-level indexing code must be
+   guarded by ``if __name__ == "__main__":`` (this is a standard requirement of
+   the :mod:`multiprocessing` module, not specific to Whoosh).

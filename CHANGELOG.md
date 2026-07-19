@@ -6,6 +6,18 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Added
+- The multiprocessing writer (`whoosh.multiproc.MpWriter`, used via
+  `ix.writer(procs=N)`) now accepts an explicit `start_method` argument (e.g.
+  `ix.writer(procs=4, start_method="spawn")`). Passing `"spawn"` or
+  `"forkserver"` builds the worker processes and queues from an explicit
+  `multiprocessing` context, which avoids the `DeprecationWarning` CPython 3.12+
+  emits when `fork()` is used from a multi-threaded parent, and is the
+  forward-compatible choice as CPython moves away from fork-by-default. When
+  `start_method` is unset the writer keeps its original behavior (the
+  interpreter's default context), so this is fully backward compatible.
+  Documented in the batch-indexing guide (`docs/source/batch.rst`).
+
 ### Documentation
 - Updated the stale `whoosh.__version__` sample output in the app-integration
   guide (`docs/source/integrations.rst`) from `(3, 16, 1)` to match the current

@@ -377,3 +377,53 @@ def test_mpwriter_mixed_postings_and_empty():
             assert sorted(int(h["id"]) for h in s.documents()) == [0, 1, 2, 3, 4, 5]
             r = s.search(query.Term("text", "hello"), limit=None)
             assert sorted(int(h["id"]) for h in r) == [0, 2, 4]
+
+
+@pytest.mark.parametrize("start_method", ["spawn", "forkserver"])
+def test_mpwriter_explicit_start_method(start_method):
+    # MpWriter accepts an explicit multiprocessing start method. Passing
+    # "spawn" or "forkserver" avoids the DeprecationWarning CPython 3.12+
+    # raises when fork() runs in a multi-threaded process, and is the
+    # forward-compatible path as CPython moves away from fork-by-default.
+    check_multi()
+
+    import multiprocessing
+
+    if start_method not in multiprocessing.get_all_start_methods():
+        pytest.skip(f"{start_method} not available on this platform")
+
+    from whoosh.multiproc import MpWriter
+
+    schema = fields.Schema(id=fields.ID(stored=True), text=fields.TEXT(stored=True))
+    with TempIndex(schema) as ix:
+        w = MpWriter(ix, procs=2, multisegment=False, start_method=start_method)
+        assert w.start_method == start_method
+        for i in range(30):
+            text = "hello world number %d" % i if i % 2 == 0 else ""
+            w.add_document(id=str(i), text=text)
+        w.commit()
+        with ix.searcher() as s:
+            assert s.doc_count() == 30
+            r = s.search(query.Term("text", "hello"), limit=None)
+            assert len(r) == 15
+
+
+def test_mpwriter_default_start_method_unchanged():
+    # With no start_method, behavior is unchanged: the default context is used
+    # and SubWriterTask (a Process subclass) drives each sub-writer.
+    check_multi()
+
+    from whoosh.multiproc import MpWriter, SubWriterTask
+
+    schema = fields.Schema(id=fields.ID(stored=True), text=fields.TEXT(stored=True))
+    with TempIndex(schema) as ix:
+        w = MpWriter(ix, procs=2, multisegment=False)
+        assert w.start_method is None
+        for i in range(20):
+            w.add_document(id=str(i), text=f"doc {i} hello")
+        # A task is created lazily on flush; force one and check its type.
+        w._enqueue()
+        assert w.tasks and isinstance(w.tasks[0], SubWriterTask)
+        w.commit()
+        with ix.searcher() as s:
+            assert s.doc_count() == 20

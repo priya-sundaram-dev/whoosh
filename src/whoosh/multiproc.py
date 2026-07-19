@@ -25,9 +25,10 @@
 # those of the authors and should not be interpreted as representing official
 # policies, either expressed or implied, of Matt Chaput.
 
+import multiprocessing
 import pickle
 import queue
-from multiprocessing import Process, Queue, cpu_count
+from multiprocessing import cpu_count
 
 from whoosh.codec import base
 from whoosh.externalsort import imerge
@@ -63,12 +64,12 @@ def finish_subsegment(writer, k=64):
 # Multiprocessing Writer
 
 
-class SubWriterTask(Process):
+class SubWriterTask(multiprocessing.Process):
     # This is a Process object that takes "jobs" off a job Queue, processes
     # them, and when it's done, puts a summary of its work on a results Queue
 
     def __init__(self, storage, indexname, jobqueue, resultqueue, kwargs, multisegment):
-        Process.__init__(self)
+        multiprocessing.Process.__init__(self)
         self.storage = storage
         self.indexname = indexname
         self.jobqueue = jobqueue
@@ -158,13 +159,43 @@ class SubWriterTask(Process):
         self.running = False
 
 
+def _run_subwriter(storage, indexname, jobqueue, resultqueue, kwargs, multisegment):
+    # Module-level entry point used when the sub-writer is launched via an
+    # explicit multiprocessing context (e.g. the "spawn" or "forkserver" start
+    # methods, which re-import this module in the child process and therefore
+    # require a picklable, importable target instead of a bound method).
+    task = SubWriterTask(
+        storage, indexname, jobqueue, resultqueue, kwargs, multisegment
+    )
+    task.run()
+
+
 class MpWriter(SegmentWriter):
     def __init__(
-        self, ix, procs=None, batchsize=100, subargs=None, multisegment=False, **kwargs
+        self,
+        ix,
+        procs=None,
+        batchsize=100,
+        subargs=None,
+        multisegment=False,
+        start_method=None,
+        **kwargs,
     ):
         # This is the "main" writer that will aggregate the results created by
         # the sub-tasks
         SegmentWriter.__init__(self, ix, **kwargs)
+
+        # The multiprocessing start method to use. When None, Whoosh uses the
+        # interpreter default (historically "fork" on POSIX). Passing "spawn"
+        # or "forkserver" avoids the DeprecationWarning that CPython 3.12+
+        # raises when fork() is used from a multi-threaded process, and is the
+        # forward-compatible choice as CPython moves away from fork-by-default.
+        self.start_method = start_method
+        self._mpctx = (
+            multiprocessing.get_context(start_method)
+            if start_method is not None
+            else multiprocessing
+        )
 
         self.procs = procs or cpu_count()
         # The maximum number of documents in each job file submitted to the
@@ -180,9 +211,9 @@ class MpWriter(SegmentWriter):
         # A list to hold the sub-task Process objects
         self.tasks = []
         # A queue to pass the filenames of job files to the sub-tasks
-        self.jobqueue = Queue(self.procs * 4)
+        self.jobqueue = self._mpctx.Queue(self.procs * 4)
         # A queue to get back the final results of the sub-tasks
-        self.resultqueue = Queue()
+        self.resultqueue = self._mpctx.Queue()
         # A buffer for documents before they are flushed to a job file
         self.docbuffer = []
 
@@ -190,7 +221,7 @@ class MpWriter(SegmentWriter):
         self._added_sub = False
 
     def _new_task(self):
-        task = SubWriterTask(
+        args = (
             self.storage,
             self.indexname,
             self.jobqueue,
@@ -198,6 +229,14 @@ class MpWriter(SegmentWriter):
             self.subargs,
             self.multisegment,
         )
+        if self.start_method is None:
+            # Preserve the historical behavior exactly: a SubWriterTask is a
+            # Process subclass launched via the default context.
+            task = SubWriterTask(*args)
+        else:
+            # For an explicit start method, build the Process from the chosen
+            # context with a module-level, picklable target.
+            task = self._mpctx.Process(target=_run_subwriter, args=args)
         self.tasks.append(task)
         task.start()
         return task
@@ -223,7 +262,10 @@ class MpWriter(SegmentWriter):
     def cancel(self):
         try:
             for task in self.tasks:
-                task.cancel()
+                # Only SubWriterTask (the default-context path) exposes a
+                # cooperative cancel(); context-created Process objects do not.
+                if hasattr(task, "cancel"):
+                    task.cancel()
         finally:
             SegmentWriter.cancel(self)
 
