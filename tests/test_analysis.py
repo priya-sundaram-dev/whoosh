@@ -140,6 +140,23 @@ def test_tee_filter():
     assert result == "alfa alfa-bravo bravo bravo-charlie charlie"
 
 
+def test_tee_filter_eq():
+    # Regression: TeeFilter.__eq__ referenced a misspelled attribute
+    # (other.fitlers), so comparing two same-class TeeFilters raised
+    # AttributeError instead of returning a bool. Analyzer/field equality
+    # relies on filters comparing cleanly.
+    f1 = analysis.TeeFilter(analysis.LowercaseFilter(), analysis.PassFilter())
+    f2 = analysis.TeeFilter(analysis.LowercaseFilter(), analysis.PassFilter())
+    f3 = analysis.TeeFilter(
+        analysis.LowercaseFilter(), analysis.ReverseTextFilter()
+    )
+    assert f1 == f2
+    assert f1 != f3
+    # Comparing against a non-TeeFilter must not raise, just be unequal.
+    assert f1 != "not a filter"
+    assert (f1 == analysis.PassFilter()) is False
+
+
 def test_intraword():
     iwf = analysis.IntraWordFilter(mergewords=True, mergenums=True)
     ana = analysis.RegexTokenizer(r"\S+") | iwf

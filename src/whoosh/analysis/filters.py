@@ -110,7 +110,7 @@ class Filter(Composable):
         )
 
     def __ne__(self, other):
-        return self != other
+        return not self == other
 
     def __call__(self, tokens):
         raise NotImplementedError
@@ -217,7 +217,7 @@ class TeeFilter(Filter):
         self.filters = filters
 
     def __eq__(self, other):
-        return self.__class__ is other.__class__ and self.filters == other.fitlers
+        return self.__class__ is other.__class__ and self.filters == other.filters
 
     def __call__(self, tokens):
         from itertools import tee

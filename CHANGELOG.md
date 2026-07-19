@@ -6,6 +6,17 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Fixed
+- `whoosh.analysis.Filter.__ne__` was defined as `return self != other`, which
+  called itself recursively — any `!=` comparison between two analysis filters
+  (e.g. `LowercaseFilter() != PassFilter()`) raised `RecursionError`. It now
+  correctly returns `not self == other`. Filter inequality is used when
+  comparing analyzers, so this could surface in schema/field comparisons.
+- `whoosh.analysis.TeeFilter.__eq__` compared `self.filters == other.fitlers`
+  (misspelled attribute), so comparing two `TeeFilter` instances raised
+  `AttributeError` instead of returning a boolean. It now compares
+  `other.filters`.
+
 ## [3.18.1] - 2026-07-19
 
 ### Fixed
