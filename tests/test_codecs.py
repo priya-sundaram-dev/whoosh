@@ -771,3 +771,29 @@ def test_corrupt_postings_block_raises_clear_error(tmp_path):
     msg = str(excinfo.value)
     assert "corrupt" in msg.lower()
     assert "concurrent writes" in msg.lower()
+
+
+def test_whoosh2_legacy_codec_importable():
+    # Regression: the legacy "whoosh2" backwards-compatibility codec used to
+    # import NoGraphError from whoosh.reading, but that name was removed from
+    # reading.py long ago, so `import whoosh.codec.whoosh2` raised ImportError.
+    # legacy.py maps old pickled schema classes (OLD_NUMERIC, OLD_DATETIME,
+    # int_to_text, ...) onto this module to read pre-3.0 indexes, so the broken
+    # import silently broke reading old-format indexes. Make sure it imports
+    # and that all the symbols legacy.py needs are resolvable.
+    import importlib
+
+    w2 = importlib.import_module("whoosh.codec.whoosh2")
+    for name in (
+        "OLD_NUMERIC",
+        "OLD_DATETIME",
+        "int_to_text",
+        "text_to_int",
+        "long_to_text",
+        "text_to_long",
+        "float_to_text",
+        "text_to_float",
+        "NoGraphError",
+    ):
+        assert hasattr(w2, name), name
+    assert issubclass(w2.NoGraphError, Exception)

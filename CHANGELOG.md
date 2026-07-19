@@ -6,6 +6,17 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Fixed
+- The legacy `whoosh2` backwards-compatibility codec (`whoosh.codec.whoosh2`)
+  imported `NoGraphError` from `whoosh.reading`, but that name was removed from
+  `reading.py` when the on-disk word graph was dropped — so
+  `import whoosh.codec.whoosh2` raised `ImportError`. Because `whoosh.legacy`
+  maps old pickled schema classes (`OLD_NUMERIC`, `OLD_DATETIME`,
+  `int_to_text`, …) onto this module to read pre-3.0 indexes, the broken import
+  silently prevented reading old-format indexes. `NoGraphError` is now defined
+  in the codec module itself (its only user), so the legacy codec imports
+  again. Added a regression test.
+
 ## [3.18.2] - 2026-07-19
 
 ### Fixed

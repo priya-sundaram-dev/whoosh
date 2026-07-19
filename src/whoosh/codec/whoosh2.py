@@ -44,7 +44,7 @@ from whoosh.automata.fst import GraphReader, GraphWriter
 from whoosh.codec import base
 from whoosh.filedb.filestore import Storage
 from whoosh.matching import LeafMatcher, ListMatcher, ReadTooFar
-from whoosh.reading import NoGraphError, TermInfo, TermNotFound
+from whoosh.reading import TermInfo, TermNotFound
 from whoosh.system import (
     _FLOAT_SIZE,
     _INT_SIZE,
@@ -104,6 +104,14 @@ _pointer_struct = struct.Struct("!Iq")  # Hash value, position
 pointer_size = _pointer_struct.size
 pack_pointer = _pointer_struct.pack
 unpack_pointer = _pointer_struct.unpack
+
+
+class NoGraphError(Exception):
+    """Raised by the legacy "whoosh2" codec when a segment has no on-disk word
+    graph (DAWG) file. Modern Whoosh no longer stores word graphs on disk, so
+    this exception is only relevant when reading old (pre-3.0) indexes through
+    this backwards-compatibility codec.
+    """
 
 
 # Table classes
