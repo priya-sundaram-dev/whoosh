@@ -6,6 +6,8 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.18.2] - 2026-07-19
+
 ### Fixed
 - `whoosh.analysis.Filter.__ne__` was defined as `return self != other`, which
   called itself recursively — any `!=` comparison between two analysis filters
