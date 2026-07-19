@@ -6,6 +6,21 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Fixed
+- `whoosh.qparser.RangeNode` (the query-syntax AST node for range queries) is
+  now re-exported from the `whoosh.qparser` package namespace, so
+  `from whoosh.qparser import RangeNode` works like the other syntax nodes
+  (`WordNode`, `TextNode`, `MarkerNode`, …). It was defined in
+  `whoosh.qparser.syntax` and documented in the API reference but had been
+  omitted from the package's public imports, which also caused an autodoc
+  import failure when building the docs.
+
+### Documentation
+- Added an API reference page for the `whoosh.classify` module
+  (`docs/source/api/classify.rst`), covering `Expander` and the
+  `ExpansionModel` weighting models (`Bo1Model`, `Bo2Model`, `KLModel`). The
+  keyword-extraction guide now cross-links to it.
+
 ## [3.18.0] - 2026-07-19
 
 ### Added

@@ -74,6 +74,7 @@ from whoosh.qparser.syntax import (
     OrGroup,
     PostfixOperator,
     PrefixOperator,
+    RangeNode,
     RequireGroup,
     SyntaxNode,
     TextNode,
