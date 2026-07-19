@@ -6,6 +6,8 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.18.3] - 2026-07-19
+
 ### Fixed
 - `PinpointFragmenter` highlighted the wrong word (often the last token in the
   document, e.g. rendering `dog` for a `"quick brown"` query) whenever a search
