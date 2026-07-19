@@ -7,6 +7,9 @@ All notable changes to this project are documented here. This project follows
 ## [Unreleased]
 
 ### Documentation
+- Updated the stale `whoosh.__version__` sample output in the app-integration
+  guide (`docs/source/integrations.rst`) from `(3, 16, 1)` to match the current
+  release, consistent with the same fix in the CLI guide.
 - Fixed the "Creating custom operators" example in the query-parser guide
   (`docs/source/parsing.rst`): it referenced the nonexistent
   `qparser.OperatorPlugin` (singular) in the `OpTagger` snippets, which raised
