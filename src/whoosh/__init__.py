@@ -27,8 +27,13 @@
 
 from typing import Tuple
 
-__version__: Tuple[int, ...] = (3, 18, 0)
-__version_str__: str = "3.18.0"
+__version__: Tuple[int, ...] = (3, 18, 1)
+#: String form of :data:`__version__`, kept in sync automatically so the two
+#: can never drift. Used as the single source of truth for the packaged version
+#: (see ``pyproject.toml``'s ``version = { attr = "whoosh.__version_str__" }``).
+__version_str__: str = ".".join(str(n) for n in __version__[:3]) + "".join(
+    str(n) for n in __version__[3:]
+)
 
 
 def versionstring(build: bool = True, extra: bool = True) -> str:

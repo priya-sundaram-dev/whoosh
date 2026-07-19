@@ -6,6 +6,8 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.18.1] - 2026-07-19
+
 ### Fixed
 - `whoosh.qparser.RangeNode` (the query-syntax AST node for range queries) is
   now re-exported from the `whoosh.qparser` package namespace, so
@@ -14,6 +16,11 @@ All notable changes to this project are documented here. This project follows
   `whoosh.qparser.syntax` and documented in the API reference but had been
   omitted from the package's public imports, which also caused an autodoc
   import failure when building the docs.
+- `whoosh.__version_str__` is now derived automatically from
+  `whoosh.__version__` instead of being a separate hardcoded literal. The two
+  had drifted (`__version__` said `3.18.1` while `__version_str__` still said
+  the previous value), which fed the wrong version into the built package
+  metadata. There is now a single source of truth for the version.
 
 ### Documentation
 - Added an API reference page for the `whoosh.classify` module
