@@ -25,6 +25,22 @@
 # those of the authors and should not be interpreted as representing official
 # policies, either expressed or implied, of Matt Chaput.
 
+"""This package contains objects that represent the tree of a search query.
+
+A :class:`~whoosh.query.Query` object can be created directly and combined
+(for example, ``Term("content", "foo") & Term("content", "bar")``), or produced
+by a :class:`whoosh.qparser.QueryParser` from a query string. Every query can
+be matched against an index by passing it to
+:meth:`whoosh.searching.Searcher.search`.
+
+The most commonly used queries are re-exported here so they can be imported
+directly from ``whoosh.query`` (for example ``from whoosh.query import Term,
+And, Or``). This includes term queries (:class:`Term`, :class:`Prefix`,
+:class:`Wildcard`, :class:`FuzzyTerm`), compound queries (:class:`And`,
+:class:`Or`, :class:`Not`, :class:`AndMaybe`, :class:`AndNot`), range queries
+(:class:`TermRange`, :class:`NumericRange`, :class:`DateRange`), and span
+queries for positional matching.
+"""
 
 from whoosh.query.compound import (
     And,

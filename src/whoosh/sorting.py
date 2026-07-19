@@ -25,6 +25,22 @@
 # those of the authors and should not be interpreted as representing official
 # policies, either expressed or implied, of Matt Chaput.
 
+"""This module contains "facet" objects for sorting and grouping search results.
+
+A :class:`~whoosh.sorting.FacetType` describes a way to categorize documents,
+for example by the value of a field (:class:`~whoosh.sorting.FieldFacet`), by a
+numeric range (:class:`~whoosh.sorting.RangeFacet`,
+:class:`~whoosh.sorting.DateRangeFacet`), by whether they match a query
+(:class:`~whoosh.sorting.QueryFacet`), or by a computed score
+(:class:`~whoosh.sorting.ScoreFacet`).
+
+The same facet objects power several features: pass one as the ``sortedby``
+argument to :meth:`whoosh.searching.Searcher.search` to sort results, or as the
+``groupedby`` argument to bucket results into groups. Use
+:class:`~whoosh.sorting.MultiFacet` to combine several facets into a single
+sort/grouping key.
+"""
+
 from array import array
 from collections import defaultdict
 

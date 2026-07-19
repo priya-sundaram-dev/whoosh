@@ -20,6 +20,10 @@ All notable changes to this project are documented here. This project follows
   (`docs/source/api/classify.rst`), covering `Expander` and the
   `ExpansionModel` weighting models (`Bo1Model`, `Bo2Model`, `KLModel`). The
   keyword-extraction guide now cross-links to it.
+- Added module-level docstrings to several core modules that were missing them
+  (`whoosh.query`, `whoosh.qparser`, `whoosh.writing`, `whoosh.sorting`,
+  `whoosh.multiproc`). These now appear as overviews at the top of their API
+  reference pages (which use `automodule`) and in `help()`.
 
 ## [3.18.0] - 2026-07-19
 

@@ -25,6 +25,25 @@
 # those of the authors and should not be interpreted as representing official
 # policies, either expressed or implied, of Matt Chaput.
 
+"""This package contains the query parser: the machinery that turns a
+user-entered search string into a :class:`whoosh.query.Query` tree.
+
+The main entry point is :class:`~whoosh.qparser.QueryParser`. You give it a
+default field name and (optionally) a schema, then call
+:meth:`~whoosh.qparser.QueryParser.parse` on a query string. Related parsers
+include :class:`~whoosh.qparser.MultifieldParser` (search several fields at
+once), :class:`~whoosh.qparser.SimpleParser`, and
+:class:`~whoosh.qparser.DisMaxParser`.
+
+The parser is built from composable *plugins*
+(:class:`~whoosh.qparser.plugins.Plugin`) that add syntax such as wildcards,
+ranges, fielded terms, boosts, phrases, fuzzy terms, and boolean operators. You
+can add, remove, or replace plugins to customize the accepted query language.
+The intermediate parse tree is made of *syntax nodes* (for example
+:class:`WordNode`, :class:`GroupNode`, :class:`RangeNode`) which are then
+converted into query objects.
+"""
+
 from whoosh.qparser.default import (
     DisMaxParser,
     MultifieldParser,

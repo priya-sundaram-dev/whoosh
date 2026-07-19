@@ -25,6 +25,21 @@
 # those of the authors and should not be interpreted as representing official
 # policies, either expressed or implied, of Matt Chaput.
 
+"""This module contains writers that build an index using multiple processes, to
+take advantage of multiple CPU cores when indexing large collections.
+
+You normally do not use these classes directly. Instead, pass ``procs=N`` to
+:meth:`whoosh.index.Index.writer` to get a
+:class:`~whoosh.multiproc.MpWriter`, which spreads indexing work across ``N``
+sub-processes. By default the sub-writers' segments are merged into one segment
+at commit time; passing ``multisegment=True`` skips that merge for faster
+commits at the cost of leaving several segments behind.
+
+The ``start_method`` argument controls how the sub-processes are launched (one
+of :func:`multiprocessing.get_all_start_methods` for the platform, typically
+``"fork"``, ``"spawn"``, or ``"forkserver"``).
+"""
+
 import multiprocessing
 import pickle
 import queue

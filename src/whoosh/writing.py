@@ -25,6 +25,22 @@
 # those of the authors and should not be interpreted as representing official
 # policies, either expressed or implied, of Matt Chaput.
 
+"""This module contains classes for adding, updating, and deleting documents in
+an index.
+
+You usually do not instantiate the writer classes here directly. Instead, call
+:meth:`whoosh.index.Index.writer` to obtain an
+:class:`~whoosh.writing.IndexWriter`, add documents with
+:meth:`~whoosh.writing.IndexWriter.add_document`, and then call
+:meth:`~whoosh.writing.IndexWriter.commit` to save the changes (or
+:meth:`~whoosh.writing.IndexWriter.cancel` to discard them). The writer can also
+be used as a context manager, which commits on success and cancels on error.
+
+For high-throughput batch indexing, :class:`~whoosh.writing.BufferedWriter`
+groups many small updates into periodic commits, and
+:class:`~whoosh.writing.AsyncWriter` retries a commit in a background thread if
+the index is locked.
+"""
 
 import threading
 import time
