@@ -6,6 +6,11 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Added
+- CLI: `whoosh search --or` matches documents containing **any** query term
+  (broader recall) instead of requiring all terms. Uses `OrGroup.factory(0.9)`
+  so documents matching more terms still rank higher. (#18)
+
 ## [3.18.3] - 2026-07-19
 
 ### Fixed

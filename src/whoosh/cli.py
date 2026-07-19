@@ -40,7 +40,7 @@ from whoosh import __version_str__, index
 from whoosh.analysis import StemmingAnalyzer
 from whoosh.fields import ID, NUMERIC, TEXT, Schema
 from whoosh.highlight import ContextFragmenter, HtmlFormatter, UppercaseFormatter
-from whoosh.qparser import MultifieldParser
+from whoosh.qparser import MultifieldParser, OrGroup
 from whoosh.query import Every
 
 if TYPE_CHECKING:
@@ -234,12 +234,22 @@ def cmd_search(args: argparse.Namespace) -> int:
             )
             return 2
 
+    # --or: match documents containing ANY query term (broader recall).
+    # OrGroup.factory(0.9) applies a small coordination bonus so documents
+    # matching more of the terms still rank higher.
+    group = OrGroup.factory(0.9) if getattr(args, "or_", False) else None
     if args.field:
-        parser = MultifieldParser(search_fields, schema=ix.schema)
+        parser = MultifieldParser(search_fields, schema=ix.schema, group=group) \
+            if group is not None \
+            else MultifieldParser(search_fields, schema=ix.schema)
     else:
         # Preserve the existing title/body weighting when no fields are selected.
+        boosts = {"title": 2.0, "body": 1.0}
         parser = MultifieldParser(search_fields, schema=ix.schema,
-                                  fieldboosts={"title": 2.0, "body": 1.0})
+                                  fieldboosts=boosts, group=group) \
+            if group is not None \
+            else MultifieldParser(search_fields, schema=ix.schema,
+                                  fieldboosts=boosts)
     query = parser.parse(args.query)
 
     with ix.searcher() as s:
@@ -496,6 +506,9 @@ def build_parser() -> argparse.ArgumentParser:
                     help="comma-separated list of stored fields to include in output")
     ps.add_argument("--field", action="append", metavar="NAME",
                     help="field to search (repeatable; default: title and body)")
+    ps.add_argument("--or", dest="or_", action="store_true",
+                    help="match documents containing ANY query term "
+                         "(default: all terms must match)")
     ps.add_argument("--snippet-chars", type=_check_positive_int, default=200,
                     metavar="N", dest="snippet_chars",
                     help="max characters of context to show per snippet "

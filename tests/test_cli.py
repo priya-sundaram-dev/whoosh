@@ -291,6 +291,31 @@ def test_search_count(corpus, capsys):
     assert out == "2"
 
 
+def test_search_or_broadens_recall(corpus, capsys):
+    # "fox" is only in alpha.txt; "search" is in alpha.txt and beta.md.
+    # Default (AND) requires both terms -> only alpha.txt matches.
+    assert run(["index", corpus]) == 0
+    capsys.readouterr()
+    rc = run(["search", "fox search", corpus, "--count"])
+    assert rc == 0
+    assert capsys.readouterr().out.strip() == "1"
+
+    # With --or, documents containing ANY term match -> both files.
+    rc = run(["search", "fox search", corpus, "--or", "--count"])
+    assert rc == 0
+    assert capsys.readouterr().out.strip() == "2"
+
+
+def test_search_or_with_field(corpus, capsys):
+    # --or must also apply when an explicit --field is selected.
+    assert run(["index", corpus]) == 0
+    capsys.readouterr()
+    rc = run(["search", "fox search", corpus, "--field", "body",
+              "--or", "--count"])
+    assert rc == 0
+    assert capsys.readouterr().out.strip() == "2"
+
+
 def test_search_count_zero_matches(corpus, capsys):
     assert run(["index", corpus]) == 0
     capsys.readouterr()

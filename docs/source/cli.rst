@@ -108,6 +108,14 @@ Useful options::
     $ whoosh search "index writer" ~/notes --count          # output just the number of matches
     $ whoosh search "index writer" ~/notes --sort-by mtime  # newest files first
     $ whoosh search "index writer" ~/notes --field title    # search titles only
+    $ whoosh search "index writer" ~/notes --or             # match ANY term, not all
+
+By default a multi-term query such as ``index writer`` requires **both** terms
+to appear in a document (``index AND writer``). Pass ``--or`` to match documents
+containing **any** of the terms (``index OR writer``) for broader, more
+exploratory searches; documents matching more of the terms still rank higher::
+
+    $ whoosh search "index writer" ~/notes --or            # index OR writer
 
 Repeat ``--field`` to search more than one selected field with equal weighting.
 When it is omitted, Whoosh searches ``title`` and ``body`` with the usual title
