@@ -6,6 +6,8 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.18.0] - 2026-07-19
+
 ### Added
 - The multiprocessing writer (`whoosh.multiproc.MpWriter`, used via
   `ix.writer(procs=N)`) now accepts an explicit `start_method` argument (e.g.
