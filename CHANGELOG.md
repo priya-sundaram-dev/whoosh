@@ -16,6 +16,12 @@ All notable changes to this project are documented here. This project follows
   (misspelled attribute), so comparing two `TeeFilter` instances raised
   `AttributeError` instead of returning a boolean. It now compares
   `other.filters`.
+- `whoosh.query.spans.Span.__ne__` only compared `start`/`end` while
+  `__eq__` also compares `startchar`/`endchar`. Two spans differing only in
+  their character offsets therefore reported both `a == b` and `a != b` as
+  `False` — a contradiction that violates Python's data model and could make
+  span de-duplication or set membership behave inconsistently. `__ne__` now
+  delegates to `__eq__` so the two are always consistent.
 
 ## [3.18.1] - 2026-07-19
 

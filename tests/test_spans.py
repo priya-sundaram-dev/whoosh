@@ -486,3 +486,24 @@ def test_phrase_slop_skips_removed_stopwords_gh48():
     with ix.searcher() as s:
         q = QueryParser("content", ix.schema).parse('"hello world"~1')
         assert len(s.search(q)) == 1
+
+
+def test_span_eq_ne_consistency():
+    # Regression: Span.__ne__ must be consistent with Span.__eq__.
+    # Previously __ne__ only compared start/end, so two spans differing
+    # only in startchar/endchar reported (a == b) is False AND
+    # (a != b) is False -- a contradiction violating the data model.
+    Span = spans.Span
+    a = Span(1, 2, startchar=10, endchar=20)
+    b = Span(1, 2, startchar=99, endchar=88)
+    assert not (a == b)
+    assert a != b
+    assert (a == b) != (a != b)
+
+    same = Span(1, 2, startchar=10, endchar=20)
+    assert a == same
+    assert not (a != same)
+
+    diff_end = Span(1, 3, startchar=10, endchar=20)
+    assert a != diff_end
+    assert not (a == diff_end)

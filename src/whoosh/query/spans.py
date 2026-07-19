@@ -85,7 +85,7 @@ class Span:
         )
 
     def __ne__(self, span):
-        return self.start != span.start or self.end != span.end
+        return not self.__eq__(span)
 
     def __lt__(self, span):
         return self.start < span.start
