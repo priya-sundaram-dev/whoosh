@@ -20,3 +20,7 @@ eggs/
 docs/_build/
 .venv/
 demo/whoosh3-*-py2.py3-none-any.whl
+
+# Index directories created by examples (static_site_search.py, etc.)
+/site_index/
+/.whoosh_index/
