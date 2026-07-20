@@ -9,6 +9,13 @@ All notable changes to this project are documented here. This project follows
 ## [3.18.4] - 2026-07-19
 
 ### Added
+- CLI: `whoosh index --max-size SIZE` skips files larger than `SIZE` before
+  they're read (e.g. `10MB`, `500k`, `2048`). Accepts a bare integer (bytes)
+  or a `k`/`m`/`g` suffix, case-insensitive, with or without a trailing `b`.
+  No `--max-size` given -> unchanged behavior. `--dry-run` respects it too.
+  (#30)
+
+### Added
 - CLI: `whoosh search --or` matches documents containing **any** query term
   (broader recall) instead of requiring all terms. Uses `OrGroup.factory(0.9)`
   so documents matching more terms still rank higher. (#18)
