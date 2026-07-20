@@ -6,6 +6,14 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Fixed
+- `NUMERIC.__setstate__` (and therefore `DATETIME`) now correctly recomputes and
+  restores `min_value`/`max_value` when unpickling legacy indices (Whoosh 2.5.2
+  and earlier) that were written without those cached bounds. The previous code
+  assigned the recomputed bounds to a throwaway local state dict, leaving the
+  reconstructed field without the attributes and raising `AttributeError` on
+  later use. Fixes whoosh-community #359.
+
 ## [3.18.6] - 2026-07-20
 
 ### Fixed

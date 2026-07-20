@@ -725,7 +725,12 @@ class NUMERIC(FieldType):
         self.__dict__.update(d)
         self._struct = struct.Struct(">" + str(self.sortable_typecode))
         if "min_value" not in d:
-            d["min_value"], d["max_value"] = self._min_max()
+            # Older indices (Whoosh 2.5.2 and earlier) pickled NUMERIC/DATETIME
+            # fields without min_value/max_value. Recompute them and assign to
+            # ``self`` (not the local state dict ``d``, which is discarded) so
+            # the reconstructed field actually has the attributes. See
+            # whoosh-community #359.
+            self.min_value, self.max_value = self._min_max()
 
     def _min_max(self):
         numtype = self.numtype

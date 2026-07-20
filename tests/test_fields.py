@@ -678,6 +678,26 @@ def test_pickle_schema():
             assert dumps(r.schema, 2)
 
 
+def test_numeric_setstate_legacy_no_minmax():
+    # Older indices (Whoosh 2.5.2 and earlier) pickled NUMERIC/DATETIME fields
+    # without min_value/max_value. __setstate__ must recompute them and assign
+    # them to the reconstructed field, not to a throwaway dict. Regression test
+    # for whoosh-community #359.
+    for cls in (fields.NUMERIC, fields.DATETIME):
+        f = cls()
+        state = f.__getstate__()
+        # Simulate a legacy pickle state that lacks the cached bounds.
+        state.pop("min_value", None)
+        state.pop("max_value", None)
+        assert "min_value" not in state
+
+        g = cls.__new__(cls)
+        g.__setstate__(state)
+        # The reconstructed field must actually have the attributes.
+        assert g.min_value == f.min_value
+        assert g.max_value == f.max_value
+
+
 def test_valid_date_string():
     """Can parse a valid date string and return a NumericRange query with the parsed date as the value"""
     import datetime
