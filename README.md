@@ -123,6 +123,7 @@ $ whoosh search "full text search" ~/notes
 - Query language: `AND`/`OR`/`NOT`, `"exact phrases"`, and `field:term`.
 - `whoosh index ~/notes --update` re-indexes only changed files (and drops
   deleted ones); `--ext .md,.txt` limits which files are picked up.
+  `--max-size 10MB` skips files larger than the given size.
 - `whoosh stats ~/notes` prints a quick summary of an index — document count,
   fields, size on disk, and when it was last updated (`--json` for scripts).
 
