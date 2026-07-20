@@ -6,6 +6,8 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.18.6] - 2026-07-20
+
 ### Fixed
 - `AndMaybeMatcher.weight()` no longer raises `IndexError` when the optional
   (second) sub-matcher is exhausted while the required (first) sub-matcher is
