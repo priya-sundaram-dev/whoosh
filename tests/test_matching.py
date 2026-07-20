@@ -252,6 +252,24 @@ def test_andmaybe():
     assert ls == [10, 20, 90]
 
 
+def test_andmaybe_weight_optional_exhausted():
+    # Regression: AndMaybeMatcher.weight() must not touch the optional
+    # sub-matcher once it is exhausted. Previously it called self.b.id()
+    # unconditionally, raising IndexError when b was inactive while a was
+    # still producing ids (see inherited whoosh-community#124). weight() now
+    # guards on self.b.is_active() the same way score() does.
+    lm1 = matching.ListMatcher([1, 2, 3], weights=[1.0, 1.0, 1.0])
+    lm2 = matching.ListMatcher([1], weights=[5.0])
+    amm = matching.AndMaybeMatcher(lm1, lm2)
+    ls = []
+    while amm.is_active():
+        # weight() and score() must both be callable at every position,
+        # including after b is exhausted.
+        ls.append((amm.id(), amm.weight(), amm.score()))
+        amm.next()
+    assert ls == [(1, 6.0, 6.0), (2, 1.0, 1.0), (3, 1.0, 1.0)]
+
+
 def test_intersection():
     schema = fields.Schema(key=fields.ID(stored=True), value=fields.TEXT(stored=True))
     st = RamStorage()

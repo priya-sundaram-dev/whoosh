@@ -6,6 +6,15 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Fixed
+- `AndMaybeMatcher.weight()` no longer raises `IndexError` when the optional
+  (second) sub-matcher is exhausted while the required (first) sub-matcher is
+  still producing documents. It now guards on `self.b.is_active()` exactly like
+  `score()` already did, returning just the required matcher's weight in that
+  case. This is the `weight()` counterpart of the long-standing
+  `AndMaybe`/`quality` IndexError class of bugs (inherited
+  whoosh-community#124); regression test added.
+
 ## [3.18.5] - 2026-07-20
 
 ### Added

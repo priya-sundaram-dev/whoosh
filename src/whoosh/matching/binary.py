@@ -773,7 +773,7 @@ class AndMaybeMatcher(AdditiveBiMatcher):
         return skipped
 
     def weight(self):
-        if self.a.id() == self.b.id():
+        if self.b.is_active() and self.a.id() == self.b.id():
             return self.a.weight() + self.b.weight()
         else:
             return self.a.weight()
