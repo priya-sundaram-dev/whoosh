@@ -31,6 +31,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 import time
 from pathlib import PurePath
@@ -53,7 +54,8 @@ DEFAULT_EXTS: tuple[str, ...] = (
 )
 INDEX_DIRNAME = ".whoosh_index"
 MAX_FILE_BYTES = 5_000_000  # skip anything larger; keeps indexing snappy
-
+_SIZE_RE = re.compile(r"^\s*(\d+)\s*([kmg]?)b?\s*$", re.IGNORECASE)
+_SIZE_MULTIPLIERS = {"": 1, "k": 1024, "m": 1024 ** 2, "g": 1024 ** 3}
 
 def build_schema() -> Schema:
     """Schema: a stored path/title, a stemmed full-text body, and mtime.
@@ -68,10 +70,12 @@ def build_schema() -> Schema:
     )
 
 
-def iter_files(root: str, exts: tuple[str, ...], exclude: tuple[str, ...] = ()):
+def iter_files(root: str, exts: tuple[str, ...], exclude: tuple[str, ...] = (),
+                max_size: int | None = None):
     """Yield ``(abspath, mtime)`` for files under *root* matching *exts*.
 
-    Skips the index directory itself and common noise directories.
+    Skips the index directory itself and common noise directories. Files
+    larger than *max_size* bytes are skipped as well, if given.
     """
     skip = {INDEX_DIRNAME, ".git", ".hg", "__pycache__", "node_modules", ".venv"}
     for dirpath, dirnames, filenames in os.walk(root):
@@ -92,6 +96,12 @@ def iter_files(root: str, exts: tuple[str, ...], exclude: tuple[str, ...] = ()):
             rel_f = os.path.relpath(full, root)
             if any(PurePath(rel_f).match(pat) for pat in exclude):
                 continue
+            if max_size is not None:
+                try:
+                    if os.path.getsize(full) > max_size:
+                        continue
+                except OSError:
+                    continue
             try:
                 yield full, os.path.getmtime(full)
             except OSError:
@@ -142,7 +152,8 @@ def cmd_index(args: argparse.Namespace) -> int:
     if args.dry_run:
         rels = sorted(
             os.path.relpath(full, root)
-            for full, _mtime in iter_files(root, exts, exclude=tuple(args.exclude))
+            for full, _mtime in iter_files(root, exts, exclude=tuple(args.exclude),
+                                            max_size=args.max_size)
         )
         for rel in rels:
             print(rel)
@@ -172,7 +183,8 @@ def cmd_index(args: argparse.Namespace) -> int:
     t0 = time.time()
     writer = ix.writer()
     try:
-        for full, mtime in iter_files(root, exts, exclude=tuple(args.exclude)):
+        for full, mtime in iter_files(root, exts, exclude=tuple(args.exclude),
+                                        max_size=args.max_size):
             rel = os.path.relpath(full, root)
             seen.add(rel)
             if args.update and rel in indexed and indexed[rel] >= mtime:
@@ -460,6 +472,15 @@ def _check_positive_int(value: str) -> int:
     return ivalue
 
 
+def _parse_size(value):
+    match = _SIZE_RE.match(value)
+    if not match:
+        raise argparse.ArgumentTypeError(f"invalid size {value!r}: expected e.g. 1024, 500k, 10MB, 2g")
+    number, unit = match.groups()
+    multiplier = _SIZE_MULTIPLIERS[unit.lower()]
+    return int(number) * multiplier
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="whoosh",
@@ -488,6 +509,10 @@ def build_parser() -> argparse.ArgumentParser:
     pi.add_argument("--exclude", action="append", default=[], metavar="PATTERN",
                     help="exclude paths matching the given glob pattern "
                          "(e.g., 'build/*' or '*.min.js'). Can be specified multiple times.")
+    pi.add_argument("--max-size", type=_parse_size, default=None,
+                    dest="max_size", metavar="SIZE",
+                    help="skip files larger than SIZE (e.g. 10MB, 500k); "
+                     "no limit by default")
     pi.add_argument("--dry-run", action="store_true", dest="dry_run",
                     help="list the files that would be indexed under the "
                          "current --ext/--exclude filters and exit, without "

@@ -1,5 +1,6 @@
 """Tests for the ``whoosh`` command-line interface (whoosh.cli)."""
 
+import argparse
 import os
 import time
 import pytest
@@ -179,6 +180,26 @@ def test_search_snippet_chars_rejects_nonpositive(corpus, capsys):
 def test_resolve_exts_normalizes():
     assert cli._resolve_exts("md,.txt") == (".md", ".txt")
     assert cli._resolve_exts("") == cli.DEFAULT_EXTS
+
+
+@pytest.mark.parametrize("raw,expected", [
+    ("1024", 1024),
+    ("500k", 500 * 1024),
+    ("500K", 500 * 1024),
+    ("10MB", 10 * 1024 * 1024),
+    ("2g", 2 * 1024 ** 3),
+    ("2Gb", 2 * 1024 ** 3),
+])  
+
+
+def test_parse_size_valid(raw, expected):
+    assert cli._parse_size(raw) == expected
+
+
+@pytest.mark.parametrize("raw", ["", "abc", "10XB", "-5", "5.5m", "10 MB!"])
+def test_parse_size_invalid(raw):
+    with pytest.raises(argparse.ArgumentTypeError):
+        cli._parse_size(raw)
 
 
 def test_search_json_output(corpus, capsys):
@@ -458,6 +479,34 @@ def test_index_dry_run_leaves_existing_index_untouched(corpus, capsys):
     assert "alpha.txt" in out
     # The existing index files are untouched (not cleared or rewritten).
     assert sorted(os.listdir(index_dir)) == before
+
+
+def test_index_max_size_skips_large_files(tmp_path, capsys):
+    (tmp_path / "small.txt").write_text("apple " * 20, encoding="utf-8")
+    (tmp_path / "big.txt").write_text("apple " * 1000, encoding="utf-8")
+
+    rc = run(["index", tmp_path, "--max-size", "1k"])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "1 added" in out
+
+    capsys.readouterr()
+    rc = run(["search", "apple", tmp_path])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "small.txt" in out
+    assert "big.txt" not in out
+
+
+def test_index_max_size_dry_run_matches_real_run(tmp_path, capsys):
+    (tmp_path / "small.txt").write_text("apple " * 20, encoding="utf-8")
+    (tmp_path / "big.txt").write_text("apple " * 1000, encoding="utf-8")
+
+    rc = run(["index", tmp_path, "--max-size", "1k", "--dry-run"])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "small.txt" in out
+    assert "big.txt" not in out
 
 
 def test_stats_no_index_errors(tmp_path, capsys):
