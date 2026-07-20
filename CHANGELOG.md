@@ -6,6 +6,8 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.18.7] - 2026-07-20
+
 ### Fixed
 - `NUMERIC.__setstate__` (and therefore `DATETIME`) now correctly recomputes and
   restores `min_value`/`max_value` when unpickling legacy indices (Whoosh 2.5.2

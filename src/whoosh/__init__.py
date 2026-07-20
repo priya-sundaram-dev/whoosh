@@ -27,7 +27,7 @@
 
 from typing import Tuple
 
-__version__: Tuple[int, ...] = (3, 18, 6)
+__version__: Tuple[int, ...] = (3, 18, 7)
 #: String form of :data:`__version__`, kept in sync automatically so the two
 #: can never drift. Used as the single source of truth for the packaged version
 #: (see ``pyproject.toml``'s ``version = { attr = "whoosh.__version_str__" }``).
