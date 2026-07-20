@@ -6,6 +6,8 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.18.5] - 2026-07-20
+
 ### Added
 - CLI: `whoosh index --max-size SIZE` skips files larger than `SIZE` before
   they're read (e.g. `10MB`, `500k`, `2048`). Accepts a bare integer (bytes)
