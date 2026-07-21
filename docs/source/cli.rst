@@ -101,6 +101,7 @@ The query supports Whoosh's full query language:
 Useful options::
 
     $ whoosh search "index writer" ~/notes --limit 20       # show up to 20 hits
+    $ whoosh search "index writer" ~/notes --limit 20 --page 2  # show the next page
     $ whoosh search "index writer" ~/notes --html           # <mark>...</mark> snippets
     $ whoosh search "index writer" ~/notes --no-highlight   # plain, grep-friendly snippets
     $ whoosh search "index writer" ~/notes --snippet-chars 80  # shorter snippets
@@ -110,6 +111,10 @@ Useful options::
     $ whoosh search "index writer" ~/notes --sort-by mtime  # newest files first
     $ whoosh search "index writer" ~/notes --field title    # search titles only
     $ whoosh search "index writer" ~/notes --or             # match ANY term, not all
+
+``--page N`` selects a 1-based page of results, with ``--limit`` as the page
+size. Page 1 is the default. Human-readable output includes page metadata after
+the first page; JSON, JSON Lines, and count output remain machine-friendly.
 
 By default a multi-term query such as ``index writer`` requires **both** terms
 to appear in a document (``index AND writer``). Pass ``--or`` to match documents

@@ -191,7 +191,7 @@ def test_resolve_exts_normalizes():
     ("10MB", 10 * 1024 * 1024),
     ("2g", 2 * 1024 ** 3),
     ("2Gb", 2 * 1024 ** 3),
-])  
+])
 
 
 def test_parse_size_valid(raw, expected):
@@ -303,6 +303,62 @@ def test_search_limit(corpus, capsys):
     out = capsys.readouterr().out
     assert out.count("1.") == 1
     assert "2." not in out
+
+
+def test_search_pages_cover_the_same_hits_as_one_large_page(corpus, capsys):
+    assert run(["index", corpus]) == 0
+    capsys.readouterr()
+
+    pages = []
+    for page in (1, 2):
+        assert run([
+            "search", "search", corpus, "--json", "--fields", "path",
+            "--limit", "1", "--page", str(page),
+        ]) == 0
+        pages.extend(json.loads(capsys.readouterr().out))
+
+    assert run([
+        "search", "search", corpus, "--json", "--fields", "path",
+        "--limit", "2",
+    ]) == 0
+    all_at_once = json.loads(capsys.readouterr().out)
+    assert pages == all_at_once
+
+
+def test_search_page_footer_and_global_result_number(corpus, capsys):
+    assert run(["index", corpus]) == 0
+    capsys.readouterr()
+
+    assert run(["search", "search", corpus, "--limit", "1", "--page", "2"]) == 0
+    out, err = capsys.readouterr()
+    assert "2." in out
+    assert "Page 2/2 (2 total)." in err
+
+
+def test_search_page_rejects_nonpositive_values(corpus, capsys):
+    with pytest.raises(SystemExit):
+        run(["search", "search", corpus, "--page", "0"])
+    assert "invalid positive int value" in capsys.readouterr().err.lower()
+
+
+def test_search_page_beyond_last_is_empty(corpus, capsys):
+    assert run(["index", corpus]) == 0
+    capsys.readouterr()
+
+    assert run(["search", "search", corpus, "--limit", "1", "--page", "3"]) == 1
+    assert "No matches" in capsys.readouterr().out
+
+    assert run([
+        "search", "search", corpus, "--json", "--limit", "1", "--page", "3",
+    ]) == 1
+    assert capsys.readouterr().out == "[]\n"
+
+
+def test_search_count_ignores_page_and_reports_total(corpus, capsys):
+    assert run(["index", corpus]) == 0
+    capsys.readouterr()
+    assert run(["search", "search", corpus, "--count", "--page", "2"]) == 0
+    assert capsys.readouterr().out.strip() == "2"
 
 
 def test_search_field_restricts_query(corpus, capsys):
