@@ -6,10 +6,14 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.19.0] - 2026-07-21
+
 ### Added
 - CLI: `whoosh search --jsonl` (alias `--ndjson`) emits one JSON object per
-  match for line-oriented processing. No matches produces no output and exits
-  with status `1`. (#32)
+  match for line-oriented processing, using the same per-hit shape as the
+  `--json` array. No matches produces no output and exits with status `1`,
+  while `--json` continues to emit `[]`. Great for streaming results into
+  `jq` and other line-oriented tools. (#32, thanks @jason-scheffel)
 
 ## [3.18.7] - 2026-07-20
 
