@@ -287,6 +287,15 @@ def cmd_search(args: argparse.Namespace) -> int:
                 print(f"No matches for: {args.query!r}")
             return 1
 
+        # --files-with-matches: print bare file paths, one per hit.
+        if getattr(args, "files_with_matches", False):
+            n = len(results)
+            if n == 0:
+                return 1
+            for hit in results:
+                print(hit["path"])
+            return 0
+
         snippet_chars = getattr(args, "snippet_chars", 200)
         no_highlight = getattr(args, "no_highlight", False)
         highlight_results = results.results
@@ -592,6 +601,10 @@ def build_parser() -> argparse.ArgumentParser:
                     help="emit newline-delimited JSON (one object per hit)")
     group.add_argument("--count", action="store_true",
                     help="emit only the number of matching documents")
+    group.add_argument("-l", "--files-with-matches", action="store_true",
+                    dest="files_with_matches",
+                    help="print just matching file paths, one per line "
+                         "(grep -l style, newline-separated)")
     ps.set_defaults(func=cmd_search)
 
     pst = sub.add_parser("stats",
