@@ -56,6 +56,17 @@ You can exclude specific folders or files using `--exclude` with glob patterns. 
 
     $ whoosh index ~/notes --exclude "build/*" --exclude "*.min.js"
 
+Skip large files with ``--max-size``. The limit is a whole number of bytes,
+optionally followed by a ``k``, ``m``, or ``g`` suffix (case-insensitive, an
+optional trailing ``b`` is allowed, so ``2m``, ``2M``, and ``2MB`` are
+equivalent). Suffixes are powers of 1024, so ``500k`` is 512000 bytes and
+``2MB`` is 2097152 bytes. Files above the limit are skipped before their
+contents are read, which keeps indexing fast and memory-friendly on trees that
+contain the occasional huge log, dump, or binary blob. There is no size limit
+by default::
+
+    $ whoosh index ~/notes --max-size 2MB
+
 Preview which files *would* be indexed — under the current ``--ext`` and
 ``--exclude`` filters — without building anything, using ``--dry-run``. It
 prints one relative path per line to stdout (easy to pipe or ``grep``) and a
