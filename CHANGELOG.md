@@ -6,6 +6,16 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.21.0] - 2026-07-21
+
+### Added
+- CLI: `whoosh search -l` / `--files-with-matches` prints just the matching
+  file paths, one per line (grep `-l` style), with no scores, snippets, or
+  numbering. It honors `--limit`/`--page`, is mutually exclusive with the other
+  output modes, and exits with status `1` (empty output) when there are no
+  matches — perfect for piping into `xargs`, `wc -l`, or your editor. (#37,
+  thanks @cyber-chic-0)
+
 ## [3.20.0] - 2026-07-21
 
 ### Added
