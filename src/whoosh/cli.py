@@ -271,17 +271,30 @@ def cmd_search(args: argparse.Namespace) -> int:
             print(len(results))
             return 0
 
+        search_kwargs = {}
         if getattr(args, "sort_by", "score") == "mtime":
-            results = s.search(query, limit=args.limit, sortedby="mtime", reverse=True)
-        else:
-            results = s.search(query, limit=args.limit)
+            search_kwargs.update(sortedby="mtime", reverse=True)
+        results = s.search_page(
+            query, args.page, pagelen=args.limit, **search_kwargs)
+
+        # ResultsPage clamps an oversized page number to the last available
+        # page. The CLI should instead treat it like an empty search so users
+        # do not accidentally see the same final page for every larger value.
+        if results.total and args.page > results.pagecount:
+            if getattr(args, "json", False):
+                print(json.dumps([]))
+            elif not getattr(args, "jsonl", False):
+                print(f"No matches for: {args.query!r}")
+            return 1
+
         snippet_chars = getattr(args, "snippet_chars", 200)
         no_highlight = getattr(args, "no_highlight", False)
+        highlight_results = results.results
         if args.html:
-            results.formatter = HtmlFormatter(tagname="mark")
+            highlight_results.formatter = HtmlFormatter(tagname="mark")
         else:
-            results.formatter = UppercaseFormatter()
-        results.fragmenter = ContextFragmenter(
+            highlight_results.formatter = UppercaseFormatter()
+        highlight_results.fragmenter = ContextFragmenter(
             maxchars=snippet_chars, surround=snippet_chars // 5)
 
         def make_snippet(hit):
@@ -347,7 +360,7 @@ def cmd_search(args: argparse.Namespace) -> int:
 
         print(f"{n} match{'es' if n != 1 else ''} for {args.query!r}:\n")
         shown = 0
-        for i, hit in enumerate(results, 1):
+        for i, hit in enumerate(results, results.offset + 1):
             shown += 1
             if fields_to_show:
                 fields_str = ", ".join(f"{f}: {hit[f]}" for f in fields_to_show if f in hit)
@@ -359,7 +372,13 @@ def cmd_search(args: argparse.Namespace) -> int:
         if getattr(args, "count", False) or getattr(args, "json", False) or getattr(args, "html", False):
             pass
         else:
-            if n > shown:
+            if args.page > 1:
+                print(
+                    f"Page {results.pagenum}/{results.pagecount} "
+                    f"({results.total} total).",
+                    file=sys.stderr,
+                )
+            elif n > shown:
                 print(f"Showing {shown} of {n} matches.", file=sys.stderr)
             else:
                 print(f"{n} match{'es' if n != 1 else ''}.", file=sys.stderr)
@@ -536,6 +555,8 @@ def build_parser() -> argparse.ArgumentParser:
                     help="directory whose index to search (default: current)")
     ps.add_argument("--limit", type=_check_positive_int, default=10,
                     help="max results (default: 10)")
+    ps.add_argument("--page", type=_check_positive_int, default=1,
+                    help="1-based results page (default: 1)")
     ps.add_argument("--fields",
                     help="comma-separated list of stored fields to include in output")
     ps.add_argument("--field", action="append", metavar="NAME",
