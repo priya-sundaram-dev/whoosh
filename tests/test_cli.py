@@ -506,6 +506,49 @@ def test_search_count_zero_matches(corpus, capsys):
     assert out == "0"
 
 
+def test_search_min_score_filters_weak_hits(corpus, capsys):
+    # "search" matches two documents; a score floor should keep only the
+    # strongest, and never emit a hit below the floor.
+    assert run(["index", corpus]) == 0
+    capsys.readouterr()
+    rc = run(["search", "search", corpus, "--json"])
+    assert rc == 0
+    hits = json.loads(capsys.readouterr().out)
+    assert len(hits) == 2
+    top = max(h["score"] for h in hits)
+
+    rc = run(["search", "search", corpus, "--json", "--min-score", str(top)])
+    assert rc == 0
+    filtered = json.loads(capsys.readouterr().out)
+    assert filtered
+    assert all(h["score"] >= top for h in filtered)
+    assert len(filtered) <= len(hits)
+
+
+def test_search_min_score_drops_everything_returns_1(corpus, capsys):
+    # A floor above every score behaves like the no-match path.
+    assert run(["index", corpus]) == 0
+    capsys.readouterr()
+    rc = run(["search", "search", corpus, "--min-score", "9999"])
+    assert rc == 1
+    assert "No matches" in capsys.readouterr().out
+
+
+def test_search_count_respects_min_score(corpus, capsys):
+    assert run(["index", corpus]) == 0
+    capsys.readouterr()
+    assert run(["search", "search", corpus, "--count"]) == 0
+    assert capsys.readouterr().out.strip() == "2"
+    # Unreachable floor -> zero.
+    assert run(["search", "search", corpus, "--count",
+                "--min-score", "9999"]) == 0
+    assert capsys.readouterr().out.strip() == "0"
+    # Zero floor keeps every match.
+    assert run(["search", "search", corpus, "--count",
+                "--min-score", "0"]) == 0
+    assert capsys.readouterr().out.strip() == "2"
+
+
 def test_search_mutually_exclusive_count_json_html(corpus, capsys):
     with pytest.raises(SystemExit):
         run(["search", "whoosh", corpus, "--count", "--json"])

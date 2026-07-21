@@ -6,6 +6,14 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Added
+- CLI: `whoosh search --min-score FLOAT` drops hits whose relevance score is
+  below the given floor, trimming the weak tail of a broad query. It applies
+  uniformly across the default text output, `--json`/`--jsonl`, `--count`, and
+  `-l`/`--files-with-matches`, filters on score even under `--sort-by mtime`,
+  and behaves like a no-match search (exit status `1`) when every hit is
+  filtered out. (#22)
+
 ## [3.24.0] - 2026-07-21
 
 ### Added

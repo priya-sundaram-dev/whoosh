@@ -284,7 +284,12 @@ def cmd_search(args: argparse.Namespace) -> int:
         # If just counting, ignore limit to give the true total.
         if getattr(args, "count", False):
             results = s.search(query, limit=None)
-            print(len(results))
+            min_score = getattr(args, "min_score", None)
+            if min_score is not None:
+                print(sum(1 for h in results
+                          if h.score is not None and h.score >= min_score))
+            else:
+                print(len(results))
             return 0
 
         search_kwargs = {}
@@ -306,9 +311,21 @@ def cmd_search(args: argparse.Namespace) -> int:
                 print(f"No matches for: {args.query!r}")
             return 1
 
+        # --min-score: drop hits whose relevance score is below the floor.
+        # Applies uniformly across every output mode. Results are score-sorted
+        # by default, so this trims the weak tail; with --sort-by mtime it
+        # filters on score regardless of the (time-based) display order.
+        min_score = getattr(args, "min_score", None)
+
+        def passes_min_score(hit):
+            return (
+                min_score is None
+                or (hit.score is not None and hit.score >= min_score)
+            )
+
         # --files-with-matches: print bare file paths, one per hit.
         if getattr(args, "files_with_matches", False):
-            paths = [hit["path"] for hit in results]
+            paths = [hit["path"] for hit in results if passes_min_score(hit)]
             if not paths:
                 return 1
             separator = "\0" if getattr(args, "null", False) else "\n"
@@ -369,8 +386,12 @@ def cmd_search(args: argparse.Namespace) -> int:
 
         json_output = getattr(args, "json", False)
         jsonl_output = getattr(args, "jsonl", False)
-        n = len(results)
-        if n == 0:
+        # ``len(results)`` is the total match count across all pages; iterating
+        # yields only the current page. Filter the page's hits by score for
+        # display, but keep the total for the "of N matches" summary line.
+        total = len(results)
+        displayed = [hit for hit in results if passes_min_score(hit)]
+        if not displayed:
             if json_output:
                 print(json.dumps([]))
             elif not jsonl_output:
@@ -379,7 +400,7 @@ def cmd_search(args: argparse.Namespace) -> int:
 
         if json_output or jsonl_output:
             json_results = []
-            for hit in results:
+            for hit in displayed:
                 hit_dict = make_hit_dict(hit)
                 if jsonl_output:
                     print(json.dumps(hit_dict))
@@ -389,9 +410,10 @@ def cmd_search(args: argparse.Namespace) -> int:
                 print(json.dumps(json_results))
             return 0
 
+        n = total
         print(f"{n} match{'es' if n != 1 else ''} for {args.query!r}:\n")
         shown = 0
-        for i, hit in enumerate(results, results.offset + 1):
+        for i, hit in enumerate(displayed, results.offset + 1):
             shown += 1
             if fields_to_show:
                 fields_str = ", ".join(f"{f}: {hit[f]}" for f in fields_to_show if f in hit)
@@ -590,6 +612,10 @@ def build_parser() -> argparse.ArgumentParser:
                     help="directory whose index to search (default: current)")
     ps.add_argument("--limit", type=_check_positive_int, default=10,
                     help="max results (default: 10)")
+    ps.add_argument("--min-score", type=float, default=None, metavar="FLOAT",
+                    dest="min_score",
+                    help="only show hits whose relevance score is >= FLOAT "
+                         "(drops weak matches; default: no floor)")
     ps.add_argument("--page", type=_check_positive_int, default=1,
                     help="1-based results page (default: 1)")
     ps.add_argument("--fields",

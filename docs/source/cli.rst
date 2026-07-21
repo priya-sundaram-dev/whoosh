@@ -121,6 +121,7 @@ Useful options::
 
     $ whoosh search "index writer" ~/notes --limit 20       # show up to 20 hits
     $ whoosh search "index writer" ~/notes --limit 20 --page 2  # show the next page
+    $ whoosh search "index writer" ~/notes --min-score 1.5  # drop weak matches
     $ whoosh search "index writer" ~/notes --html           # <mark>...</mark> snippets
     $ whoosh search "index writer" ~/notes --color always   # ANSI-colored matches
     $ whoosh search "index writer" ~/notes --no-highlight   # plain, grep-friendly snippets
@@ -136,6 +137,15 @@ Useful options::
 ``--page N`` selects a 1-based page of results, with ``--limit`` as the page
 size. Page 1 is the default. Human-readable output includes page metadata after
 the first page; JSON, JSON Lines, and count output remain machine-friendly.
+
+``--min-score FLOAT`` keeps only hits whose relevance score is at or above the
+given floor, trimming the long tail of weak matches a broad query can surface.
+It composes with every output mode — default text, ``--json``/``--jsonl``,
+``--count``, and ``-l``/``--files-with-matches`` — and applies to the score even
+when results are ordered by ``--sort-by mtime``. When the floor removes every
+hit, the command behaves like a no-match search: it prints ``No matches ...``
+(or an empty ``[]`` for ``--json``) and exits with status ``1``. There is no
+floor by default.
 
 By default a multi-term query such as ``index writer`` requires **both** terms
 to appear in a document (``index AND writer``). Pass ``--or`` to match documents
