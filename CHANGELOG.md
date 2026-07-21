@@ -6,6 +6,8 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.23.0] - 2026-07-21
+
 ### Added
 - CLI: `whoosh search -l -0` (aliases `--files-with-matches --null`) emits
   NUL-terminated paths for safe use with tools such as `xargs -0`. Requires
