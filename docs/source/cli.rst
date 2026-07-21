@@ -105,6 +105,7 @@ Useful options::
     $ whoosh search "index writer" ~/notes --no-highlight   # plain, grep-friendly snippets
     $ whoosh search "index writer" ~/notes --snippet-chars 80  # shorter snippets
     $ whoosh search "index writer" ~/notes --json           # JSON array output
+    $ whoosh search "index writer" ~/notes --jsonl          # JSON Lines output
     $ whoosh search "index writer" ~/notes --count          # output just the number of matches
     $ whoosh search "index writer" ~/notes --sort-by mtime  # newest files first
     $ whoosh search "index writer" ~/notes --field title    # search titles only
@@ -138,16 +139,25 @@ tokens get in the way.
 
 ``--snippet-chars N`` sets the maximum number of characters shown per snippet
 (default 200). It applies to the default text output, ``--no-highlight``, and
-the ``snippet`` field of ``--json`` output.
+the ``snippet`` field of ``--json`` and ``--jsonl`` output.
 
 ``--json`` emits a machine-readable JSON array of matches, making it easy to
 parse results with tools like ``jq``.
 
-The output-style flags (``--html``, ``--no-highlight``, ``--json`` and
-``--count``) are mutually exclusive.
+``--jsonl`` (alias ``--ndjson``) emits newline-delimited JSON (JSON Lines):
+one standalone object per match, with the same fields as an element of the
+``--json`` array. There are no surrounding brackets or trailing commas, so
+line-oriented tools can process each match as soon as it is written. No matches
+produces no output and exits with status ``1``::
+
+    $ whoosh search "install guide" --jsonl | jq -c 'select(.score > 1.5)'
+
+The output-style flags (``--html``, ``--no-highlight``, ``--json``,
+``--jsonl``/``--ndjson`` and ``--count``) are mutually exclusive.
 
 ``--count`` prints only the total number of matching documents as a single integer
-and exits, which is great for shell pipelines (mutually exclusive with ``--json`` and ``--html``).
+and exits, which is great for shell pipelines. As an output-style flag, it
+cannot be combined with the other modes above.
 
 
 Inspect an index

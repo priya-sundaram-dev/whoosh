@@ -311,29 +311,38 @@ def cmd_search(args: argparse.Namespace) -> int:
                     print(f"whoosh search: error: unknown field {f!r}. Valid fields: {', '.join(ix.schema.names())}", file=sys.stderr)
                     return 2
 
+        def make_hit_dict(hit):
+            if fields_to_show:
+                return {f: hit[f] for f in fields_to_show if f in hit}
+            hit_dict = {
+                "path": hit["path"],
+                "score": hit.score,
+                "snippet": make_snippet(hit)
+            }
+            if "title" in hit and hit["title"]:
+                hit_dict["title"] = hit["title"]
+            return hit_dict
+
+        json_output = getattr(args, "json", False)
+        jsonl_output = getattr(args, "jsonl", False)
         n = len(results)
         if n == 0:
-            if getattr(args, "json", False):
+            if json_output:
                 print(json.dumps([]))
-                return 1
-            print(f"No matches for: {args.query!r}")
+            elif not jsonl_output:
+                print(f"No matches for: {args.query!r}")
             return 1
 
-        if getattr(args, "json", False):
+        if json_output or jsonl_output:
             json_results = []
-            for i, hit in enumerate(results, 1):
-                if fields_to_show:
-                    hit_dict = {f: hit[f] for f in fields_to_show if f in hit}
+            for hit in results:
+                hit_dict = make_hit_dict(hit)
+                if jsonl_output:
+                    print(json.dumps(hit_dict))
                 else:
-                    hit_dict = {
-                        "path": hit["path"],
-                        "score": hit.score,
-                        "snippet": make_snippet(hit)
-                    }
-                    if "title" in hit and hit["title"]:
-                        hit_dict["title"] = hit["title"]
-                json_results.append(hit_dict)
-            print(json.dumps(json_results))
+                    json_results.append(hit_dict)
+            if json_output:
+                print(json.dumps(json_results))
             return 0
 
         print(f"{n} match{'es' if n != 1 else ''} for {args.query!r}:\n")
@@ -545,8 +554,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     # Output style/mode flags are mutually exclusive: the default UPPERCASE
     # text, HTML highlights, a plain grep-friendly slice, machine-readable
-    # JSON, or a bare count. (JSON snippets are already plain, so combining
-    # --no-highlight with --json would be redundant.)
+    # JSON/JSONL, or a bare count. (JSON snippets are already plain, so
+    # combining --no-highlight with --json/--jsonl would be redundant.)
     group = ps.add_mutually_exclusive_group()
     group.add_argument("--html", action="store_true",
                     help="emit <mark>...</mark> HTML highlights instead of "
@@ -558,6 +567,8 @@ def build_parser() -> argparse.ArgumentParser:
     group.add_argument("--json", action="store_true",
                     help="emit machine-readable JSON output instead of "
                          "human-readable text")
+    group.add_argument("--jsonl", "--ndjson", action="store_true",
+                    help="emit newline-delimited JSON (one object per hit)")
     group.add_argument("--count", action="store_true",
                     help="emit only the number of matching documents")
     ps.set_defaults(func=cmd_search)
