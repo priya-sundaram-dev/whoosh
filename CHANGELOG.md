@@ -9,6 +9,9 @@ All notable changes to this project are documented here. This project follows
 ### Added
 - CLI: `whoosh search --page N` pages through results using `--limit` as the
   page size, while keeping JSON, JSON Lines, and count output machine-friendly.
+  Human-readable output prints page metadata after the first page; requesting a
+  page beyond the last returns no matches with exit status `1`. (#35, thanks
+  @jhtyhc666)
 
 ## [3.19.0] - 2026-07-21
 
