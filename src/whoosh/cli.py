@@ -71,14 +71,17 @@ def build_schema() -> Schema:
 
 
 def iter_files(root: str, exts: tuple[str, ...], exclude: tuple[str, ...] = (),
-                max_size: int | None = None):
+                max_size: int | None = None, follow_symlinks: bool = False):
     """Yield ``(abspath, mtime)`` for files under *root* matching *exts*.
 
     Skips the index directory itself and common noise directories. Files
     larger than *max_size* bytes are skipped as well, if given.
+
+    When *follow_symlinks* is ``True``, ``os.walk`` follows symlinked
+    directories (off by default for safety).
     """
     skip = {INDEX_DIRNAME, ".git", ".hg", "__pycache__", "node_modules", ".venv"}
-    for dirpath, dirnames, filenames in os.walk(root):
+    for dirpath, dirnames, filenames in os.walk(root, followlinks=follow_symlinks):
         new_dirnames = []
         for d in dirnames:
             if d in skip:
@@ -153,7 +156,8 @@ def cmd_index(args: argparse.Namespace) -> int:
         rels = sorted(
             os.path.relpath(full, root)
             for full, _mtime in iter_files(root, exts, exclude=tuple(args.exclude),
-                                            max_size=args.max_size)
+                                            max_size=args.max_size,
+                                            follow_symlinks=args.follow_symlinks)
         )
         for rel in rels:
             print(rel)
@@ -184,7 +188,8 @@ def cmd_index(args: argparse.Namespace) -> int:
     writer = ix.writer()
     try:
         for full, mtime in iter_files(root, exts, exclude=tuple(args.exclude),
-                                        max_size=args.max_size):
+                                        max_size=args.max_size,
+                                        follow_symlinks=args.follow_symlinks):
             rel = os.path.relpath(full, root)
             seen.add(rel)
             if args.update and rel in indexed and indexed[rel] >= mtime:
@@ -554,6 +559,10 @@ def build_parser() -> argparse.ArgumentParser:
                     help="list the files that would be indexed under the "
                          "current --ext/--exclude filters and exit, without "
                          "creating, clearing, or writing the index")
+    pi.add_argument("--follow-symlinks", action="store_true",
+                    dest="follow_symlinks",
+                    help="follow symlinked directories when indexing "
+                         "(off by default)")
     pi.set_defaults(func=cmd_index)
 
     ps = sub.add_parser("search", help="query the index")

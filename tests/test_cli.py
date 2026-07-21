@@ -782,3 +782,64 @@ def test_search_files_with_matches_is_mutually_exclusive(corpus, capsys):
             run(["search", "search", corpus, "-l", other])
         err = capsys.readouterr().err
         assert "not allowed with argument" in err.lower()
+
+
+def test_index_follow_symlinks_includes_symlinked_directories(tmp_path, capsys):
+    """--follow-symlinks indexes files reachable only through a symlink.
+
+    Creates a target directory outside the indexed root, then a symlink to
+    it under the indexed root. Without --follow-symlinks the symlinked file
+    is invisible to os.walk; with it, the file should be indexed.
+    """
+    # Target directory OUTSIDE the indexed root.
+    target = tmp_path / ".." / "outside_content"
+    target = target.resolve()
+    target.mkdir(parents=True, exist_ok=True)
+    (target / "outside.txt").write_text("secret content behind symlink",
+                                       encoding="utf-8")
+
+    # Symlink inside the indexed root pointing outside -> ../outside_content/
+    link = tmp_path / "link_to_outside"
+    os.symlink(target, link, target_is_directory=True)
+
+    # Index without --follow-symlinks -> symlinked dir skipped.
+    rc = run(["index", tmp_path])
+    assert rc == 0
+    capsys.readouterr()
+
+    rc = run(["search", "secret", tmp_path])
+    assert rc == 1  # No matches
+
+    # Now index WITH --follow-symlinks.
+    rc = run(["index", tmp_path, "--follow-symlinks"])
+    assert rc == 0
+    capsys.readouterr()
+
+    rc = run(["search", "secret", tmp_path])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "outside.txt" in out
+
+
+def test_index_follow_symlinks_dry_run_matches_real_run(tmp_path, capsys):
+    """--dry-run with --follow-symlinks previews the same files."""
+    target = tmp_path / ".." / "outside_content"
+    target = target.resolve()
+    target.mkdir(parents=True, exist_ok=True)
+    (target / "outside.txt").write_text("secret content behind symlink",
+                                       encoding="utf-8")
+    link = tmp_path / "link_to_outside"
+    os.symlink(target, link, target_is_directory=True)
+
+    # Dry run without follow-symlinks.
+    rc = run(["index", tmp_path, "--dry-run"])
+    assert rc == 0
+    _, err = capsys.readouterr()
+    assert "0 files" in err  # only the symlink dir, no real files found
+
+    # Dry run with --follow-symlinks.
+    rc = run(["index", tmp_path, "--follow-symlinks", "--dry-run"])
+    assert rc == 0
+    out, err = capsys.readouterr()
+    assert "1 file" in err
+    assert "outside.txt" in out
