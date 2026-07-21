@@ -233,6 +233,16 @@ def cmd_index(args: argparse.Namespace) -> int:
 
 
 def cmd_search(args: argparse.Namespace) -> int:
+    if (
+        getattr(args, "null", False)
+        and not getattr(args, "files_with_matches", False)
+    ):
+        print(
+            "whoosh search: error: --null requires --files-with-matches",
+            file=sys.stderr,
+        )
+        return 2
+
     root = os.path.abspath(args.directory)
     index_dir = os.path.join(root, INDEX_DIRNAME)
     if not index.exists_in(index_dir):
@@ -288,17 +298,20 @@ def cmd_search(args: argparse.Namespace) -> int:
         if results.total and args.page > results.pagecount:
             if getattr(args, "json", False):
                 print(json.dumps([]))
-            elif not getattr(args, "jsonl", False):
+            elif not (
+                getattr(args, "jsonl", False)
+                or getattr(args, "files_with_matches", False)
+            ):
                 print(f"No matches for: {args.query!r}")
             return 1
 
         # --files-with-matches: print bare file paths, one per hit.
         if getattr(args, "files_with_matches", False):
-            n = len(results)
-            if n == 0:
+            paths = [hit["path"] for hit in results]
+            if not paths:
                 return 1
-            for hit in results:
-                print(hit["path"])
+            separator = "\0" if getattr(args, "null", False) else "\n"
+            sys.stdout.write(separator.join(paths) + separator)
             return 0
 
         snippet_chars = getattr(args, "snippet_chars", 200)
@@ -590,6 +603,9 @@ def build_parser() -> argparse.ArgumentParser:
                     dest="sort_by",
                     help="sort results by relevance score (default) or "
                          "file modification time")
+    ps.add_argument("-0", "--null", action="store_true", dest="null",
+                    help="with -l, separate paths with a NUL byte instead of "
+                         "a newline (for xargs -0)")
 
     # Output style/mode flags are mutually exclusive: the default UPPERCASE
     # text, HTML highlights, a plain grep-friendly slice, machine-readable
