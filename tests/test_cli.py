@@ -732,3 +732,53 @@ def test_sort_by_default_is_score(tmp_path, capsys):
     out = capsys.readouterr().out
     assert "new.txt" in out
     assert "old.txt" in out
+
+
+def test_search_files_with_matches_prints_paths(corpus, capsys):
+    """-l prints one bare path per match, newline-separated, no scores/snippets."""
+    assert run(["index", corpus]) == 0
+    capsys.readouterr()
+    rc = run(["search", "search", corpus, "-l"])
+    assert rc == 0
+    out = capsys.readouterr().out
+    lines = out.splitlines()
+    assert len(lines) == 2
+    for line in lines:
+        assert line.endswith(".txt") or line.endswith(".md") or line.endswith(".rst")
+    assert "alpha.txt" in out
+    assert "beta.md" in out
+
+
+def test_search_files_with_matches_no_matches_returns_1(corpus, capsys):
+    """-l with no matches -> empty stdout, exit 1."""
+    assert run(["index", corpus]) == 0
+    capsys.readouterr()
+    rc = run(["search", "zzzznottherezzz", corpus, "-l"])
+    assert rc == 1
+    assert capsys.readouterr().out == ""
+
+
+def test_search_files_with_matches_honors_limit_and_page(corpus, capsys):
+    """-l respects --limit and --page."""
+    assert run(["index", corpus]) == 0
+    capsys.readouterr()
+    rc = run(["search", "search", corpus, "-l", "--limit", "1"])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert len(out.splitlines()) == 1
+
+    # Second page should contain the second result.
+    rc = run(["search", "search", corpus, "-l", "--limit", "1", "--page", "2"])
+    assert rc == 0
+    out2 = capsys.readouterr().out
+    assert len(out2.splitlines()) == 1
+    assert out != out2  # Different hit on second page
+
+
+def test_search_files_with_matches_is_mutually_exclusive(corpus, capsys):
+    """-l conflicts with other output modes."""
+    for other in ("--html", "--no-highlight", "--json", "--jsonl", "--count"):
+        with pytest.raises(SystemExit):
+            run(["search", "search", corpus, "-l", other])
+        err = capsys.readouterr().err
+        assert "not allowed with argument" in err.lower()
