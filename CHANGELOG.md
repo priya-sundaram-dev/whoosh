@@ -6,6 +6,8 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.24.0] - 2026-07-21
+
 ### Added
 - CLI: `whoosh search --color {auto,always,never}` colorizes matched terms in
   the default text output with ANSI escape codes instead of UPPERCASE. `auto`
