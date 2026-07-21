@@ -6,6 +6,11 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Added
+- CLI: `whoosh search --jsonl` (alias `--ndjson`) emits one JSON object per
+  match for line-oriented processing. No matches produces no output and exits
+  with status `1`. (#32)
+
 ## [3.18.7] - 2026-07-20
 
 ### Fixed

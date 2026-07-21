@@ -1,8 +1,10 @@
 """Tests for the ``whoosh`` command-line interface (whoosh.cli)."""
 
 import argparse
+import json
 import os
 import time
+
 import pytest
 
 from whoosh import cli, index
@@ -208,13 +210,74 @@ def test_search_json_output(corpus, capsys):
     rc = run(["search", "whoosh", corpus, "--json"])
     assert rc == 0
     out = capsys.readouterr().out
-    import json
     data = json.loads(out)
     assert isinstance(data, list)
     assert len(data) > 0
     assert "path" in data[0]
     assert "score" in data[0]
     assert "snippet" in data[0]
+
+
+@pytest.mark.parametrize("flag", ["--jsonl", "--ndjson"])
+def test_search_jsonl_output(corpus, capsys, flag):
+    assert run(["index", corpus]) == 0
+    capsys.readouterr()
+    rc = run(["search", "search", corpus, flag])
+    assert rc == 0
+    out = capsys.readouterr().out
+    lines = out.splitlines()
+    data = [json.loads(line) for line in lines]
+    assert len(data) == 2
+    assert not out.startswith("[")
+    for hit in data:
+        assert "path" in hit
+        assert "score" in hit
+        assert "snippet" in hit
+
+    assert run(["search", "search", corpus, "--json"]) == 0
+    assert data == json.loads(capsys.readouterr().out)
+
+
+@pytest.mark.parametrize("flag", ["--jsonl", "--ndjson"])
+def test_search_jsonl_no_matches(corpus, capsys, flag):
+    assert run(["index", corpus]) == 0
+    capsys.readouterr()
+    rc = run(["search", "zzzznottherezzz", corpus, flag])
+    assert rc == 1
+    out, err = capsys.readouterr()
+    assert out == ""
+    assert err == ""
+
+
+def test_search_json_no_matches_remains_array(corpus, capsys):
+    assert run(["index", corpus]) == 0
+    capsys.readouterr()
+    rc = run(["search", "zzzznottherezzz", corpus, "--json"])
+    assert rc == 1
+    assert capsys.readouterr().out == "[]\n"
+
+
+@pytest.mark.parametrize("flag", ["--jsonl", "--ndjson"])
+@pytest.mark.parametrize(
+    "other", ["--json", "--html", "--no-highlight", "--count"])
+def test_search_jsonl_is_mutually_exclusive(corpus, capsys, flag, other):
+    with pytest.raises(SystemExit):
+        run(["search", "whoosh", corpus, flag, other])
+    err = capsys.readouterr().err
+    assert "not allowed with argument" in err.lower()
+
+
+def test_search_jsonl_fields_and_limit(corpus, capsys):
+    assert run(["index", corpus]) == 0
+    capsys.readouterr()
+    rc = run([
+        "search", "search", corpus, "--jsonl", "--fields", "path",
+        "--limit", "1",
+    ])
+    assert rc == 0
+    lines = capsys.readouterr().out.splitlines()
+    assert len(lines) == 1
+    assert set(json.loads(lines[0])) == {"path"}
 
 
 def test_search_mutually_exclusive_json_html(corpus, capsys):
@@ -286,7 +349,6 @@ def test_search_fields_json(corpus, capsys):
     rc = run(["search", "whoosh", corpus, "--json", "--fields", "path"])
     assert rc == 0
     out = capsys.readouterr().out
-    import json
     data = json.loads(out)
     assert len(data) > 0
     assert "path" in data[0]
@@ -529,12 +591,11 @@ def test_stats_text_output(corpus, capsys):
 
 
 def test_stats_json_output(corpus, capsys):
-    import json as _json
     run(["index", corpus])
     capsys.readouterr()
     rc = run(["stats", corpus, "--json"])
     assert rc == 0
-    payload = _json.loads(capsys.readouterr().out)
+    payload = json.loads(capsys.readouterr().out)
     assert payload["doc_count"] >= 1
     assert payload["size_bytes"] > 0
     names = {f["name"] for f in payload["fields"]}
@@ -593,6 +654,14 @@ def test_sort_by_mtime_orders_newest_first(tmp_path, capsys):
     assert rc == 0
     out = capsys.readouterr().out
     assert out.index("new.txt") < out.index("old.txt")
+
+    rc = run(["search", "shared", tmp_path, "--sort-by", "mtime", "--jsonl"])
+    assert rc == 0
+    paths = [
+        hit["path"]
+        for hit in map(json.loads, capsys.readouterr().out.splitlines())
+    ]
+    assert paths.index("new.txt") < paths.index("old.txt")
 
 
 def test_sort_by_default_is_score(tmp_path, capsys):
