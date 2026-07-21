@@ -361,6 +361,50 @@ def test_search_count_ignores_page_and_reports_total(corpus, capsys):
     assert capsys.readouterr().out.strip() == "2"
 
 
+@pytest.mark.parametrize("flag", ["-l", "--files-with-matches"])
+def test_search_files_with_matches_prints_only_paths(corpus, capsys, flag):
+    assert run(["index", corpus]) == 0
+    capsys.readouterr()
+
+    assert run(["search", "search", corpus, flag]) == 0
+    out, err = capsys.readouterr()
+    assert set(out.splitlines()) == {"alpha.txt", "beta.md"}
+    assert "match" not in out.lower()
+    assert "score" not in out.lower()
+    assert err == ""
+
+
+def test_search_files_with_matches_honors_limit_and_page(corpus, capsys):
+    assert run(["index", corpus]) == 0
+    capsys.readouterr()
+
+    paths = []
+    for page in (1, 2):
+        assert run([
+            "search", "search", corpus, "-l", "--limit", "1",
+            "--page", str(page),
+        ]) == 0
+        paths.append(capsys.readouterr().out.strip())
+
+    assert set(paths) == {"alpha.txt", "beta.md"}
+
+
+def test_search_files_with_matches_no_matches_is_silent(corpus, capsys):
+    assert run(["index", corpus]) == 0
+    capsys.readouterr()
+
+    assert run(["search", "zzzznottherezzz", corpus, "-l"]) == 1
+    assert capsys.readouterr() == ("", "")
+
+
+@pytest.mark.parametrize(
+    "other", ["--json", "--jsonl", "--count", "--html", "--no-highlight"])
+def test_search_files_with_matches_is_mutually_exclusive(corpus, capsys, other):
+    with pytest.raises(SystemExit):
+        run(["search", "search", corpus, "-l", other])
+    assert "not allowed with argument" in capsys.readouterr().err.lower()
+
+
 def test_search_field_restricts_query(corpus, capsys):
     assert run(["index", corpus]) == 0
     capsys.readouterr()

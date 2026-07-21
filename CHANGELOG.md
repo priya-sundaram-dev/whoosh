@@ -6,6 +6,11 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Added
+- CLI: `whoosh search -l` (alias `--files-with-matches`) prints one bare path
+  per matching result for shell pipelines, while respecting `--limit` and
+  `--page`. No matches produces no output and exits with status `1`.
+
 ## [3.20.0] - 2026-07-21
 
 ### Added

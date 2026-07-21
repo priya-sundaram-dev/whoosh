@@ -107,6 +107,7 @@ Useful options::
     $ whoosh search "index writer" ~/notes --snippet-chars 80  # shorter snippets
     $ whoosh search "index writer" ~/notes --json           # JSON array output
     $ whoosh search "index writer" ~/notes --jsonl          # JSON Lines output
+    $ whoosh search "index writer" ~/notes -l               # matching file paths only
     $ whoosh search "index writer" ~/notes --count          # output just the number of matches
     $ whoosh search "index writer" ~/notes --sort-by mtime  # newest files first
     $ whoosh search "index writer" ~/notes --field title    # search titles only
@@ -157,8 +158,17 @@ produces no output and exits with status ``1``::
 
     $ whoosh search "install guide" --jsonl | jq -c 'select(.score > 1.5)'
 
+``-l`` (alias ``--files-with-matches``) prints one bare matching file path per
+line, with no numbering, scores, snippets, or summary text. It respects
+``--limit`` and ``--page``, making it useful in shell pipelines such as::
+
+    $ whoosh search "index writer" ~/notes -l | xargs wc -l
+
+No matches produces no output and exits with status ``1``.
+
 The output-style flags (``--html``, ``--no-highlight``, ``--json``,
-``--jsonl``/``--ndjson`` and ``--count``) are mutually exclusive.
+``--jsonl``/``--ndjson``, ``-l``/``--files-with-matches`` and ``--count``) are
+mutually exclusive.
 
 ``--count`` prints only the total number of matching documents as a single integer
 and exits, which is great for shell pipelines. As an output-style flag, it

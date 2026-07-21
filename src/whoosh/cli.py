@@ -283,9 +283,18 @@ def cmd_search(args: argparse.Namespace) -> int:
         if results.total and args.page > results.pagecount:
             if getattr(args, "json", False):
                 print(json.dumps([]))
-            elif not getattr(args, "jsonl", False):
+            elif not (
+                getattr(args, "jsonl", False)
+                or getattr(args, "files_with_matches", False)
+            ):
                 print(f"No matches for: {args.query!r}")
             return 1
+
+        if getattr(args, "files_with_matches", False):
+            paths = [hit["path"] for hit in results]
+            for path in paths:
+                print(path)
+            return 0 if paths else 1
 
         snippet_chars = getattr(args, "snippet_chars", 200)
         no_highlight = getattr(args, "no_highlight", False)
@@ -590,6 +599,9 @@ def build_parser() -> argparse.ArgumentParser:
                          "human-readable text")
     group.add_argument("--jsonl", "--ndjson", action="store_true",
                     help="emit newline-delimited JSON (one object per hit)")
+    group.add_argument("-l", "--files-with-matches", action="store_true",
+                    dest="files_with_matches",
+                    help="emit only matching file paths, one per line")
     group.add_argument("--count", action="store_true",
                     help="emit only the number of matching documents")
     ps.set_defaults(func=cmd_search)
