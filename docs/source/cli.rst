@@ -166,6 +166,15 @@ piping into other tools::
 
     $ whoosh search "index writer" ~/notes -l | xargs wc -l
 
+Use ``-0`` / ``--null`` with ``-l`` to terminate each path with a NUL byte
+instead of a newline. This safely handles spaces, newlines, and other unusual
+characters in file names when piping to tools that support NUL-separated
+input::
+
+    $ whoosh search "index writer" ~/notes -l -0 | xargs -0 wc -l
+
+``--null`` requires ``-l`` / ``--files-with-matches``.
+
 The output-style flags (``--html``, ``--no-highlight``, ``--json``,
 ``--jsonl``/``--ndjson``, ``--count`` and ``-l``/``--files-with-matches``) are
 mutually exclusive.

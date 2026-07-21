@@ -784,6 +784,40 @@ def test_search_files_with_matches_is_mutually_exclusive(corpus, capsys):
         assert "not allowed with argument" in err.lower()
 
 
+@pytest.mark.parametrize("flag", ["-0", "--null"])
+def test_search_null_separates_paths_with_trailing_nul(corpus, capsys, flag):
+    assert run(["index", corpus]) == 0
+    capsys.readouterr()
+
+    assert run(["search", "search", corpus, "-l", flag]) == 0
+    out, err = capsys.readouterr()
+    assert out.endswith("\0")
+    assert set(out.split("\0")[:-1]) == {"alpha.txt", "beta.md"}
+    assert "\n" not in out
+    assert err == ""
+
+
+def test_search_null_requires_files_with_matches(corpus, capsys):
+    assert run(["search", "search", corpus, "-0"]) == 2
+    out, err = capsys.readouterr()
+    assert out == ""
+    assert "--null requires --files-with-matches" in err
+
+
+def test_search_null_no_matches_and_out_of_range_are_silent(corpus, capsys):
+    assert run(["index", corpus]) == 0
+    capsys.readouterr()
+
+    assert run(["search", "zzzznottherezzz", corpus, "-l", "-0"]) == 1
+    assert capsys.readouterr() == ("", "")
+
+    assert run([
+        "search", "search", corpus, "-l", "-0", "--limit", "1",
+        "--page", "3",
+    ]) == 1
+    assert capsys.readouterr() == ("", "")
+
+
 def test_index_follow_symlinks_includes_symlinked_directories(tmp_path, capsys):
     """--follow-symlinks indexes files reachable only through a symlink.
 
