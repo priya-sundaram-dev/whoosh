@@ -6,6 +6,16 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Added
+- CLI: `whoosh search --color {auto,always,never}` colorizes matched terms in
+  the default text output with ANSI escape codes instead of UPPERCASE. `auto`
+  (the default) colorizes only when writing to a terminal and honors the
+  `NO_COLOR`/`FORCE_COLOR` environment variables. Highlighting runs through the
+  same `Formatter` pipeline as `--html`, so it emphasises the actual matched
+  tokens, including stemmed matches. Adds a new `whoosh.colorize` module
+  (`resolve_color_mode`, `highlight`, and an `AnsiFormatter` `Formatter`
+  subclass). (#42, #43, thanks @tapheret2)
+
 ## [3.23.0] - 2026-07-21
 
 ### Added

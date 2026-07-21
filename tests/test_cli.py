@@ -127,6 +127,48 @@ def test_html_highlight_formatter(corpus, capsys):
     assert "<mark" in capsys.readouterr().out.lower()
 
 
+def test_color_always_emits_ansi(corpus, capsys):
+    assert run(["index", corpus]) == 0
+    capsys.readouterr()
+    rc = run(["search", "whoosh", corpus, "--color", "always"])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "\033[1;33m" in out and "\033[0m" in out
+    # ANSI mode should not also UPPERCASE the matched term.
+    assert "WHOOSH" not in out
+
+
+def test_color_never_has_no_ansi(corpus, capsys):
+    assert run(["index", corpus]) == 0
+    capsys.readouterr()
+    rc = run(["search", "whoosh", corpus, "--color", "never"])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "\033[" not in out
+    # Default text formatter still UPPERCASEs matches.
+    assert "WHOOSH" in out
+
+
+def test_color_auto_no_ansi_when_not_tty(corpus, capsys):
+    # Under capsys stdout is not a TTY, so 'auto' must not colorize.
+    assert run(["index", corpus]) == 0
+    capsys.readouterr()
+    rc = run(["search", "whoosh", corpus, "--color", "auto"])
+    assert rc == 0
+    assert "\033[" not in capsys.readouterr().out
+
+
+def test_color_highlights_stemmed_match(corpus, capsys):
+    # Query "jumping" stems to match "jumps"; the Formatter-based colorizer
+    # must wrap the actual matched token, not a naive substring.
+    assert run(["index", corpus]) == 0
+    capsys.readouterr()
+    rc = run(["search", "jumping", corpus, "--color", "always"])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "\033[1;33mjumps\033[0m" in out
+
+
 def test_search_no_highlight_plain_output(corpus, capsys):
     """--no-highlight prints a plain body slice with no UPPERCASE markup."""
     assert run(["index", corpus]) == 0

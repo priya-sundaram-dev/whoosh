@@ -122,6 +122,7 @@ Useful options::
     $ whoosh search "index writer" ~/notes --limit 20       # show up to 20 hits
     $ whoosh search "index writer" ~/notes --limit 20 --page 2  # show the next page
     $ whoosh search "index writer" ~/notes --html           # <mark>...</mark> snippets
+    $ whoosh search "index writer" ~/notes --color always   # ANSI-colored matches
     $ whoosh search "index writer" ~/notes --no-highlight   # plain, grep-friendly snippets
     $ whoosh search "index writer" ~/notes --snippet-chars 80  # shorter snippets
     $ whoosh search "index writer" ~/notes --json           # JSON array output
@@ -156,6 +157,17 @@ in the output instead.
 ``--html`` emits ``<mark>...</mark>`` around matched terms instead of the
 default UPPERCASE highlighting, which is handy when piping results into a web
 page or a note-taking tool.
+
+``--color {auto,always,never}`` colorizes matched terms in the default text
+output using ANSI escape codes (bold yellow) instead of UPPERCASE. Because it
+plugs into the same highlighting pipeline as ``--html``, it emphasises the
+*actual* matched tokens — including stemmed or expanded matches (a search for
+``jumping`` highlights ``jumps``). The default, ``auto``, colorizes only when
+standard output is a terminal and honors the `NO_COLOR <https://no-color.org/>`_
+and ``FORCE_COLOR`` environment variables; ``always`` and ``never`` force it on
+or off (useful for piping colored output into a pager such as ``less -R``)::
+
+    $ whoosh search "index writer" ~/notes --color always | less -R
 
 ``--no-highlight`` prints a plain, whitespace-collapsed leading slice of the
 document body with no match markup at all. This keeps output readable and

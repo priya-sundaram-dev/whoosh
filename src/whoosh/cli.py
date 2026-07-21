@@ -40,6 +40,7 @@ from typing import TYPE_CHECKING
 from whoosh import __version_str__, index
 from whoosh.analysis import StemmingAnalyzer
 from whoosh.fields import ID, NUMERIC, TEXT, Schema
+from whoosh.colorize import AnsiFormatter, resolve_color_mode
 from whoosh.highlight import ContextFragmenter, HtmlFormatter, UppercaseFormatter
 from whoosh.qparser import MultifieldParser, OrGroup
 from whoosh.query import Every
@@ -316,9 +317,12 @@ def cmd_search(args: argparse.Namespace) -> int:
 
         snippet_chars = getattr(args, "snippet_chars", 200)
         no_highlight = getattr(args, "no_highlight", False)
+        use_color = resolve_color_mode(getattr(args, "color", "auto"))
         highlight_results = results.results
         if args.html:
             highlight_results.formatter = HtmlFormatter(tagname="mark")
+        elif use_color:
+            highlight_results.formatter = AnsiFormatter()
         else:
             highlight_results.formatter = UppercaseFormatter()
         highlight_results.fragmenter = ContextFragmenter(
@@ -606,6 +610,12 @@ def build_parser() -> argparse.ArgumentParser:
     ps.add_argument("-0", "--null", action="store_true", dest="null",
                     help="with -l, separate paths with a NUL byte instead of "
                          "a newline (for xargs -0)")
+    ps.add_argument("--color", choices=["auto", "always", "never"],
+                    default="auto", metavar="WHEN",
+                    help="colorize matched terms in the default text output: "
+                         "'auto' (default) uses color only when writing to a "
+                         "terminal, honoring NO_COLOR/FORCE_COLOR; 'always' / "
+                         "'never' force it on or off")
 
     # Output style/mode flags are mutually exclusive: the default UPPERCASE
     # text, HTML highlights, a plain grep-friendly slice, machine-readable
