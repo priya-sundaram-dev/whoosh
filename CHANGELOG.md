@@ -6,6 +6,14 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.22.0] - 2026-07-21
+
+### Added
+- CLI: `whoosh index --follow-symlinks` follows symlinked directories when
+  building the index (off by default for safety). Threaded through `iter_files`
+  via `os.walk(..., followlinks=...)` and honored by both the real index pass
+  and `--dry-run`. (#38, thanks @cyber-chic-0)
+
 ## [3.21.0] - 2026-07-21
 
 ### Added

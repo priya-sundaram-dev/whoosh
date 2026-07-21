@@ -73,6 +73,14 @@ so keeping a large tree fresh is cheap::
 
     $ whoosh index ~/notes --update
 
+By default Whoosh does **not** descend into symlinked directories. Pass
+``--follow-symlinks`` to index files reachable only through a symlink (for
+example a ``docs/`` folder linked in from elsewhere). It is off by default for
+safety — following symlinks can pull in unexpected trees or, with cyclic links,
+walk in circles::
+
+    $ whoosh index ~/notes --follow-symlinks
+
 
 Search a folder
 ===============
