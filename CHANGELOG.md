@@ -6,6 +6,8 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.20.0] - 2026-07-21
+
 ### Added
 - CLI: `whoosh search --page N` pages through results using `--limit` as the
   page size, while keeping JSON, JSON Lines, and count output machine-friendly.
