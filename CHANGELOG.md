@@ -6,6 +6,8 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.25.1] - 2026-07-22
+
 ### Added
 - Type hints for the public API of `whoosh.sorting` (`FacetType`,
   `Categorizer`, `Facets` and the built-in facet/map classes), so type
