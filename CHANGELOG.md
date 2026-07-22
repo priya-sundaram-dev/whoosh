@@ -12,6 +12,13 @@ All notable changes to this project are documented here. This project follows
   checkers can follow faceting and sorting code. Docstrings are unchanged.
   Thanks to @cyber-chic-0. (#45)
 
+### Changed
+- **Type annotations for the scoring public API (gh#44).** `whoosh.scoring` now
+  carries type hints across its public surface: the `WeightingModel` and
+  `BaseScorer` and its subclasses, the concrete weighting models and their scorers
+  (`BM25F`, `DFree`, `PL2`, `TF_IDF`, `Frequency`, `Weighting`, and the module-level
+  `bm25`/`dfree`/`pl2` helpers. Tuning constructors such as `BM25F(B=0.75, K1=1.2, **kwargs)` and `PL2(c=1.0)` are fully annotated. Hints use `from __future__ import annotations` (no runtime cost or behavior change); `searcher`/`matcher` parameters stay `Any` to avoid import cycles.
+
 ## [3.25.0] - 2026-07-22
 
 ### Added
