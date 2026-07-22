@@ -577,7 +577,25 @@ class RangeFacet(QueryFacet):
 
 
 class DateRangeFacet(RangeFacet):
-    """Sorts/facets based on date ranges. ...
+    """Sorts/facets based on date ranges. This is the same as RangeFacet
+    except you are expected to use ``daterange`` objects as the start and end
+    of the range, and ``timedelta`` or ``relativedelta`` objects as the gap(s),
+    and it generates :class:`~whoosh.query.DateRange` queries instead of
+    :class:`~whoosh.query.TermRange` queries.
+
+    For example, to facet a "birthday" range into 5 year buckets::
+
+        from datetime import datetime
+        from whoosh.support.relativedelta import relativedelta
+
+        startdate = datetime(1920, 0, 0)
+        enddate = datetime.now()
+        gap = relativedelta(years=5)
+        bdays = DateRangeFacet("birthday", startdate, enddate, gap)
+        results = searcher.search(myquery, groupedby=bdays)
+
+    The ranges/buckets are always **inclusive** at the start and **exclusive**
+    at the end.
     """
 
     def _rangetype(self) -> type:
@@ -587,7 +605,13 @@ class DateRangeFacet(RangeFacet):
 
 
 class ScoreFacet(FacetType):
-    """Uses a document's score as a sorting criterion. ...
+    """Uses a document's score as a sorting criterion.
+
+    For example, to sort by the ``tag`` field, and then within that by relative
+    score::
+
+        tag_score = MultiFacet(["tag", ScoreFacet()])
+        results = searcher.search(myquery, sortedby=tag_score)
     """
 
     def categorizer(self, global_searcher: Searcher) -> Categorizer:
@@ -614,7 +638,22 @@ class ScoreFacet(FacetType):
 
 
 class FunctionFacet(FacetType):
-    """This facet type is low-level. ...
+    """This facet type is low-level. In most cases you should use
+    :class:`TranslateFacet` instead.
+
+    This facet type ets you pass an arbitrary function that will compute the
+    key. This may be easier than subclassing FacetType and Categorizer to set up
+    the desired behavior.
+
+    The function is called with the arguments ``(searcher, docid)``, where the
+    ``searcher`` may be a composite searcher, and the ``docid`` is an absolute
+    index document number (not segment-relative).
+
+    For example, to use the number of words in the document's "content" field
+    as the sorting/faceting key::
+
+        fn = lambda s, docid: s.doc_field_length(docid, "content")
+        lengths = FunctionFacet(fn)
     """
 
     def __init__(
@@ -640,7 +679,28 @@ class FunctionFacet(FacetType):
 
 class TranslateFacet(FacetType):
     """Lets you specify a function to compute the key based on a key generated
-    by a wrapped facet. ...
+    by a wrapped facet.
+
+    This is useful if you want to use a custom ordering of a sortable field. For
+    example, if you want to use an implementation of the Unicode Collation
+    Algorithm (UCA) to sort a field using the rules from a particular language::
+
+        from pyuca import Collator
+
+        # The Collator object has a sort_key() method which takes a unicode
+        # string and returns a sort key
+        c = Collator("allkeys.txt")
+
+        # Make a facet object for the field you want to sort on
+        facet = sorting.FieldFacet("name")
+        # Wrap the facet in a TranslateFacet with the translation function
+        # (the Collator object's sort_key method)
+        facet = sorting.TranslateFacet(c.sort_key, facet)
+
+        # Use the facet to sort the search results
+        results = searcher.search(myquery, sortedby=facet)
+
+    You can pass multiple facets to the
     """
 
     def __init__(self, fn: Callable[..., Any], *facets: FacetType) -> None:
@@ -675,7 +735,15 @@ class TranslateFacet(FacetType):
 
 
 class StoredFieldFacet(FacetType):
-    """Lets you sort/group using the value in an unindexed, stored field ...
+    """Lets you sort/group using the value in an unindexed, stored field (e.g.
+    :class:`whoosh.fields.STORED`). This is usually slower than using an indexed
+    field.
+
+    For fields where the stored value is a space-separated list of keywords,
+    (e.g. ``"tag1 tag2 tag3"``), you can use the ``allow_overlap`` keyword
+    argument to allow overlapped faceting on the result of calling the
+    ``split()`` method on the field value (or calling a custom split function
+    if one is supplied).
     """
 
     def __init__(
@@ -738,8 +806,26 @@ class StoredFieldFacet(FacetType):
 
 
 class MultiFacet(FacetType):
-    """Sorts/facets by the combination of multiple "sub-facets". ...
+    """Sorts/facets by the combination of multiple "sub-facets".
 
+    For example, to sort by the value of the "tag" field, and then (for
+    documents where the tag is the same) by the value of the "path" field::
+
+        facet = MultiFacet([FieldFacet("tag"), FieldFacet("path")])
+        results = searcher.search(myquery, sortedby=facet)
+
+    As a shortcut, you can use strings to refer to field names, and they will
+    be assumed to be field names and turned into FieldFacet objects::
+
+        facet = MultiFacet(["tag", "path"])
+
+    You can also use the ``add_*`` methods to add criteria to the multifacet::
+
+        facet = MultiFacet()
+        facet.add_field("tag")
+        facet.add_field("path", reverse=True)
+        facet.add_query({"a-m": TermRange("name", "a", "m"),
+                         "n-z": TermRange("name", "n", "z")})
     """
 
     def __init__(
@@ -838,7 +924,19 @@ class MultiFacet(FacetType):
 
 class Facets:
     """Maps facet names to :class:`FacetType` objects, for creating multiple
-    groupings of documents. ...
+    groupings of documents.
+
+    For example, to group by tag, and **also** group by price range::
+
+        facets = Facets()
+        facets.add_field("tag")
+        facets.add_facet("price", RangeFacet("price", 0, 1000, 100))
+        results = searcher.search(myquery, groupedby=facets)
+
+        tag_groups = results.groups("tag")
+        price_groups = results.groups("price")
+
+    (To group by the combination of multiple facets, use :class:`MultiFacet`.)
     """
 
     def __init__(self, x: Facets | dict[str, FacetType] | None = None) -> None:
@@ -956,7 +1054,10 @@ class FacetMap:
 
 class OrderedList(FacetMap):
     """Stores a list of document numbers for each group, in the same order as
-    they appear in the search results. ...
+    they appear in the search results.
+
+    The ``as_dict`` method returns a dictionary mapping group names to lists
+    of document numbers.
     """
 
     def __init__(self) -> None:
@@ -976,7 +1077,13 @@ class OrderedList(FacetMap):
 
 
 class UnorderedList(FacetMap):
-    """Stores a list of document numbers for each group, in arbitrary order. ...
+    """Stores a list of document numbers for each group, in arbitrary order.
+    This is slightly faster and uses less memory than
+    :class:`OrderedListResult` if you don't care about the ordering of the
+    documents within groups.
+
+    The ``as_dict`` method returns a dictionary mapping group names to lists
+    of document numbers.
     """
 
     def __init__(self) -> None:
@@ -993,7 +1100,10 @@ class UnorderedList(FacetMap):
 
 
 class Count(FacetMap):
-    """Stores the number of documents in each group. ...
+    """Stores the number of documents in each group.
+
+    The ``as_dict`` method returns a dictionary mapping group names to
+    integers.
     """
 
     def __init__(self) -> None:
@@ -1011,7 +1121,10 @@ class Count(FacetMap):
 
 class Best(FacetMap):
     """Stores the "best" document in each group (that is, the one with the
-    highest sort key). ...
+    highest sort key).
+
+    The ``as_dict`` method returns a dictionary mapping group names to
+    docnument numbers.
     """
 
     def __init__(self) -> None:
