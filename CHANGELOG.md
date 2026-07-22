@@ -6,6 +6,12 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Added
+- Type hints for the public API of `whoosh.sorting` (`FacetType`,
+  `Categorizer`, `Facets` and the built-in facet/map classes), so type
+  checkers can follow faceting and sorting code. Docstrings are unchanged.
+  Thanks to @cyber-chic-0. (#45)
+
 ## [3.25.0] - 2026-07-22
 
 ### Added
