@@ -16,7 +16,7 @@ from __future__ import annotations
 import tempfile
 from typing import TYPE_CHECKING, Any
 
-from whoosh import index
+from whoosh import index, scoring
 from whoosh.fields import DATETIME, ID, NUMERIC, TEXT, Schema
 from whoosh.qparser import QueryParser
 
@@ -54,11 +54,19 @@ def run() -> list[str]:
         w.add_document(id="2", title="Second document about indexing")
         w.update_document(id="2", title="Second document about indexing v2")
 
+    # The scoring public API is annotated, so tuning constructors and the
+    # WeightingModel/BaseScorer surface type-check for downstream users.
+    weighting: scoring.WeightingModel = scoring.BM25F(B=0.75, K1=1.2)
+    pl2: scoring.WeightingModel = scoring.PL2(c=1.0)
+    combined: scoring.WeightingModel = scoring.MultiWeighting(weighting, title=pl2)
+    supports_quality: bool = weighting.use_final is False
+
     titles: list[str] = []
-    with ix.searcher() as searcher:
+    with ix.searcher(weighting=combined) as searcher:
         parser = QueryParser("title", schema=ix.schema)
         query = parser.parse("search")
         results: Results = searcher.search(query, limit=10)
+        assert supports_quality in (True, False)
 
         # Results inspection helpers are annotated, so their return types
         # flow into user code and type-check here.
