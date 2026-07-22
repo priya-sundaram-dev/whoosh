@@ -60,9 +60,13 @@ About section of the README.)*
       `fields.Schema` methods and field-type constructors, `qparser.QueryParser`,
       and the `searching` layer (`Searcher`, `search`, `search_page`). A CI
       `mypy` smoke job guards the public surface against regressions. Types are
-      correct only, never fabricated. Deeper coverage of *internal* modules can
-      follow incrementally as needed; coordinating with community typing work
-      rather than duplicating it (see whoosh-reloaded#114 / de-odex/whoosh-novo).
+      correct only, never fabricated. Coverage has since expanded to the
+      `writing`/`Results`/`Hit` read-write round trip, and — with community
+      contributors — `whoosh.sorting` (gh#45) and `whoosh.scoring` (gh#48,
+      shipped in **3.25.1**). `whoosh.highlight` is the next public module in
+      line (gh#49). Deeper coverage of *internal* modules follows incrementally,
+      coordinating with community typing work rather than duplicating it (see
+      whoosh-reloaded#114 / de-odex/whoosh-novo).
 - [x] Resource-lifecycle hardening: readers/searchers as context managers with
       explicit `close()` (shipped). The Windows file-lock path is now
       documented end-to-end in the
