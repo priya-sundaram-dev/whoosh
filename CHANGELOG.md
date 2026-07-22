@@ -6,6 +6,8 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.25.0] - 2026-07-22
+
 ### Added
 - CLI: `whoosh search --min-score FLOAT` drops hits whose relevance score is
   below the given floor, trimming the weak tail of a broad query. It applies
