@@ -91,7 +91,30 @@ class FacetType:
 class Categorizer:
     """Base class for categorizer objects which compute a key value for a
     document based on certain criteria, for use in sorting/faceting.
-    ...
+
+    Categorizers are created by FacetType objects through the
+    :meth:`FacetType.categorizer` method. The
+    :class:`whoosh.searching.Searcher` object passed to the ``categorizer``
+    method may be a composite searcher (that is, wrapping a multi-reader), but
+    categorizers are always run **per-segment**, with segment-relative document
+    numbers.
+
+    The collector will call a categorizer's ``set_searcher`` method as it
+    searches each segment to let the cateogorizer set up whatever segment-
+    specific data it needs.
+
+    ``Collector.allow_overlap`` should be ``True`` if the caller can use the
+    ``keys_for`` method instead of ``key_for`` to group documents into
+    potentially overlapping groups. The default is ``False``.
+
+    If a categorizer subclass can categorize the document using only the
+    document number, it should set ``Collector.needs_current`` to ``False``
+    (this is the default) and NOT USE the given matcher in the ``key_for`` or
+    ``keys_for`` methods, since in that case ``segment_docnum`` is not
+    guaranteed to be consistent with the given matcher. If a categorizer
+    subclass needs to access information on the matcher, it should set
+    ``needs_current`` to ``True``. This will prevent the caller from using
+    optimizations that might leave the matcher in an inconsistent state.
     """
 
     allow_overlap: bool = False
@@ -161,7 +184,15 @@ class Categorizer:
 
 class FieldFacet(FacetType):
     """Sorts/facets by the contents of a field.
-    ...
+
+    For example, to sort by the contents of the "path" field in reverse order,
+    and facet by the contents of the "tag" field::
+
+        paths = FieldFacet("path", reverse=True)
+        tags = FieldFacet("tag")
+        results = searcher.search(myquery, sortedby=paths, groupedby=tags)
+
+    This facet returns different categorizers based on the field type.
     """
 
     def __init__(
@@ -459,7 +490,14 @@ class QueryFacet(FacetType):
 class RangeFacet(QueryFacet):
     """Sorts/facets based on numeric ranges. For textual ranges, use
     :class:`QueryFacet`.
-    ...
+
+    For example, to facet the "price" field into $100 buckets, up to $1000::
+
+        prices = RangeFacet("price", 0, 1000, 100)
+        results = searcher.search(myquery, groupedby=prices)
+
+    The ranges/buckets are always **inclusive** at the start and **exclusive**
+    at the end.
     """
 
     def __init__(
@@ -883,7 +921,16 @@ class Facets:
 class FacetMap:
     """Base class for objects holding the results of grouping search results by
     a Facet. Use an object's ``as_dict()`` method to access the results.
-    ...
+
+    You can pass a subclass of this to the ``maptype`` keyword argument when
+    creating a ``FacetType`` object to specify what information the facet
+    should record about the group. For example::
+
+        # Record each document in each group in its sorted order
+        myfacet = FieldFacet("size", maptype=OrderedList)
+
+        # Record only the count of documents in each group
+        myfacet = FieldFacet("size", maptype=Count)
     """
 
     def add(self, groupname: Any, docid: int, sortkey: Any) -> None:
@@ -994,7 +1041,25 @@ def add_sortable(
 ) -> None:
     """Adds a per-document value column to an existing field which was created
     without the ``sortable`` keyword argument.
+
+    >>> from whoosh import index, sorting
+    >>> ix = index.open_dir("indexdir")
+    >>> with ix.writer() as w:
+    ...   facet = sorting.FieldFacet("price")
+    ...   sorting.add_sortable(w, "price", facet)
     ...
+
+    :param writer: a :class:`whoosh.writing.IndexWriter` object.
+    :param fieldname: the name of the field to add the per-document sortable
+        values to. If this field doesn't exist in the writer's schema, the
+        function will add a :class:`whoosh.fields.COLUMN` field to the schema,
+        and you must specify the column object to using the ``column`` keyword
+        argument.
+    :param facet: a :class:`FacetType` object to use to generate the
+        per-document values.
+    :param column: a :class:`whosh.columns.ColumnType` object to use to store
+        the per-document values. If you don't specify a column object, the
+        function will use the default column type for the given field.
     """
 
     storage = writer.storage
