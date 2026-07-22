@@ -51,4 +51,16 @@ python benchmark/regression.py --compare baseline.json
 
 See [`benchmark/README.md`](benchmark/README.md) for details.
 
+### Cutting a release
+
+A single release commit should bump the version everywhere it is pinned, so CI
+stays green. The `test_site_version_sync` tests guard against drift:
+
+1. `src/whoosh/__init__.py` — `__version__` tuple.
+2. `CHANGELOG.md` — move the `[Unreleased]` entries under a new dated heading.
+3. `demo/index.html` — the JSON-LD `"softwareVersion"` field.
+4. `demo/is-whoosh-still-maintained.html` — the advertised `whoosh3 X.Y.Z`.
+
+Then tag `vX.Y.Z`; CI publishes to PyPI and deploys the site.
+
 Thank you for helping keep Whoosh healthy!
