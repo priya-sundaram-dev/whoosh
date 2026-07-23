@@ -6,6 +6,8 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.25.2] - 2026-07-23
+
 ### Added
 - Type hints for the public API of `whoosh.highlight` — `Fragmenter` and its
   subclasses (`WholeFragmenter`, `SentenceFragmenter`, `ContextFragmenter`,
