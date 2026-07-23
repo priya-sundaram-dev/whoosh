@@ -215,6 +215,10 @@ concurrent readers. Open a fresh ``searcher()`` per request (as above) rather
 than sharing one across threads. For write-heavy apps, funnel writes through a
 single background thread or use :class:`~whoosh.writing.AsyncWriter`.
 
+A complete, runnable version of this app — with idempotent upserts, deletes,
+pagination, and highlighted snippets — lives in ``examples/flask_app.py`` (see
+the :doc:`cookbook`).
+
 
 Django integration
 ===================

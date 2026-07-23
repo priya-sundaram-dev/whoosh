@@ -293,6 +293,33 @@ pagination, and highlighted snippets via
 broader "adding search to your app" guide, including a Django variant.
 
 
+A full-text search app with Flask
+==================================
+
+``examples/flask_app.py`` — the same search API as the FastAPI example, built
+on Flask so you can compare the two frameworks side by side. It exposes an
+idempotent ``PUT /documents/<id>`` upsert, ``DELETE /documents/<id>``, and
+``GET /search`` with pagination and highlighted snippets::
+
+    pip install "whoosh3" flask
+    flask --app flask_app run --debug
+
+    curl -X PUT localhost:5000/documents/1 \
+        -H 'content-type: application/json' \
+        -d '{"title": "Getting started with Whoosh", "body": "pure-python search"}'
+
+    curl 'localhost:5000/search?q=python&page=1&page_size=10'
+
+Like the FastAPI example, the Whoosh logic lives in a framework-free
+``SearchIndex`` class (run ``python flask_app.py`` for a self-contained demo),
+so the Flask layer — wired up with a standard ``create_app`` application
+factory — stays thin. It highlights the concurrency rule that matters in a
+threaded WSGI server: a Whoosh index allows one writer at a time but many
+concurrent readers, so writes are serialised behind a lock and each request
+opens a fresh, short-lived ``searcher()`` rather than sharing one across
+threads. See :doc:`integrations` for the broader guide.
+
+
 Adding search to a static site
 ==============================
 

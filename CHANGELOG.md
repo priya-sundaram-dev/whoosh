@@ -6,6 +6,15 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Added
+- New `examples/flask_app.py`: a runnable Flask full-text search app mirroring
+  the FastAPI example — idempotent `PUT`/`DELETE` document endpoints and a
+  `GET /search` endpoint with pagination, BM25F ranking, and highlighted
+  snippets. The Whoosh logic lives in a framework-free `SearchIndex` class
+  (with a `python flask_app.py` self-test), and the example demonstrates safe
+  concurrency: writes serialised behind a lock, a fresh searcher per request.
+  Documented in the cookbook and integrations guides. (#50)
+
 ## [3.25.1] - 2026-07-22
 
 ### Added
