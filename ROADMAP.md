@@ -63,8 +63,10 @@ About section of the README.)*
       correct only, never fabricated. Coverage has since expanded to the
       `writing`/`Results`/`Hit` read-write round trip, and — with community
       contributors — `whoosh.sorting` (gh#45) and `whoosh.scoring` (gh#48,
-      shipped in **3.25.1**). `whoosh.highlight` is the next public module in
-      line (gh#49). Deeper coverage of *internal* modules follows incrementally,
+      shipped in **3.25.1**), and now `whoosh.highlight` (gh#49) — the
+      fragmenters, formatters, `Highlighter`, and the `results[i].highlights()`
+      path most people reach for after a search. Deeper coverage of *internal*
+      modules follows incrementally,
       coordinating with community typing work rather than duplicating it (see
       whoosh-reloaded#114 / de-odex/whoosh-novo).
 - [x] Resource-lifecycle hardening: readers/searchers as context managers with
