@@ -7,6 +7,16 @@ All notable changes to this project are documented here. This project follows
 ## [Unreleased]
 
 ### Added
+- Type hints for the public API of `whoosh.highlight` — `Fragmenter` and its
+  subclasses (`WholeFragmenter`, `SentenceFragmenter`, `ContextFragmenter`,
+  `PinpointFragmenter`), `Formatter` and its subclasses (`NullFormatter`,
+  `UppercaseFormatter`, `HtmlFormatter`, `GenshiFormatter`), `Fragment`,
+  `Highlighter`, and the module-level `highlight`, `top_fragments`, and
+  scoring/order helpers. Highlighting matched terms is one of the most common
+  post-search operations, so annotations here reach editors and `mypy`/`pyright`
+  via the shipped `py.typed` marker. Annotations only — docstrings and runtime
+  behaviour are unchanged (verified by an AST docstring diff), and a highlight
+  snippet was added to the `tests/typing_smoke.py` CI type-check fixture. (#49)
 - New `examples/flask_app.py`: a runnable Flask full-text search app mirroring
   the FastAPI example — idempotent `PUT`/`DELETE` document endpoints and a
   `GET /search` endpoint with pagination, BM25F ranking, and highlighted

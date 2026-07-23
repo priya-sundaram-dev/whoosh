@@ -16,7 +16,7 @@ from __future__ import annotations
 import tempfile
 from typing import TYPE_CHECKING, Any
 
-from whoosh import index, scoring
+from whoosh import highlight, index, scoring
 from whoosh.fields import DATETIME, ID, NUMERIC, TEXT, Schema
 from whoosh.qparser import QueryParser
 
@@ -89,6 +89,20 @@ def run() -> list[str]:
             assert docnum >= 0
             assert score is None or score >= 0.0
 
+        # whoosh.highlight's public API is annotated (gh#49). Building a
+        # Highlighter from a Fragmenter + Formatter and calling highlight_hit
+        # flows str results into user code; the helper classes' numeric config
+        # attributes and str-returning format methods type-check here too.
+        fragmenter: highlight.Fragmenter = highlight.ContextFragmenter(
+            maxchars=200, surround=20
+        )
+        formatter: highlight.Formatter = highlight.HtmlFormatter(tagname="b")
+        hl: highlight.Highlighter = highlight.Highlighter(
+            fragmenter=fragmenter, formatter=formatter, order=highlight.SCORE
+        )
+        must_retok: bool = fragmenter.must_retokenize()
+        assert isinstance(must_retok, bool)
+
         for hit in results:
             hit_obj: Hit = hit
             # Hit's dict-like accessors are annotated.
@@ -96,6 +110,10 @@ def run() -> list[str]:
             fields: dict[str, Any] = hit_obj.fields()
             assert set(keys) <= set(fields)
             titles.append(str(hit_obj["title"]))
+
+            # highlight_hit is annotated to return str.
+            excerpt: str = hl.highlight_hit(hit_obj, "title", top=1)
+            assert isinstance(excerpt, str)
 
         # Searcher's document-lookup helpers are annotated, so their return
         # types flow into user code and type-check here.
