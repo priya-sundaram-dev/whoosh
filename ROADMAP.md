@@ -110,8 +110,10 @@ About section of the README.)*
       [FastAPI search service](examples/fastapi_app.py), a
       [static-site search index builder](examples/static_site_search.py),
       plus autocomplete, faceted search, "did you mean?" spelling suggestions,
-      custom analyzers, highlighting, and scoring/sorting recipes. More
-      framework integrations (Flask/Django) welcome — contributions invited.
+      custom analyzers, highlighting, and scoring/sorting recipes, plus a
+      runnable [Flask search app](examples/flask_app.py) alongside the FastAPI
+      one. A Django variant is documented in the integrations guide; a runnable
+      Django example is still welcome — contributions invited.
 - [x] `--json` output for the `whoosh` command-line search, for scripting and
       pipelines. Shipped: `whoosh search <query> <dir> --json` (and `whoosh
       stats --json`) emit machine-readable JSON — path, score, snippet, and
