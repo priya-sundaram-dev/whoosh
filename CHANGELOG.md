@@ -6,6 +6,19 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Added
+- Type hints for the public API of `whoosh.query.terms` — the term-level query
+  classes `Term`, `MultiTerm`, `PatternQuery`, `Prefix`, `Wildcard`, `Regex`,
+  `ExpandingTerm`, `FuzzyTerm`, and `Variations`. These are the query objects
+  most programs construct directly, so annotations here reach editors and
+  `mypy`/`pyright` via the shipped `py.typed` marker: constructor keyword
+  arguments (`fieldname`, `text`, `boost`, `maxdist`, `prefixlength`,
+  `constantscore`), the `str`/`repr`/`hash` dunders, `matcher()` (returns a
+  `Matcher`), `normalize()`/`replace()`/`simplify()` (return a `Query`), and the
+  term-iteration helpers. Annotations only — docstrings and runtime behaviour
+  are unchanged (verified by an AST docstring diff), and a `whoosh.query.terms`
+  snippet was added to the `tests/typing_smoke.py` CI type-check fixture. (#51)
+
 ## [3.25.2] - 2026-07-23
 
 ### Added

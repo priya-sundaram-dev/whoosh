@@ -19,8 +19,11 @@ from typing import TYPE_CHECKING, Any
 from whoosh import highlight, index, scoring
 from whoosh.fields import DATETIME, ID, NUMERIC, TEXT, Schema
 from whoosh.qparser import QueryParser
+from whoosh.query import FuzzyTerm, Prefix, Term, Variations, Wildcard
 
 if TYPE_CHECKING:
+    from whoosh.matching import Matcher
+    from whoosh.query import Query
     from whoosh.searching import Hit, Results
     from whoosh.writing import IndexWriter
 
@@ -137,6 +140,24 @@ def run() -> list[str]:
         found: Results = searcher.find("title", "search")
         for fhit in found:
             titles.append(str(fhit["title"]))
+
+        # whoosh.query.terms' public API is annotated (gh#51). Constructing the
+        # term-level query classes and running them through the searcher flows
+        # their annotated types into user code: the constructors accept the
+        # documented kwargs, __str__ returns str, Wildcard.normalize() returns a
+        # Query, and matcher() returns a Matcher.
+        term_q = Term("title", "search", boost=2.0)
+        prefix_q = Prefix("title", "sea")
+        wildcard_q = Wildcard("title", "sea*ch")
+        fuzzy_q = FuzzyTerm("title", "serch", maxdist=2, prefixlength=1)
+        variations_q = Variations("title", "searching")
+        term_label: str = str(term_q)
+        normalized: Query = wildcard_q.normalize()
+        assert isinstance(term_label, str)
+        assert isinstance(str(normalized), str)
+        for term_query in (term_q, prefix_q, wildcard_q, fuzzy_q, variations_q):
+            m: Matcher = term_query.matcher(searcher)
+            assert m.is_active() in (True, False)
     return titles
 
 

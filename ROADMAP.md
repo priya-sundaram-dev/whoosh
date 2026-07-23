@@ -63,9 +63,12 @@ About section of the README.)*
       correct only, never fabricated. Coverage has since expanded to the
       `writing`/`Results`/`Hit` read-write round trip, and — with community
       contributors — `whoosh.sorting` (gh#45) and `whoosh.scoring` (gh#48,
-      shipped in **3.25.1**), and now `whoosh.highlight` (gh#49) — the
+      shipped in **3.25.1**), `whoosh.highlight` (gh#49) — the
       fragmenters, formatters, `Highlighter`, and the `results[i].highlights()`
-      path most people reach for after a search. Deeper coverage of *internal*
+      path most people reach for after a search — and the term-level query
+      classes in `whoosh.query.terms` (gh#51): `Term`, `Prefix`, `Wildcard`,
+      `Regex`, `FuzzyTerm`, and `Variations`, the query objects most programs
+      construct directly. Deeper coverage of *internal*
       modules follows incrementally,
       coordinating with community typing work rather than duplicating it (see
       whoosh-reloaded#114 / de-odex/whoosh-novo).

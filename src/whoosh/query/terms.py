@@ -26,14 +26,23 @@
 # policies, either expressed or implied, of Matt Chaput.
 
 
+from __future__ import annotations
+
 import copy
 import fnmatch
 import re
+from typing import TYPE_CHECKING, Any
 
 from whoosh import matching
 from whoosh.analysis import Token
 from whoosh.lang.morph_en import variations
 from whoosh.query import qcore
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Iterator
+
+    from whoosh.reading import IndexReader
+    from whoosh.searching import SearchContext, Searcher
 
 
 class Term(qcore.Query):
@@ -44,13 +53,19 @@ class Term(qcore.Query):
 
     __inittypes__ = {"fieldname": str, "text": str, "boost": float}
 
-    def __init__(self, fieldname, text, boost=1.0, minquality=None):
+    def __init__(
+        self,
+        fieldname: str,
+        text: Any,
+        boost: float = 1.0,
+        minquality: float | None = None,
+    ):
         self.fieldname = fieldname
         self.text = text
         self.boost = boost
         self.minquality = minquality
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         return (
             other
             and self.__class__ is other.__class__
@@ -59,14 +74,14 @@ class Term(qcore.Query):
             and self.boost == other.boost
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         r = f"{self.__class__.__name__}({self.fieldname!r}, {self.text!r}"
         if self.boost != 1.0:
             r += f", boost={self.boost}"
         r += ")"
         return r
 
-    def __str__(self):
+    def __str__(self) -> str:
         text = self.text
         if isinstance(text, bytes):
             try:
@@ -79,13 +94,13 @@ class Term(qcore.Query):
             t += "^" + str(self.boost)
         return t
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self.fieldname) ^ hash(self.text) ^ hash(self.boost)
 
-    def has_terms(self):
+    def has_terms(self) -> bool:
         return True
 
-    def tokens(self, boost=1.0):
+    def tokens(self, boost: float = 1.0) -> Iterator[Token]:
         yield Token(
             fieldname=self.fieldname,
             text=self.text,
@@ -95,17 +110,17 @@ class Term(qcore.Query):
             chars=True,
         )
 
-    def terms(self, phrases=False):
+    def terms(self, phrases: bool = False) -> Iterator[tuple[str, Any]]:
         if self.field():
             yield (self.field(), self.text)
 
-    def replace(self, fieldname, oldtext, newtext):
+    def replace(self, fieldname: str, oldtext: Any, newtext: Any) -> qcore.Query:
         q = copy.copy(self)
         if q.fieldname == fieldname and q.text == oldtext:
             q.text = newtext
         return q
 
-    def estimate_size(self, ixreader):
+    def estimate_size(self, ixreader: IndexReader) -> int:
         fieldname = self.fieldname
         if fieldname not in ixreader.schema:
             return 0
@@ -118,7 +133,9 @@ class Term(qcore.Query):
 
         return ixreader.doc_frequency(fieldname, text)
 
-    def matcher(self, searcher, context=None):
+    def matcher(
+        self, searcher: Searcher, context: SearchContext | None = None
+    ) -> matching.Matcher:
         fieldname = self.fieldname
         text = self.text
         if fieldname not in searcher.schema:
@@ -153,17 +170,22 @@ class MultiTerm(qcore.Query):
 
     constantscore = False
 
-    def _btexts(self, ixreader):
+    def _btexts(self, ixreader: IndexReader) -> Iterable[bytes]:
         raise NotImplementedError(self.__class__.__name__)
 
-    def expanded_terms(self, ixreader, phrases=False):
+    def expanded_terms(
+        self, ixreader: IndexReader, phrases: bool = False
+    ) -> Iterator[tuple[str, bytes]]:
         fieldname = self.field()
         if fieldname:
             for btext in self._btexts(ixreader):
                 yield (fieldname, btext)
 
-    def tokens(self, boost=1.0, exreader=None):
+    def tokens(
+        self, boost: float = 1.0, exreader: IndexReader | None = None
+    ) -> Iterator[Token]:
         fieldname = self.field()
+        btexts: Iterable[Any]
         if exreader is None:
             btexts = [self.text]
         else:
@@ -179,7 +201,7 @@ class MultiTerm(qcore.Query):
                 chars=True,
             )
 
-    def simplify(self, ixreader):
+    def simplify(self, ixreader: IndexReader) -> qcore.Query:
         fieldname = self.field()
 
         if fieldname not in ixreader.schema:
@@ -200,19 +222,21 @@ class MultiTerm(qcore.Query):
         else:
             return qcore.NullQuery
 
-    def estimate_size(self, ixreader):
+    def estimate_size(self, ixreader: IndexReader) -> int:
         fieldname = self.field()
         return sum(
             ixreader.doc_frequency(fieldname, btext) for btext in self._btexts(ixreader)
         )
 
-    def estimate_min_size(self, ixreader):
+    def estimate_min_size(self, ixreader: IndexReader) -> int:
         fieldname = self.field()
         return min(
             ixreader.doc_frequency(fieldname, text) for text in self._btexts(ixreader)
         )
 
-    def matcher(self, searcher, context=None):
+    def matcher(
+        self, searcher: Searcher, context: SearchContext | None = None
+    ) -> matching.Matcher:
         from whoosh.query import Or
 
         fieldname = self.field()
@@ -253,13 +277,19 @@ class PatternQuery(MultiTerm):
 
     __inittypes__ = {"fieldname": str, "text": str, "boost": float}
 
-    def __init__(self, fieldname, text, boost=1.0, constantscore=True):
+    def __init__(
+        self,
+        fieldname: str,
+        text: Any,
+        boost: float = 1.0,
+        constantscore: bool = True,
+    ):
         self.fieldname = fieldname
         self.text = text
         self.boost = boost
         self.constantscore = constantscore
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         return (
             other
             and self.__class__ is other.__class__
@@ -269,14 +299,14 @@ class PatternQuery(MultiTerm):
             and self.constantscore == other.constantscore
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         r = f"{self.__class__.__name__}({self.fieldname!r}, {self.text!r}"
         if self.boost != 1:
             r += f", boost={self.boost}"
         r += ")"
         return r
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return (
             hash(self.fieldname)
             ^ hash(self.text)
@@ -284,10 +314,10 @@ class PatternQuery(MultiTerm):
             ^ hash(self.constantscore)
         )
 
-    def _get_pattern(self):
+    def _get_pattern(self) -> str:
         raise NotImplementedError
 
-    def _find_prefix(self, text):
+    def _find_prefix(self, text: str) -> str:
         # Subclasses/instances should set the SPECIAL_CHARS attribute to a set
         # of characters that mark the end of the literal prefix
         specialchars = self.SPECIAL_CHARS
@@ -297,7 +327,7 @@ class PatternQuery(MultiTerm):
                 break
         return text[:i]
 
-    def _btexts(self, ixreader):
+    def _btexts(self, ixreader: IndexReader) -> Iterable[bytes]:
         field = ixreader.schema[self.fieldname]
 
         exp = re.compile(self._get_pattern())
@@ -321,13 +351,15 @@ class Prefix(PatternQuery):
     >>> Prefix("content", u"comp")
     """
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.fieldname}:{self.text}*"
 
-    def _btexts(self, ixreader):
+    def _btexts(self, ixreader: IndexReader) -> Iterable[bytes]:
         return ixreader.expand_prefix(self.fieldname, self.text)
 
-    def matcher(self, searcher, context=None):
+    def matcher(
+        self, searcher: Searcher, context: SearchContext | None = None
+    ) -> matching.Matcher:
         if self.text == "":
             from whoosh.query import Every
 
@@ -346,13 +378,13 @@ class Wildcard(PatternQuery):
 
     SPECIAL_CHARS = frozenset("*?[")
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.fieldname}:{self.text}"
 
-    def _get_pattern(self):
+    def _get_pattern(self) -> str:
         return fnmatch.translate(self.text)
 
-    def normalize(self):
+    def normalize(self) -> qcore.Query:
         # If there are no wildcard characters in this "wildcard", turn it into
         # a simple Term
         text = self.text
@@ -370,7 +402,9 @@ class Wildcard(PatternQuery):
         else:
             return self
 
-    def matcher(self, searcher, context=None):
+    def matcher(
+        self, searcher: Searcher, context: SearchContext | None = None
+    ) -> matching.Matcher:
         if self.text == "*":
             from whoosh.query import Every
 
@@ -390,13 +424,13 @@ class Regex(PatternQuery):
 
     SPECIAL_CHARS = frozenset("{}()[].?*+^$\\")
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f'{self.fieldname}:r"{self.text}"'
 
-    def _get_pattern(self):
+    def _get_pattern(self) -> str:
         return self.text
 
-    def _find_prefix(self, text):
+    def _find_prefix(self, text: str) -> str:
         if "|" in text:
             return ""
         if text.startswith("^"):
@@ -415,7 +449,9 @@ class Regex(PatternQuery):
             prefix = prefix[:-1]
         return prefix
 
-    def matcher(self, searcher, context=None):
+    def matcher(
+        self, searcher: Searcher, context: SearchContext | None = None
+    ) -> matching.Matcher:
         if self.text == ".*":
             from whoosh.query import Every
 
@@ -432,10 +468,10 @@ class ExpandingTerm(MultiTerm):
     that expand into multiple queries, but come from a single term.
     """
 
-    def has_terms(self):
+    def has_terms(self) -> bool:
         return True
 
-    def terms(self, phrases=False):
+    def terms(self, phrases: bool = False) -> Iterator[tuple[str, Any]]:
         if self.field():
             yield (self.field(), self.text)
 
@@ -452,7 +488,13 @@ class FuzzyTerm(ExpandingTerm):
     }
 
     def __init__(
-        self, fieldname, text, boost=1.0, maxdist=1, prefixlength=1, constantscore=True
+        self,
+        fieldname: str,
+        text: Any,
+        boost: float = 1.0,
+        maxdist: int = 1,
+        prefixlength: int = 1,
+        constantscore: bool = True,
     ):
         """
         :param fieldname: The name of the field to search.
@@ -473,7 +515,7 @@ class FuzzyTerm(ExpandingTerm):
         self.prefixlength = prefixlength
         self.constantscore = constantscore
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         return (
             other
             and self.__class__ is other.__class__
@@ -485,7 +527,7 @@ class FuzzyTerm(ExpandingTerm):
             and self.constantscore == other.constantscore
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         r = "%s(%r, %r, boost=%f, maxdist=%d, prefixlength=%d)"
         return r % (
             self.__class__.__name__,
@@ -496,7 +538,7 @@ class FuzzyTerm(ExpandingTerm):
             self.prefixlength,
         )
 
-    def __str__(self):
+    def __str__(self) -> str:
         r = f"{self.fieldname}:{self.text}" + "~"
         if self.maxdist > 1:
             r += "%d" % self.maxdist
@@ -504,7 +546,7 @@ class FuzzyTerm(ExpandingTerm):
             r += f"^{self.boost:f}"
         return r
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return (
             hash(self.fieldname)
             ^ hash(self.text)
@@ -514,12 +556,12 @@ class FuzzyTerm(ExpandingTerm):
             ^ hash(self.constantscore)
         )
 
-    def _btexts(self, ixreader):
+    def _btexts(self, ixreader: IndexReader) -> Iterable[bytes]:
         return ixreader.terms_within(
             self.fieldname, self.text, self.maxdist, prefix=self.prefixlength
         )
 
-    def replace(self, fieldname, oldtext, newtext):
+    def replace(self, fieldname: str, oldtext: Any, newtext: Any) -> qcore.Query:
         q = copy.copy(self)
         if q.fieldname == fieldname and q.text == oldtext:
             q.text = newtext
@@ -531,19 +573,19 @@ class Variations(ExpandingTerm):
     given word in the same field.
     """
 
-    def __init__(self, fieldname, text, boost=1.0):
+    def __init__(self, fieldname: str, text: Any, boost: float = 1.0):
         self.fieldname = fieldname
         self.text = text
         self.boost = boost
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         r = f"{self.__class__.__name__}({self.fieldname!r}, {self.text!r}"
         if self.boost != 1:
             r += f", boost={self.boost}"
         r += ")"
         return r
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         return (
             other
             and self.__class__ is other.__class__
@@ -552,10 +594,10 @@ class Variations(ExpandingTerm):
             and self.boost == other.boost
         )
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self.fieldname) ^ hash(self.text) ^ hash(self.boost)
 
-    def _btexts(self, ixreader):
+    def _btexts(self, ixreader: IndexReader) -> Iterator[bytes]:
         fieldname = self.fieldname
         to_bytes = ixreader.schema[fieldname].to_bytes
         for word in variations(self.text):
@@ -567,10 +609,10 @@ class Variations(ExpandingTerm):
             if (fieldname, btext) in ixreader:
                 yield btext
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.fieldname}:<{self.text}>"
 
-    def replace(self, fieldname, oldtext, newtext):
+    def replace(self, fieldname: str, oldtext: Any, newtext: Any) -> qcore.Query:
         q = copy.copy(self)
         if q.fieldname == fieldname and q.text == oldtext:
             q.text = newtext
