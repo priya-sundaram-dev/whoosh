@@ -284,6 +284,12 @@ and commits once (see the batch pattern above). Because commits serialize
 writers, prefer committing on a background worker (Celery, ``django-q``) in
 production so a save request never blocks on index I/O.
 
+A complete, runnable single-file version of this — a Django project with
+idempotent upserts, deletes, pagination, and highlighted snippets that runs
+without a full ``startproject`` layout — lives in ``examples/django_app.py``
+(see the :doc:`cookbook`). It is portable full-text search on any database, or
+none at all, without PostgreSQL.
+
 
 Whoosh vs. SQLite FTS5 and other options
 =========================================

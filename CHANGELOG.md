@@ -7,6 +7,17 @@ All notable changes to this project are documented here. This project follows
 ## [Unreleased]
 
 ### Added
+- New `examples/django_app.py`: a runnable Django full-text search app,
+  completing the FastAPI/Flask/Django trio that all expose the same
+  upsert/delete/search JSON API. Django's built-in full-text search only works
+  on PostgreSQL; this shows portable, relevance-ranked search (BM25F, with
+  highlighted snippets) on any database — or none — with a no-compile
+  `pip install`. It is a single-file Django project (settings, URLs, and views
+  inline) so it runs without a `startproject` layout, the Whoosh logic lives in
+  the same framework-free `SearchIndex` class as the other examples (with a
+  `python django_app.py` self-test), and the docstring documents the
+  `post_save`/`post_delete` signal wiring for keeping the index in sync with
+  the ORM. (#54)
 - Type hints for the public API of `whoosh.query.terms` — the term-level query
   classes `Term`, `MultiTerm`, `PatternQuery`, `Prefix`, `Wildcard`, `Regex`,
   `ExpandingTerm`, `FuzzyTerm`, and `Variations`. These are the query objects

@@ -320,6 +320,34 @@ opens a fresh, short-lived ``searcher()`` rather than sharing one across
 threads. See :doc:`integrations` for the broader guide.
 
 
+A full-text search app with Django
+==================================
+
+``examples/django_app.py`` — the same search API as the FastAPI and Flask
+examples, built on Django. Django's built-in full-text search only works on
+PostgreSQL; Whoosh gives you relevance-ranked search with highlighted snippets
+on *any* database (or none) with a no-compile ``pip install``. It is a
+single-file Django project — settings, URLs, and views all live in the one
+module — so it runs without a full ``startproject`` layout::
+
+    pip install "whoosh3" django
+    python django_app.py runserver
+
+    curl -X PUT localhost:8000/documents/1 \
+        -H 'content-type: application/json' \
+        -d '{"title": "Getting started with Whoosh", "body": "pure-python search"}'
+
+    curl 'localhost:8000/search?q=python&page=1&page_size=10'
+
+As in the other examples, the Whoosh logic lives in a framework-free
+``SearchIndex`` class (run ``python django_app.py`` with no arguments for a
+self-contained demo). In a real project you keep the index in sync with the
+ORM by calling ``upsert``/``delete`` from ``post_save``/``post_delete``
+signals — the module docstring shows the exact wiring. The same concurrency
+rule applies: one writer at a time behind a lock, a fresh ``searcher()`` per
+request. See :doc:`integrations` for the broader guide.
+
+
 Adding search to a static site
 ==============================
 

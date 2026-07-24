@@ -160,7 +160,9 @@ reference (all flags, exit codes, and how it maps onto the API):
   [custom-analyzers recipe](examples/custom_analyzers.py), a
   [custom scoring & sorting recipe](examples/scoring_and_sorting.py), and a
   [FastAPI search API](examples/fastapi_app.py) with upsert/delete/search
-  endpoints, and a
+  endpoints, the same API built on [Flask](examples/flask_app.py) and on
+  [Django](examples/django_app.py) (portable full-text search without
+  PostgreSQL), and a
   [command-line folder-search tool](examples/search_cli.py) that indexes and
   searches a directory of files in one command
 - **Roadmap:** [ROADMAP.md](ROADMAP.md)
