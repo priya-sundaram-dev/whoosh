@@ -6,6 +6,8 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.25.3] - 2026-07-24
+
 ### Added
 - New `examples/django_app.py`: a runnable Django full-text search app,
   completing the FastAPI/Flask/Django trio that all expose the same
