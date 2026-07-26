@@ -17,7 +17,7 @@ import tempfile
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
-from whoosh import highlight, index, scoring
+from whoosh import classify, highlight, index, scoring
 from whoosh.fields import DATETIME, ID, NUMERIC, TEXT, Schema
 from whoosh.qparser import QueryParser
 from whoosh.query import (
@@ -254,6 +254,18 @@ def run() -> list[str]:
         for positional_query in (seq_q, ordered_q):
             positional_norm: Query = positional_query.normalize()
             assert isinstance(repr(positional_norm), str)
+
+        # whoosh.classify public API (gh#59): ExpansionModel subclasses and
+        # Expander are annotated so downstream query-expansion code type-checks.
+        model: classify.ExpansionModel = classify.Bo1Model(doc_count=2, field_length=10.0)
+        norm: float = model.normalizer(maxweight=1.0, top_total=4.0)
+        expansion_score: float = model.score(1.0, 2.0, 4)
+        assert isinstance(norm, float) and isinstance(expansion_score, float)
+        expander = classify.Expander(searcher.reader(), "title", model=classify.Bo1Model)
+        expander.add([("search", 1.0)])
+        expanded: list[tuple[str, float]] = expander.expanded_terms(3)
+        assert isinstance(expanded, list)
+
     return titles
 
 

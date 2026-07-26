@@ -29,16 +29,22 @@
 documents.
 """
 
+from __future__ import annotations
 
 import random
 from collections import defaultdict
 from math import log
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
+
 
 # Expansion models
 
 
 class ExpansionModel:
-    def __init__(self, doc_count, field_length):
+    def __init__(self, doc_count: int, field_length: float) -> None:
         self.N = doc_count
         self.collection_total = field_length
 
@@ -47,44 +53,52 @@ class ExpansionModel:
         else:
             self.mean_length = 0
 
-    def normalizer(self, maxweight, top_total):
+    def normalizer(self, maxweight: float, top_total: float) -> float:
         raise NotImplementedError
 
-    def score(self, weight_in_top, weight_in_collection, top_total):
+    def score(
+        self, weight_in_top: float, weight_in_collection: float, top_total: float
+    ) -> float:
         raise NotImplementedError
 
 
 class Bo1Model(ExpansionModel):
-    def normalizer(self, maxweight, top_total):
+    def normalizer(self, maxweight: float, top_total: float) -> float:
         if not maxweight:
             return maxweight
         f = maxweight / self.N
         return (maxweight * log((1.0 + f) / f) + log(1.0 + f)) / log(2.0)
 
-    def score(self, weight_in_top, weight_in_collection, top_total):
+    def score(
+        self, weight_in_top: float, weight_in_collection: float, top_total: float
+    ) -> float:
         f = weight_in_collection / self.N
         return weight_in_top * log((1.0 + f) / f, 2) + log(1.0 + f, 2)
 
 
 class Bo2Model(ExpansionModel):
-    def normalizer(self, maxweight, top_total):
+    def normalizer(self, maxweight: float, top_total: float) -> float:
         if not self.collection_total:
             return maxweight
         f = maxweight * self.N / self.collection_total
         return maxweight * log((1.0 + f) / f, 2) + log(1.0 + f, 2)
 
-    def score(self, weight_in_top, weight_in_collection, top_total):
+    def score(
+        self, weight_in_top: float, weight_in_collection: float, top_total: float
+    ) -> float:
         f = weight_in_top * top_total / self.collection_total
         return weight_in_top * log((1.0 + f) / f, 2) + log(1.0 + f, 2)
 
 
 class KLModel(ExpansionModel):
-    def normalizer(self, maxweight, top_total):
+    def normalizer(self, maxweight: float, top_total: float) -> float:
         if not self.collection_total:
             return maxweight
         return maxweight * log(self.collection_total / top_total) / log(2.0) * top_total
 
-    def score(self, weight_in_top, weight_in_collection, top_total):
+    def score(
+        self, weight_in_top: float, weight_in_collection: float, top_total: float
+    ) -> float:
         wit_over_tt = weight_in_top / top_total
         wic_over_ct = weight_in_collection / self.collection_total
 
@@ -101,7 +115,12 @@ class Expander:
     N result documents.
     """
 
-    def __init__(self, ixreader, fieldname, model=Bo1Model):
+    def __init__(
+        self,
+        ixreader: Any,
+        fieldname: str,
+        model: type[ExpansionModel] | ExpansionModel = Bo1Model,
+    ) -> None:
         """
         :param reader: A :class: whoosh.reading.IndexReader object.
         :param fieldname: The name of the field in which to search.
@@ -115,24 +134,25 @@ class Expander:
         doccount = self.ixreader.doc_count_all()
         fieldlen = self.ixreader.field_length(fieldname)
 
-        if type(model) is type:
-            model = model(doccount, fieldlen)
-        self.model = model
+        if isinstance(model, ExpansionModel):
+            self.model = model
+        else:
+            self.model = model(doccount, fieldlen)
 
         # Maps words to their weight in the top N documents.
-        self.topN_weight = defaultdict(float)
+        self.topN_weight: dict[str, float] = defaultdict(float)
 
         # Total weight of all terms in the top N documents.
-        self.top_total = 0
+        self.top_total = 0.0
 
-    def add(self, vector):
+    def add(self, vector: Iterable[tuple[str, float]]) -> None:
         """Adds forward-index information about one of the "top N" documents.
 
         :param vector: A series of (text, weight) tuples, such as is
             returned by Reader.vector_as("weight", docnum, fieldname).
         """
 
-        total_weight = 0
+        total_weight = 0.0
         topN_weight = self.topN_weight
 
         for word, weight in vector:
@@ -141,7 +161,7 @@ class Expander:
 
         self.top_total += total_weight
 
-    def add_document(self, docnum):
+    def add_document(self, docnum: int) -> None:
         ixreader = self.ixreader
         if self.ixreader.has_vector(docnum, self.fieldname):
             self.add(ixreader.vector_as("weight", docnum, self.fieldname))
@@ -153,7 +173,7 @@ class Expander:
                 % (self.fieldname, docnum)
             )
 
-    def add_text(self, string):
+    def add_text(self, string: Any) -> None:
         # Unfortunately since field.index() yields bytes texts, and we want
         # unicode, we end up encoding and decoding unnecessarily.
         #
@@ -165,7 +185,9 @@ class Expander:
             (from_bytes(text), weight) for text, _, weight, _ in field.index(string)
         )
 
-    def expanded_terms(self, number, normalize=True):
+    def expanded_terms(
+        self, number: int, normalize: bool = True
+    ) -> list[tuple[str, float]]:
         """Returns the N most important terms in the vectors added so far.
 
         :param number: The number of terms to return.
@@ -178,7 +200,7 @@ class Expander:
         ixreader = self.ixreader
         field = ixreader.schema[fieldname]
         tlist = []
-        maxweight = 0
+        maxweight = 0.0
 
         # If no terms have been added, return an empty list
         if not self.topN_weight:
