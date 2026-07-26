@@ -26,14 +26,21 @@
 # policies, either expressed or implied, of Matt Chaput.
 
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from whoosh.query import compound, qcore, terms, wrappers
 from whoosh.util.times import datetime_to_long
+
+if TYPE_CHECKING:
+    from datetime import datetime
 
 
 class RangeMixin:
     # Contains methods shared by TermRange and NumericRange
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "{}({!r}, {!r}, {!r}, {}, {}, boost={}, constantscore={})".format(
             self.__class__.__name__,
             self.fieldname,
@@ -45,14 +52,14 @@ class RangeMixin:
             self.constantscore,
         )
 
-    def __str__(self):
+    def __str__(self) -> str:
         startchar = "{" if self.startexcl else "["
         endchar = "}" if self.endexcl else "]"
         start = "" if self.start is None else self.start
         end = "" if self.end is None else self.end
         return f"{self.fieldname}:{startchar}{start} TO {end}{endchar}"
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         return (
             other
             and self.__class__ is other.__class__
@@ -65,7 +72,7 @@ class RangeMixin:
             and self.constantscore == other.constantscore
         )
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return (
             hash(self.fieldname)
             ^ hash(self.start)
@@ -75,7 +82,7 @@ class RangeMixin:
             ^ hash(self.boost)
         )
 
-    def is_range(self):
+    def is_range(self) -> bool:
         return True
 
     def _comparable_start(self):
@@ -92,7 +99,7 @@ class RangeMixin:
             second = -1 if self.endexcl else 0
             return (self.end, second)
 
-    def overlaps(self, other):
+    def overlaps(self, other: object) -> bool:
         if not isinstance(other, TermRange):
             return False
         if self.fieldname != other.fieldname:
@@ -110,7 +117,7 @@ class RangeMixin:
             or (end2 >= start1 and end2 <= end1)
         )
 
-    def merge(self, other, intersect=True):
+    def merge(self, other: RangeMixin, intersect: bool = True) -> qcore.Query:
         assert self.fieldname == other.fieldname
 
         start1 = self._comparable_start()
@@ -160,13 +167,13 @@ class TermRange(RangeMixin, terms.MultiTerm):
 
     def __init__(
         self,
-        fieldname,
-        start,
-        end,
-        startexcl=False,
-        endexcl=False,
-        boost=1.0,
-        constantscore=True,
+        fieldname: str,
+        start: str | None,
+        end: str | None,
+        startexcl: bool = False,
+        endexcl: bool = False,
+        boost: float = 1.0,
+        constantscore: bool = True,
     ):
         """
         :param fieldname: The name of the field to search.
@@ -294,13 +301,13 @@ class NumericRange(RangeMixin, qcore.Query):
 
     def __init__(
         self,
-        fieldname,
-        start,
-        end,
-        startexcl=False,
-        endexcl=False,
-        boost=1.0,
-        constantscore=True,
+        fieldname: str,
+        start: float | None,
+        end: float | None,
+        startexcl: bool = False,
+        endexcl: bool = False,
+        boost: float = 1.0,
+        constantscore: bool = True,
     ):
         """
         :param fieldname: The name of the field to search.
@@ -415,13 +422,13 @@ class DateRange(NumericRange):
 
     def __init__(
         self,
-        fieldname,
-        start,
-        end,
-        startexcl=False,
-        endexcl=False,
-        boost=1.0,
-        constantscore=True,
+        fieldname: str,
+        start: datetime | None,
+        end: datetime | None,
+        startexcl: bool = False,
+        endexcl: bool = False,
+        boost: float = 1.0,
+        constantscore: bool = True,
     ):
         self.startdate = start
         self.enddate = end
@@ -439,7 +446,7 @@ class DateRange(NumericRange):
             constantscore=constantscore,
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "{}({!r}, {!r}, {!r}, {}, {}, boost={})".format(
             self.__class__.__name__,
             self.fieldname,

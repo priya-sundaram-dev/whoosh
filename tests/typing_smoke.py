@@ -14,6 +14,7 @@ searching layer.
 from __future__ import annotations
 
 import tempfile
+from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
 from whoosh import highlight, index, scoring
@@ -23,12 +24,18 @@ from whoosh.query import (
     And,
     AndNot,
     ConstantScoreQuery,
+    DateRange,
     DisjunctionMax,
     FuzzyTerm,
     Not,
+    NumericRange,
     Or,
+    Ordered,
+    Phrase,
     Prefix,
+    Sequence,
     Term,
+    TermRange,
     Variations,
     Wildcard,
 )
@@ -204,6 +211,49 @@ def run() -> list[str]:
                 assert isinstance(child_label, str)
             wm: Matcher = wrapping_query.matcher(searcher)
             assert wm.is_active() in (True, False)
+
+        # Range query classes (whoosh.query.ranges): TermRange over a text
+        # field, and NumericRange/DateRange over the numeric/datetime fields.
+        # Their annotated constructors accept the documented start/end bounds
+        # (str for TermRange, a number for NumericRange, a datetime for
+        # DateRange) plus bool exclusivity flags and a float boost; str()
+        # returns str and matcher() keeps its Matcher return type.
+        term_range = TermRange("title", "a", "s", startexcl=False, endexcl=True)
+        numeric_range = NumericRange("views", 10, 5925, boost=1.5)
+        date_range = DateRange(
+            "created",
+            datetime(2010, 1, 1),
+            datetime(2010, 12, 31),
+            constantscore=True,
+        )
+        range_label: str = str(term_range)
+        assert isinstance(range_label, str)
+        overlaps: bool = term_range.overlaps(numeric_range)
+        assert overlaps in (True, False)
+        for range_query in (term_range, numeric_range, date_range):
+            rm: Matcher = range_query.matcher(searcher)
+            assert rm.is_active() in (True, False)
+
+        # Positional query classes (whoosh.query.positional): Phrase matches an
+        # ordered run of words, while Sequence/Ordered match sub-queries in
+        # adjacent positions. Their annotated constructors accept the documented
+        # words/subqueries plus int slop and float boost; str() returns str,
+        # terms()/tokens() yield their annotated element types, and matcher()
+        # keeps its Matcher return type.
+        phrase_q = Phrase("title", ["about", "search"], slop=1, boost=2.0)
+        seq_q = Sequence([term_q, prefix_q], slop=2, ordered=True)
+        ordered_q = Ordered([term_q, prefix_q], slop=2)
+        phrase_label: str = str(phrase_q)
+        assert isinstance(phrase_label, str)
+        for field_name, word in phrase_q.terms(phrases=True):
+            assert isinstance(field_name, str) and isinstance(word, str)
+        phrase_tokens: list[Any] = list(phrase_q.tokens())
+        assert isinstance(phrase_tokens, list)
+        pm: Matcher = phrase_q.matcher(searcher)
+        assert pm.is_active() in (True, False)
+        for positional_query in (seq_q, ordered_q):
+            positional_norm: Query = positional_query.normalize()
+            assert isinstance(repr(positional_norm), str)
     return titles
 
 

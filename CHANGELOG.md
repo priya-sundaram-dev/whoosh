@@ -30,6 +30,26 @@ All notable changes to this project are documented here. This project follows
   only — runtime behaviour and docstrings are unchanged, and `Not`/
   `ConstantScoreQuery` are now exercised by the `tests/typing_smoke.py` mypy
   fixture. (#53)
+- Type hints for the public API of `whoosh.query.ranges` — the range query
+  classes `TermRange`, `NumericRange`, and `DateRange` (plus the shared
+  `RangeMixin`). These flow into editors and `mypy`/`pyright` through the
+  shipped `py.typed` marker: constructor arguments (`fieldname`, the
+  field-appropriate `start`/`end` bounds — `str` for `TermRange`, a number for
+  `NumericRange`, a `datetime` for `DateRange` — plus the `startexcl`/`endexcl`
+  flags, `boost`, and `constantscore`), the `is_range`/`overlaps` predicates,
+  `merge()` → `Query`, and the `repr`/`str`/`eq`/`hash` dunders. Annotations
+  only — runtime behaviour and docstrings are unchanged, and all three range
+  classes are now exercised by the `tests/typing_smoke.py` mypy fixture. (#55)
+- Type hints for the public API of `whoosh.query.positional` — the
+  position-aware query classes `Phrase`, `Sequence`, and `Ordered`. `Phrase`
+  is what quoted searches parse into, so its annotations flow into editors and
+  `mypy`/`pyright` through the shipped `py.typed` marker: constructor arguments
+  (`fieldname`, `words` as a `list[str]`, the wrapped `subqueries`, `slop`,
+  `ordered`, `boost`, and `char_ranges`), `has_terms()` → `bool`,
+  `terms()`/`tokens()` → their annotated iterators, `replace()` → `Phrase`, and
+  the `repr`/`str`/`eq`/`hash` dunders. Annotations only — runtime behaviour and
+  docstrings are unchanged, and `Phrase`/`Sequence`/`Ordered` are now exercised
+  by the `tests/typing_smoke.py` mypy fixture. (#56)
 
 ## [3.25.3] - 2026-07-24
 

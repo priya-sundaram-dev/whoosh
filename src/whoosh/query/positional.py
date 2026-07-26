@@ -26,11 +26,17 @@
 # policies, either expressed or implied, of Matt Chaput.
 
 
+from __future__ import annotations
+
 import copy
+from typing import TYPE_CHECKING
 
 from whoosh import matching
 from whoosh.analysis import Token
 from whoosh.query import compound, qcore, terms
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 
 class Sequence(compound.CompoundQuery):
@@ -44,7 +50,13 @@ class Sequence(compound.CompoundQuery):
     JOINT = " NEAR "
     intersect_merge = True
 
-    def __init__(self, subqueries, slop=1, ordered=True, boost=1.0):
+    def __init__(
+        self,
+        subqueries: list[qcore.Query],
+        slop: int = 1,
+        ordered: bool = True,
+        boost: float = 1.0,
+    ):
         """
         :param subqueries: a list of :class:`whoosh.query.Query` objects to
             match in sequence.
@@ -61,7 +73,7 @@ class Sequence(compound.CompoundQuery):
         self.slop = slop
         self.ordered = ordered
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         return (
             other
             and type(self) is type(other)
@@ -69,7 +81,7 @@ class Sequence(compound.CompoundQuery):
             and self.boost == other.boost
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "%s(%r, slop=%d, boost=%f)" % (
             self.__class__.__name__,
             self.subqueries,
@@ -77,7 +89,7 @@ class Sequence(compound.CompoundQuery):
             self.boost,
         )
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         h = hash(self.slop) ^ hash(self.boost)
         for q in self.subqueries:
             h ^= hash(q)
@@ -135,7 +147,13 @@ class Phrase(qcore.Query):
     """Matches documents containing a given phrase."""
 
     def __init__(
-        self, fieldname, words, slop=1, boost=1.0, char_ranges=None, degrade=False
+        self,
+        fieldname: str,
+        words: list[str],
+        slop: int = 1,
+        boost: float = 1.0,
+        char_ranges: list[tuple[int, int]] | None = None,
+        degrade: bool = False,
     ):
         """
         :param fieldname: the field to search.
@@ -174,7 +192,7 @@ class Phrase(qcore.Query):
         self.char_ranges = char_ranges
         self.degrade = degrade
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         return (
             other
             and self.__class__ is other.__class__
@@ -184,7 +202,7 @@ class Phrase(qcore.Query):
             and self.boost == other.boost
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "{}({!r}, {!r}, slop={}, boost={:f})".format(
             self.__class__.__name__,
             self.fieldname,
@@ -193,24 +211,24 @@ class Phrase(qcore.Query):
             self.boost,
         )
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.fieldname}:\"{' '.join(self.words)}\""
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         h = hash(self.fieldname) ^ hash(self.slop) ^ hash(self.boost)
         for w in self.words:
             h ^= hash(w)
         return h
 
-    def has_terms(self):
+    def has_terms(self) -> bool:
         return True
 
-    def terms(self, phrases=False):
+    def terms(self, phrases: bool = False) -> Iterator[tuple[str, str]]:
         if phrases and self.field():
             for word in self.words:
                 yield (self.field(), word)
 
-    def tokens(self, boost=1.0):
+    def tokens(self, boost: float = 1.0) -> Iterator[Token]:
         char_ranges = self.char_ranges
         startchar = endchar = None
         for i, word in enumerate(self.words):
@@ -245,7 +263,7 @@ class Phrase(qcore.Query):
             degrade=self.degrade,
         )
 
-    def replace(self, fieldname, oldtext, newtext):
+    def replace(self, fieldname: str, oldtext: str, newtext: str) -> Phrase:
         q = copy.copy(self)
         if q.fieldname == fieldname:
             for i, word in enumerate(q.words):
