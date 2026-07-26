@@ -65,6 +65,16 @@
   .hit .snippet b { background: #fff3b0; padding: 0 .1rem; border-radius: 3px; }
   a { color: var(--accent); }
   footer { text-align:center; color: var(--muted); font-size:.8rem; padding: 2rem 1rem 3rem; }
+  .cta { display:flex; flex-wrap:wrap; gap:.6rem; margin:.4rem 0 .2rem; }
+  .btn { display:inline-block; text-decoration:none; padding:.55rem .9rem; border-radius:9px;
+         font-size:.95rem; font-weight:600; border:1px solid var(--border); background:#f7f7fa; color:var(--fg); }
+  .btn.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .btn:hover { filter:brightness(.97); }
+  .links h3 { font-size:.8rem; text-transform:uppercase; letter-spacing:.04em; color:var(--muted);
+              margin:1.1rem 0 .4rem; }
+  .links ul { list-style:none; margin:0; padding:0; display:grid;
+              grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:.15rem .9rem; }
+  .links li { font-size:.92rem; padding:.12rem 0; }
   .spin { display:inline-block; width:.9em; height:.9em; border:2px solid #ccc;
           border-top-color: var(--accent); border-radius:50%; animation: sp 0.8s linear infinite;
           vertical-align:-2px; margin-right:.4rem; }
@@ -101,28 +111,57 @@
     it's an embedded, pure-Python search library.</p>
     <p style="margin:.2rem 0">Because Whoosh is pure Python, the same code runs on
     your laptop, your server, PyPy, and (as you can see) the browser.</p>
-    <p style="margin:.6rem 0 0"><a href="https://github.com/priya-sundaram-dev/whoosh">⭐ Star Whoosh on GitHub</a>
-    &nbsp;·&nbsp; <a href="./docs/">📖 Documentation</a>
-    &nbsp;·&nbsp; <a href="./docs/quickstart.html">Quickstart</a>
-    &nbsp;·&nbsp; <a href="./docs/integrations.html">Add search to Flask/Django</a>
-    &nbsp;·&nbsp; <a href="./flask-full-text-search.html">Tutorial: search in a Flask app →</a>
-    &nbsp;·&nbsp; <a href="./django-full-text-search.html">Tutorial: search in a Django app →</a>
-    &nbsp;·&nbsp; <a href="./fastapi-full-text-search.html">Tutorial: search in a FastAPI app →</a>
-    &nbsp;·&nbsp; <a href="./search-files-command-line.html">Search files from the command line →</a>
-    &nbsp;·&nbsp; <a href="./whoosh-autocomplete-prefix-search.html">Autocomplete &amp; prefix search →</a>
-    &nbsp;·&nbsp; <a href="./whoosh-rag-hybrid-search.html">Whoosh for RAG &amp; hybrid search →</a>
-    &nbsp;·&nbsp; <a href="./whoosh-langchain-retriever.html">Whoosh as a LangChain retriever →</a>
-    &nbsp;·&nbsp; <a href="./whoosh-performance-tuning-fast-indexing.html">Performance tuning: fast indexing →</a>
-    &nbsp;·&nbsp; <a href="./whoosh-search-pdf-markdown-knowledge-base.html">Search a folder of PDFs &amp; Markdown →</a>
-    &nbsp;·&nbsp; <a href="./whoosh-spelling-fuzzy-did-you-mean.html">Spelling, "did you mean?" &amp; fuzzy search →</a>
-    &nbsp;·&nbsp; <a href="./whoosh-analyzer-recipes.html">Analyzer recipes: tokenizers, accent folding, stemming →</a>
-    &nbsp;·&nbsp; <a href="./migrate-sqlite-fts5-to-whoosh.html">Migrate from SQLite FTS5 to Whoosh →</a>
-    &nbsp;·&nbsp; <a href="./whoosh-python-3-importerror-fix.html">Fix: Whoosh ImportError on Python 3.10+ →</a>
-    &nbsp;·&nbsp; <a href="./blog.html">Read: Whoosh is back →</a>
-    &nbsp;·&nbsp; <a href="./is-whoosh-still-maintained.html">Is Whoosh still maintained? →</a>
-    &nbsp;·&nbsp; <a href="./whoosh-vs-sqlite-fts5.html">Whoosh vs SQLite FTS5 →</a>
-    &nbsp;·&nbsp; <a href="./whoosh-vs-tantivy.html">Whoosh vs Tantivy →</a>
-    &nbsp;·&nbsp; <a href="./whoosh-vs-elasticsearch.html">Whoosh vs Elasticsearch →</a></p>
+    <div class="cta">
+      <a class="btn primary" href="https://github.com/priya-sundaram-dev/whoosh">⭐ Star on GitHub</a>
+      <a class="btn" href="./docs/quickstart.html">Quickstart</a>
+      <a class="btn" href="./docs/">📖 Documentation</a>
+      <a class="btn" href="https://pypi.org/project/whoosh3/"><code>pip install whoosh3</code></a>
+    </div>
+
+    <div class="links">
+      <h3>Add search to your app</h3>
+      <ul>
+        <li><a href="./flask-full-text-search.html">Flask app →</a></li>
+        <li><a href="./django-full-text-search.html">Django app →</a></li>
+        <li><a href="./fastapi-full-text-search.html">FastAPI app →</a></li>
+        <li><a href="./search-files-command-line.html">From the command line →</a></li>
+        <li><a href="./docs/integrations.html">Integrations overview →</a></li>
+      </ul>
+
+      <h3>Recipes &amp; guides</h3>
+      <ul>
+        <li><a href="./whoosh-autocomplete-prefix-search.html">Autocomplete &amp; prefix search →</a></li>
+        <li><a href="./whoosh-spelling-fuzzy-did-you-mean.html">Spelling &amp; “did you mean?” →</a></li>
+        <li><a href="./whoosh-highlight-search-snippets.html">Highlighting snippets →</a></li>
+        <li><a href="./whoosh-faceted-search-counts.html">Faceted search &amp; counts →</a></li>
+        <li><a href="./whoosh-analyzer-recipes.html">Analyzer recipes →</a></li>
+        <li><a href="./whoosh-search-pandas-dataframe.html">Search a pandas DataFrame →</a></li>
+        <li><a href="./whoosh-incremental-index-sync.html">Incremental index sync →</a></li>
+        <li><a href="./whoosh-performance-tuning-fast-indexing.html">Performance tuning →</a></li>
+      </ul>
+
+      <h3>RAG &amp; AI</h3>
+      <ul>
+        <li><a href="./whoosh-rag-hybrid-search.html">RAG &amp; hybrid search →</a></li>
+        <li><a href="./whoosh-langchain-retriever.html">LangChain retriever →</a></li>
+        <li><a href="./whoosh-search-pdf-markdown-knowledge-base.html">Search PDFs &amp; Markdown →</a></li>
+      </ul>
+
+      <h3>Compare &amp; migrate</h3>
+      <ul>
+        <li><a href="./whoosh-vs-sqlite-fts5.html">Whoosh vs SQLite FTS5 →</a></li>
+        <li><a href="./whoosh-vs-tantivy.html">Whoosh vs Tantivy →</a></li>
+        <li><a href="./whoosh-vs-elasticsearch.html">Whoosh vs Elasticsearch →</a></li>
+        <li><a href="./migrate-sqlite-fts5-to-whoosh.html">Migrate from SQLite FTS5 →</a></li>
+        <li><a href="./whoosh-python-3-importerror-fix.html">Fix: ImportError on Python 3.10+ →</a></li>
+      </ul>
+
+      <h3>About the project</h3>
+      <ul>
+        <li><a href="./blog.html">Whoosh is back →</a></li>
+        <li><a href="./is-whoosh-still-maintained.html">Is Whoosh still maintained? →</a></li>
+      </ul>
+    </div>
   </div>
 </main>
 
