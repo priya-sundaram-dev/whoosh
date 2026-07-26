@@ -148,6 +148,7 @@ reference (all flags, exit codes, and how it maps onto the API):
     — incremental sync, extract-text hooks, highlighted snippets
   - [Whoosh for RAG: BM25 keyword retrieval & hybrid search](https://priya-sundaram-dev.github.io/whoosh/whoosh-rag-hybrid-search.html)
     — pure-Python retrieval for LLM pipelines, no vector DB required
+    (runnable code: [`examples/rag_retriever.py`](examples/rag_retriever.py))
   - [Spelling, "did you mean?", and fuzzy search](https://priya-sundaram-dev.github.io/whoosh/whoosh-spelling-fuzzy-did-you-mean.html)
     — typo tolerance: suggestions, query correction, and fuzzy matching
 - **Docs site:** https://priya-sundaram-dev.github.io/whoosh/ (rebuilt; work in progress)
@@ -164,7 +165,9 @@ reference (all flags, exit codes, and how it maps onto the API):
   [Django](examples/django_app.py) (portable full-text search without
   PostgreSQL), and a
   [command-line folder-search tool](examples/search_cli.py) that indexes and
-  searches a directory of files in one command
+  searches a directory of files in one command, and a
+  [RAG / hybrid-search retriever](examples/rag_retriever.py) that pairs Whoosh
+  BM25 with any vector store via Reciprocal Rank Fusion
 - **Roadmap:** [ROADMAP.md](ROADMAP.md)
 - **Changelog:** [CHANGELOG.md](CHANGELOG.md)
 

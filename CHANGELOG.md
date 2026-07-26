@@ -6,6 +6,17 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Added
+- New example `examples/rag_retriever.py`: using Whoosh as a BM25 retriever for
+  RAG, with a runnable **hybrid search** pattern (Whoosh BM25 + any vector store,
+  fused via Reciprocal Rank Fusion). It demonstrates the complementary failure
+  modes hybrid search fixes — dense retrieval bridging synonyms while BM25 nails
+  rare literal tokens like error codes — and assembles the fused top-k chunks
+  into an LLM context window. Runs with only Whoosh and the standard library
+  (the dense retriever is a dependency-free stand-in you swap for
+  FAISS/Chroma/pgvector). Covered by `tests/test_example_rag_retriever.py` so
+  the "Whoosh for RAG" guide always has working code behind it.
+
 ## [3.26.0] - 2026-07-26
 
 This release completes the type annotations for the whole `whoosh.query`
