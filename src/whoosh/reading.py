@@ -28,10 +28,13 @@
 """This module contains classes that allow reading from an index.
 """
 
+from __future__ import annotations
+
 from abc import abstractmethod
 from bisect import bisect_right
 from heapq import heapify, heappop, heapreplace, nlargest
 from math import log
+from typing import TYPE_CHECKING, Any
 
 try:
     from functools import cached_property
@@ -43,6 +46,12 @@ from whoosh.filedb.filestore import OverlayStorage
 from whoosh.matching import MultiMatcher
 from whoosh.support.levenshtein import distance
 from whoosh.system import emptybytes
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Iterator
+
+    from whoosh.fields import Schema
+    from whoosh.matching import Matcher
 
 # Exceptions
 
@@ -115,43 +124,43 @@ class TermInfo:
                 self._minlength = min(self._minlength, length)
             self._maxlength = max(self._maxlength, length)
 
-    def weight(self):
+    def weight(self) -> float:
         """Returns the total frequency of the term across all documents."""
 
         return self._weight
 
-    def doc_frequency(self):
+    def doc_frequency(self) -> int:
         """Returns the number of documents the term appears in."""
 
         return self._df
 
-    def min_length(self):
+    def min_length(self) -> int | None:
         """Returns the length of the shortest field value the term appears
         in.
         """
 
         return self._minlength
 
-    def max_length(self):
+    def max_length(self) -> int:
         """Returns the length of the longest field value the term appears
         in.
         """
 
         return self._maxlength
 
-    def max_weight(self):
+    def max_weight(self) -> float:
         """Returns the number of times the term appears in the document in
         which it appears the most.
         """
 
         return self._maxweight
 
-    def min_id(self):
+    def min_id(self) -> int | None:
         """Returns the lowest document ID this term appears in."""
 
         return self._minid
 
-    def max_id(self):
+    def max_id(self) -> int:
         """Returns the highest document ID this term appears in."""
 
         return self._maxid
@@ -162,6 +171,11 @@ class TermInfo:
 
 class IndexReader:
     """Do not instantiate this object directly. Instead use Index.reader()."""
+
+    #: The :class:`whoosh.fields.Schema` of the index being read. Concrete
+    #: subclasses (``SegmentReader``/``MultiReader``/``EmptyReader``) set this
+    #: in their ``__init__``.
+    schema: Schema
 
     def __enter__(self):
         return self
@@ -208,7 +222,7 @@ class IndexReader:
     def is_atomic(self):
         return True
 
-    def _text_to_bytes(self, fieldname, text):
+    def _text_to_bytes(self, fieldname: str, text: str | bytes) -> bytes:
         if fieldname not in self.schema:
             raise TermNotFound((fieldname, text))
         return self.schema[fieldname].to_bytes(text)
@@ -226,7 +240,7 @@ class IndexReader:
         return None
 
     @abstractmethod
-    def indexed_field_names(self):
+    def indexed_field_names(self) -> Iterable[str]:
         """Returns an iterable of strings representing the names of the indexed
         fields. This may include additional names not explicitly listed in the
         Schema if you use "glob" fields.
@@ -235,12 +249,14 @@ class IndexReader:
         raise NotImplementedError
 
     @abstractmethod
-    def all_terms(self):
+    def all_terms(self) -> Iterable[tuple[str, bytes]]:
         """Yields (fieldname, text) tuples for every term in the index."""
 
         raise NotImplementedError
 
-    def terms_from(self, fieldname, prefix):
+    def terms_from(
+        self, fieldname: str, prefix: bytes
+    ) -> Iterable[tuple[str, bytes]]:
         """Yields (fieldname, text) tuples for every term in the index starting
         at the given prefix.
         """
@@ -252,14 +268,14 @@ class IndexReader:
             yield (fname, text)
 
     @abstractmethod
-    def term_info(self, fieldname, text):
+    def term_info(self, fieldname: str, text: str | bytes) -> TermInfo:
         """Returns a :class:`TermInfo` object allowing access to various
         statistics about the given term.
         """
 
         raise NotImplementedError
 
-    def expand_prefix(self, fieldname, prefix):
+    def expand_prefix(self, fieldname: str, prefix: str | bytes) -> Iterable[bytes]:
         """Yields terms in the given field that start with the given prefix."""
 
         prefix = self._text_to_bytes(fieldname, prefix)
@@ -268,7 +284,7 @@ class IndexReader:
                 return
             yield text
 
-    def lexicon(self, fieldname):
+    def lexicon(self, fieldname: str) -> Iterable[bytes]:
         """Yields all bytestrings in the given field."""
 
         for fn, btext in self.terms_from(fieldname, emptybytes):
@@ -312,7 +328,9 @@ class IndexReader:
         for term in self.terms_from(fieldname, text):
             yield (term, term_info(*term))
 
-    def iter_field(self, fieldname, prefix=""):
+    def iter_field(
+        self, fieldname: str, prefix: str | bytes = ""
+    ) -> Iterator[tuple[bytes, TermInfo]]:
         """Yields (text, terminfo) tuples for all terms in the given field."""
 
         prefix = self._text_to_bytes(fieldname, prefix)
@@ -333,7 +351,7 @@ class IndexReader:
             yield (text, terminfo)
 
     @abstractmethod
-    def has_deletions(self):
+    def has_deletions(self) -> bool:
         """Returns True if the underlying index/segment has deleted
         documents.
         """
@@ -357,13 +375,13 @@ class IndexReader:
             yield docnum, self.stored_fields(docnum)
 
     @abstractmethod
-    def is_deleted(self, docnum):
+    def is_deleted(self, docnum: int) -> bool:
         """Returns True if the given document number is marked deleted."""
 
         raise NotImplementedError
 
     @abstractmethod
-    def stored_fields(self, docnum):
+    def stored_fields(self, docnum: int) -> dict[str, Any]:
         """Returns the stored fields for the given document number.
 
         :param numerickeys: use field numbers as the dictionary keys instead of
@@ -372,7 +390,7 @@ class IndexReader:
 
         raise NotImplementedError
 
-    def all_stored_fields(self):
+    def all_stored_fields(self) -> Iterable[dict[str, Any]]:
         """Yields the stored fields for all non-deleted documents."""
 
         is_deleted = self.is_deleted
@@ -381,7 +399,7 @@ class IndexReader:
                 yield self.stored_fields(docnum)
 
     @abstractmethod
-    def doc_count_all(self):
+    def doc_count_all(self) -> int:
         """Returns the total number of documents, DELETED OR UNDELETED,
         in this reader.
         """
@@ -389,20 +407,20 @@ class IndexReader:
         raise NotImplementedError
 
     @abstractmethod
-    def doc_count(self):
+    def doc_count(self) -> int:
         """Returns the total number of UNDELETED documents in this reader."""
 
         return self.doc_count_all() - self.deleted_count()
 
     @abstractmethod
-    def frequency(self, fieldname, text):
+    def frequency(self, fieldname: str, text: str | bytes) -> int:
         """Returns the total number of instances of the given term in the
         collection.
         """
         raise NotImplementedError
 
     @abstractmethod
-    def doc_frequency(self, fieldname, text):
+    def doc_frequency(self, fieldname: str, text: str | bytes) -> int:
         """Returns how many documents the given term appears in."""
         raise NotImplementedError
 
@@ -434,7 +452,7 @@ class IndexReader:
         """
         raise NotImplementedError
 
-    def first_id(self, fieldname, text):
+    def first_id(self, fieldname: str, text: str | bytes) -> int:
         """Returns the first ID in the posting list for the given term. This
         may be optimized in certain backends.
         """
@@ -457,7 +475,7 @@ class IndexReader:
                 m.next()
 
     @abstractmethod
-    def postings(self, fieldname, text):
+    def postings(self, fieldname: str, text: str | bytes) -> Matcher:
         """Returns a :class:`~whoosh.matching.Matcher` for the postings of the
         given term.
 
@@ -474,7 +492,7 @@ class IndexReader:
         raise NotImplementedError
 
     @abstractmethod
-    def has_vector(self, docnum, fieldname):
+    def has_vector(self, docnum: int, fieldname: str) -> bool:
         """Returns True if the given document has a term vector for the given
         field.
         """
@@ -538,7 +556,9 @@ class IndexReader:
         fieldobj = self.schema[fieldname]
         return ReaderCorrector(self, fieldname, fieldobj)
 
-    def terms_within(self, fieldname, text, maxdist, prefix=0):
+    def terms_within(
+        self, fieldname: str, text: str, maxdist: int, prefix: int = 0
+    ) -> Iterable[str]:
         """
         Returns a generator of words in the given field within ``maxdist``
         Damerau-Levenshtein edit distance of the given text.

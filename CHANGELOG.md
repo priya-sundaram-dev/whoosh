@@ -7,6 +7,24 @@ All notable changes to this project are documented here. This project follows
 ## [Unreleased]
 
 ### Added
+- Type hints for the public read API in `whoosh.reading` — the `IndexReader`
+  surface every search touches. The term-enumeration methods
+  (`indexed_field_names()` → `Iterable[str]`, `all_terms()` →
+  `Iterable[tuple[str, bytes]]`, `lexicon()` / `expand_prefix()` → bytestrings,
+  `iter_field()` → `(bytes, TermInfo)` pairs), the per-term statistics
+  (`term_info()` → `TermInfo`, `frequency()` / `doc_frequency()` → `int`,
+  `first_id()` → `int`, `postings()` → `Matcher`), the document counts and
+  flags (`doc_count()` / `doc_count_all()` → `int`, `has_deletions()` /
+  `is_deleted()` / `has_vector()` → `bool`), the stored-field accessors
+  (`stored_fields()` → `dict[str, Any]`, `all_stored_fields()`), and
+  `terms_within()` now carry [PEP 484](https://peps.python.org/pep-0484/)
+  annotations, along with the `TermInfo` statistics object
+  (`doc_frequency()` / `max_id()` → `int`, `weight()` / `max_weight()` →
+  `float`, min/max length accessors). Heavy imports (`Matcher`, `Schema`) stay
+  under `TYPE_CHECKING` and the module gains
+  `from __future__ import annotations`, so there is no import-time cost. The
+  reader entry points are now exercised by the `tests/typing_smoke.py` mypy
+  fixture. Annotations only — no runtime behaviour changes. (#64)
 - Type hints for the public write API in `whoosh.writing` — the `IndexWriter`
   surface almost every Whoosh program calls. The schema-mutation helpers
   (`add_field(name, FieldType)` / `remove_field(name)` → `None`), the deletion

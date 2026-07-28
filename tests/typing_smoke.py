@@ -44,6 +44,7 @@ from whoosh.query import (
 if TYPE_CHECKING:
     from whoosh.matching import Matcher
     from whoosh.query import Query
+    from whoosh.reading import IndexReader, TermInfo
     from whoosh.searching import Hit, Results
     from whoosh.writing import IndexWriter
 
@@ -330,6 +331,61 @@ def run() -> list[str]:
         assert isinstance(qcorr, spelling.QueryCorrector)
         spell_field: str = spelling.QueryCorrector("title").field()
         assert spell_field == "title"
+
+        # whoosh.reading public API (gh#64): the IndexReader read side that
+        # every search touches. The annotated signatures flow the concrete
+        # return types (counts as ``int``, ``lexicon`` as bytestrings, a
+        # ``TermInfo`` with ``int`` statistics, a ``Matcher`` for postings)
+        # into downstream index-introspection code.
+        reader: IndexReader = searcher.reader()
+        field_names: list[str] = list(reader.indexed_field_names())
+        assert "title" in field_names
+
+        doc_total: int = reader.doc_count()
+        doc_total_all: int = reader.doc_count_all()
+        assert doc_total <= doc_total_all
+        assert reader.has_deletions() is False
+        assert reader.is_deleted(0) is False
+
+        lex: list[bytes] = list(reader.lexicon("title"))
+        assert all(isinstance(bs, bytes) for bs in lex)
+        prefixed: list[bytes] = list(reader.expand_prefix("title", "sea"))
+        assert all(isinstance(bs, bytes) for bs in prefixed)
+
+        all_terms: list[tuple[str, bytes]] = list(reader.all_terms())
+        assert all_terms
+
+        if lex:
+            first_text: bytes = lex[0]
+            info: TermInfo = reader.term_info("title", first_text)
+            term_df: int = info.doc_frequency()
+            term_weight: float = info.weight()
+            term_maxid: int = info.max_id()
+            assert term_df >= 1
+            assert term_weight >= 0.0
+            assert term_maxid >= 0
+
+            freq: int = reader.frequency("title", first_text)
+            docfreq: int = reader.doc_frequency("title", first_text)
+            assert freq >= docfreq >= 1
+
+            postings: Matcher = reader.postings("title", first_text)
+            assert postings.is_active() in (True, False)
+
+            for text, terminfo in reader.iter_field("title"):
+                assert isinstance(text, bytes)
+                assert isinstance(terminfo.doc_frequency(), int)
+                break
+
+        reader_stored: dict[str, Any] = reader.stored_fields(0)
+        assert isinstance(reader_stored, dict)
+        for stored_doc in reader.all_stored_fields():
+            assert isinstance(stored_doc, dict)
+            break
+        assert reader.has_vector(0, "title") in (True, False)
+
+        near: list[str] = list(reader.terms_within("title", "search", 1))
+        assert all(isinstance(word, str) for word in near)
 
     return titles
 
