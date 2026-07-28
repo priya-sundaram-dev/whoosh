@@ -69,7 +69,7 @@ class NgramTokenizer(Tokenizer):
         self.min = minsize
         self.max = maxsize or minsize
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         if self.__class__ is other.__class__:
             if self.min == other.min and self.max == other.max:
                 return True
@@ -165,7 +165,7 @@ class NgramFilter(Filter):
         elif at == "end":
             self.at = 1
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         return (
             other
             and self.__class__ is other.__class__
