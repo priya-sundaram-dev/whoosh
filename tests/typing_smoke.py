@@ -387,6 +387,64 @@ def run() -> list[str]:
         near: list[str] = list(reader.terms_within("title", "search", 1))
         assert all(isinstance(word, str) for word in near)
 
+        # whoosh.query base-class public API (gh#69): the generic Query surface
+        # every query type inherits and that tree-transformation / introspection
+        # code calls polymorphically. The annotations flow the concrete return
+        # types into user code: the boolean predicates return ``bool``, the
+        # tree-walkers (children/leaves) yield ``Query``, term introspection
+        # yields ``(str, str)`` pairs, transforms (with_boost/apply/accept/
+        # normalize/simplify) return a ``Query``, estimate_* return ``int``,
+        # docs() yields ``int`` docnums, and tokens/all_tokens yield ``Token``.
+        base_q: Query = And([term_q, prefix_q]).normalize()
+        is_leaf: bool = base_q.is_leaf()
+        is_range: bool = base_q.is_range()
+        has_terms: bool = base_q.has_terms()
+        needs_spans: bool = base_q.needs_spans()
+        assert is_leaf in (True, False)
+        assert (is_range, has_terms, needs_spans) != (None, None, None)
+
+        for child_q in base_q.children():
+            assert isinstance(str(child_q), str)
+        for leaf_q in base_q.leaves():
+            assert isinstance(str(leaf_q), str)
+
+        for base_field, base_text in base_q.iter_all_terms():
+            assert isinstance(base_field, str) and isinstance(base_text, str)
+        all_pairs: set[tuple[str, str]] = base_q.all_terms()
+        assert all(isinstance(f, str) and isinstance(t, str) for f, t in all_pairs)
+        for pair_field, pair_text in base_q.terms(phrases=True):
+            assert isinstance(pair_field, str) and isinstance(pair_text, str)
+
+        existing: set[tuple[str, bytes]] = base_q.existing_terms(reader, expand=True)
+        assert all(isinstance(t, bytes) for _, t in existing)
+
+        boosted: Query = base_q.with_boost(2.0)
+        applied: Query = base_q.apply(lambda q: q)
+        accepted: Query = base_q.accept(lambda q: q)
+        simplified: Query = base_q.simplify(reader)
+        required: set[Query] = base_q.requires()
+        assert isinstance(str(boosted), str)
+        assert isinstance(str(applied), str) and isinstance(str(accepted), str)
+        assert isinstance(str(simplified), str)
+        assert all(isinstance(str(r), str) for r in required)
+
+        matched_field: str | None = term_q.field()
+        assert matched_field is None or isinstance(matched_field, str)
+
+        size_est: int = term_q.estimate_size(reader)
+        min_est: int = term_q.estimate_min_size(reader)
+        assert size_est >= 0 and min_est >= 0
+
+        base_docnums: list[int] = list(term_q.docs(searcher))
+        assert all(dn >= 0 for dn in base_docnums)
+
+        base_tokens: list[Any] = list(term_q.all_tokens())
+        more_tokens: list[Any] = list(term_q.tokens())
+        assert isinstance(base_tokens, list) and isinstance(more_tokens, list)
+
+        term_leaves, phrase_leaves = phrase_q.phrases()
+        assert isinstance(term_leaves, list) and isinstance(phrase_leaves, list)
+
     return titles
 
 

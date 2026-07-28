@@ -26,12 +26,23 @@
 # policies, either expressed or implied, of Matt Chaput.
 
 
+from __future__ import annotations
+
 import copy
 from array import array
 from operator import methodcaller
+from typing import TYPE_CHECKING, Any
 
 from whoosh import matching
 from whoosh.reading import TermNotFound
+
+if TYPE_CHECKING:
+    from collections.abc import Callable, Iterator
+
+    from whoosh.analysis.acore import Token
+    from whoosh.matching import Matcher
+    from whoosh.reading import IndexReader
+    from whoosh.searching import Searcher
 
 # Exceptions
 
@@ -208,24 +219,24 @@ class Query:
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    def is_leaf(self):
+    def is_leaf(self) -> bool:
         """Returns True if this is a leaf node in the query tree, or False if
         this query has sub-queries.
         """
 
         return True
 
-    def children(self):
+    def children(self) -> Iterator[Query]:
         """Returns an iterator of the subqueries of this object."""
 
         return iter([])
 
-    def is_range(self):
+    def is_range(self) -> bool:
         """Returns True if this object searches for values within a range."""
 
         return False
 
-    def has_terms(self):
+    def has_terms(self) -> bool:
         """Returns True if this specific object represents a search for a
         specific term (as opposed to a pattern, as in Wildcard and Prefix) or
         terms (i.e., whether the ``replace()`` method does something
@@ -234,13 +245,13 @@ class Query:
 
         return False
 
-    def needs_spans(self):
+    def needs_spans(self) -> bool:
         for child in self.children():
             if child.needs_spans():
                 return True
         return False
 
-    def apply(self, fn):
+    def apply(self, fn: Callable[[Query], Query]) -> Query:
         """If this query has children, calls the given function on each child
         and returns a new copy of this node with the new children returned by
         the function. If this is a leaf node, simply returns this object.
@@ -267,7 +278,7 @@ class Query:
 
         return self
 
-    def accept(self, fn):
+    def accept(self, fn: Callable[[Query], Query]) -> Query:
         """Applies the given function to this query's subqueries (if any) and
         then to this query itself::
 
@@ -292,7 +303,7 @@ class Query:
 
         return fn_wrapper(self)
 
-    def replace(self, fieldname, oldtext, newtext):
+    def replace(self, fieldname: str, oldtext: Any, newtext: Any) -> Query:
         """Returns a copy of this query with oldtext replaced by newtext (if
         oldtext was anywhere in this query).
 
@@ -307,12 +318,12 @@ class Query:
         else:
             return self.apply(methodcaller("replace", fieldname, oldtext, newtext))
 
-    def copy(self):
+    def copy(self) -> Query:
         """Deprecated, just use ``copy.deepcopy``."""
 
         return copy.deepcopy(self)
 
-    def all_terms(self, phrases=True):
+    def all_terms(self, phrases: bool = True) -> set[tuple[str, str]]:
         """Returns a set of all terms in this query tree.
 
         This method exists for backwards-compatibility. Use iter_all_terms()
@@ -324,7 +335,7 @@ class Query:
 
         return set(self.iter_all_terms(phrases=phrases))
 
-    def terms(self, phrases=False):
+    def terms(self, phrases: bool = False) -> Iterator[tuple[str, str]]:
         """Yields zero or more (fieldname, text) pairs queried by this object.
         You can check whether a query object targets specific terms before you
         call this method using :meth:`Query.has_terms`.
@@ -334,10 +345,18 @@ class Query:
 
         return iter(())
 
-    def expanded_terms(self, ixreader, phrases=True):
+    def expanded_terms(
+        self, ixreader: IndexReader, phrases: bool = True
+    ) -> Iterator[tuple[str, str]]:
         return self.terms(phrases=phrases)
 
-    def existing_terms(self, ixreader, phrases=True, expand=False, fieldname=None):
+    def existing_terms(
+        self,
+        ixreader: IndexReader,
+        phrases: bool = True,
+        expand: bool = False,
+        fieldname: str | None = None,
+    ) -> set[tuple[str, bytes]]:
         """Returns a set of all byteterms in this query tree that exist in
         the given ixreader.
 
@@ -376,7 +395,7 @@ class Query:
                         termset.add((fieldname, btext))
         return termset
 
-    def phrases(self):
+    def phrases(self) -> tuple[list[Query], list[Query]]:
         """
         Recursively get all individual terms and phrases that are part of this Query
         """
@@ -399,7 +418,7 @@ class Query:
                     terms.extend(t)
         return terms, phrases
 
-    def leaves(self):
+    def leaves(self) -> Iterator[Query]:
         """Returns an iterator of all the leaf queries in this query tree as a
         flat series.
         """
@@ -410,7 +429,7 @@ class Query:
             for q in self.children():
                 yield from q.leaves()
 
-    def iter_all_terms(self, phrases=True):
+    def iter_all_terms(self, phrases: bool = True) -> Iterator[tuple[str, str]]:
         """Returns an iterator of (fieldname, text) pairs for all terms in
         this query tree.
 
@@ -435,7 +454,7 @@ class Query:
             if q.has_terms():
                 yield from q.terms(phrases=phrases)
 
-    def all_tokens(self, boost=1.0):
+    def all_tokens(self, boost: float = 1.0) -> Iterator[Token]:
         """Returns an iterator of :class:`analysis.Token` objects corresponding
         to all terms in this query tree. The Token objects will have the
         ``fieldname``, ``text``, and ``boost`` attributes set. If the query
@@ -451,7 +470,9 @@ class Query:
             for child in self.children():
                 yield from child.all_tokens(boost)
 
-    def tokens(self, boost=1.0, exreader=None):
+    def tokens(
+        self, boost: float = 1.0, exreader: IndexReader | None = None
+    ) -> Iterator[Token]:
         """Yields zero or more :class:`analysis.Token` objects corresponding to
         the terms searched for by this query object. You can check whether a
         query object targets specific terms before you call this method using
@@ -470,7 +491,7 @@ class Query:
 
         return iter(())
 
-    def requires(self):
+    def requires(self) -> set[Query]:
         """Returns a set of queries that are *known* to be required to match
         for the entire query to match. Note that other queries might also turn
         out to be required but not be determinable by examining the static
@@ -492,14 +513,14 @@ class Query:
 
         return {self}
 
-    def field(self):
+    def field(self) -> str | None:
         """Returns the field this query matches in, or None if this query does
         not match in a single field.
         """
 
         return self.fieldname
 
-    def with_boost(self, boost):
+    def with_boost(self, boost: float) -> Query:
         """Returns a COPY of this query with the boost set to the given value.
 
         If a query type does not accept a boost itself, it will try to pass the
@@ -510,7 +531,7 @@ class Query:
         q.boost = boost
         return q
 
-    def estimate_size(self, ixreader):
+    def estimate_size(self, ixreader: IndexReader) -> int:
         """Returns an estimate of how many documents this query could
         potentially match (for example, the estimated size of a simple term
         query is the document frequency of the term). It is permissible to
@@ -518,14 +539,14 @@ class Query:
         """
         raise NotImplementedError
 
-    def estimate_min_size(self, ixreader):
+    def estimate_min_size(self, ixreader: IndexReader) -> int:
         """Returns an estimate of the minimum number of documents this query
         could potentially match.
         """
 
         return self.estimate_size(ixreader)
 
-    def matcher(self, searcher, context=None):
+    def matcher(self, searcher: Searcher, context: Any = None) -> Matcher:
         """Returns a :class:`~whoosh.matching.Matcher` object you can use to
         retrieve documents and scores matching this query.
 
@@ -534,7 +555,7 @@ class Query:
 
         raise NotImplementedError
 
-    def docs(self, searcher):
+    def docs(self, searcher: Searcher) -> Iterator[int]:
         """Returns an iterator of docnums matching this query.
 
         >>> with my_index.searcher() as searcher:
@@ -550,7 +571,7 @@ class Query:
         except TermNotFound:
             return iter([])
 
-    def deletion_docs(self, searcher):
+    def deletion_docs(self, searcher: Searcher) -> Iterator[int]:
         """Returns an iterator of docnums matching this query for the purpose
         of deletion. The :meth:`~whoosh.writing.IndexWriter.delete_by_query`
         method will use this method when deciding what documents to delete,
@@ -561,7 +582,7 @@ class Query:
 
         return self.docs(searcher)
 
-    def normalize(self):
+    def normalize(self) -> Query:
         """Returns a recursively "normalized" form of this query. The
         normalized form removes redundancy and empty queries. This is called
         automatically on query trees created by the query parser, but you may
@@ -579,7 +600,7 @@ class Query:
         """
         return self
 
-    def simplify(self, ixreader):
+    def simplify(self, ixreader: IndexReader) -> Query:
         """Returns a recursively simplified form of this query, where
         "second-order" queries (such as Prefix and Variations) are re-written
         into lower-level queries (such as Term and Or).

@@ -6,6 +6,25 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Added
+- Type hints for the `whoosh.query.Query` base-class public API — the generic
+  query surface every query type inherits and that tree-transformation and
+  introspection code calls polymorphically. The boolean predicates
+  (`is_leaf()` / `is_range()` / `has_terms()` / `needs_spans()` → `bool`), the
+  tree walkers (`children()` / `leaves()` → `Iterator[Query]`), term
+  introspection (`iter_all_terms()` / `terms()` / `expanded_terms()` →
+  `Iterator[tuple[str, str]]`, `all_terms()` → `set[tuple[str, str]]`,
+  `existing_terms()` → `set[tuple[str, bytes]]`), the transforms
+  (`apply()` / `accept()` accept a `Callable[[Query], Query]`;
+  `with_boost()` / `copy()` / `replace()` / `normalize()` / `simplify()` →
+  `Query`), the estimators (`estimate_size()` / `estimate_min_size()` → `int`),
+  `field()` → `str | None`, `requires()` → `set[Query]`, `docs()` /
+  `deletion_docs()` → `Iterator[int]`, `matcher()` → `Matcher`, and
+  `all_tokens()` / `tokens()` → `Iterator[Token]` now carry
+  [PEP 484](https://peps.python.org/pep-0484/) annotations. Heavy imports
+  (`Matcher`, `IndexReader`, `Searcher`, `Token`) stay behind `TYPE_CHECKING`,
+  so there is no import-time cost. (gh#69)
+
 ## [3.29.0] - 2026-07-28
 
 ### Added
