@@ -29,10 +29,20 @@
 This module contains helper functions for correcting typos in user queries.
 """
 
+from __future__ import annotations
+
 from bisect import bisect_left
 from heapq import heappush, heapreplace
+from typing import TYPE_CHECKING, Any
 
 from whoosh import highlight
+
+if TYPE_CHECKING:
+    from collections.abc import Callable, Iterable, Iterator, Sequence
+
+    from whoosh.fields import FieldType
+    from whoosh.query import Query
+    from whoosh.reading import IndexReader
 
 # Corrector objects
 
@@ -43,7 +53,9 @@ class Corrector:
     implement the ``_suggestions`` method.
     """
 
-    def suggest(self, text, limit=5, maxdist=2, prefix=0):
+    def suggest(
+        self, text: str, limit: int = 5, maxdist: int = 2, prefix: int = 0
+    ) -> list[str]:
         """
         :param text: the text to check. This word will **not** be added to the
             suggestions, even if it appears in the word graph.
@@ -61,7 +73,7 @@ class Corrector:
 
         _suggestions = self._suggestions
 
-        heap = []
+        heap: list[tuple[float, str]] = []
         for item in _suggestions(text, maxdist, prefix):
             # The word being checked is never itself a "correction" -- see the
             # ``text`` parameter docs above. Sub-correctors may legitimately
@@ -78,7 +90,9 @@ class Corrector:
         sugs = sorted(heap, key=lambda x: (0 - x[0], x[1]))
         return [sug for _, sug in sugs]
 
-    def _suggestions(self, text, maxdist, prefix):
+    def _suggestions(
+        self, text: str, maxdist: int, prefix: int
+    ) -> Iterator[tuple[float, str]]:
         """
         Low-level method that yields a series of (score, "suggestion")
         tuples.
@@ -100,12 +114,16 @@ class ReaderCorrector(Corrector):
     frequency.
     """
 
-    def __init__(self, reader, fieldname, fieldobj):
+    def __init__(
+        self, reader: IndexReader, fieldname: str, fieldobj: FieldType
+    ) -> None:
         self.reader = reader
         self.fieldname = fieldname
         self.fieldobj = fieldobj
 
-    def _suggestions(self, text, maxdist, prefix):
+    def _suggestions(
+        self, text: str, maxdist: int, prefix: int
+    ) -> Iterator[tuple[float, str]]:
         reader = self.reader
         freq = reader.frequency
 
@@ -125,10 +143,12 @@ class ListCorrector(Corrector):
     Suggests corrections based on the content of a sorted list of strings.
     """
 
-    def __init__(self, wordlist):
+    def __init__(self, wordlist: Sequence[str]) -> None:
         self.wordlist = wordlist
 
-    def _suggestions(self, text, maxdist, prefix):
+    def _suggestions(
+        self, text: str, maxdist: int, prefix: int
+    ) -> Iterator[tuple[float, str]]:
         from whoosh.automata.fsa import find_all_matches
         from whoosh.automata.lev import levenshtein_automaton
 
@@ -148,11 +168,11 @@ class ListCorrector(Corrector):
         # must never skip past a candidate we haven't compared yet: bisect from
         # the current cursor position (not one past it) so ``data[self.i]``
         # itself remains eligible.
-        def __init__(self, data):
+        def __init__(self, data: Sequence[str]) -> None:
             self.data = data
             self.i = 0
 
-        def __call__(self, w):
+        def __call__(self, w: str) -> str | None:
             data = self.data
             pos = bisect_left(data, w, self.i)
             self.i = pos
@@ -167,13 +187,19 @@ class MultiCorrector(Corrector):
     Merges suggestions from a list of sub-correctors.
     """
 
-    def __init__(self, correctors, op):
+    def __init__(
+        self,
+        correctors: Sequence[Corrector],
+        op: Callable[[float, float], float],
+    ) -> None:
         self.correctors = correctors
         self.op = op
 
-    def _suggestions(self, text, maxdist, prefix):
+    def _suggestions(
+        self, text: str, maxdist: int, prefix: int
+    ) -> Iterator[tuple[float, str]]:
         op = self.op
-        seen = {}
+        seen: dict[str, float] = {}
         for corr in self.correctors:
             for score, sug in corr._suggestions(text, maxdist, prefix):
                 if sug in seen:
@@ -219,7 +245,13 @@ class Correction:
         html = correction.format_string(hf)
     """
 
-    def __init__(self, q, qstring, corr_q, tokens):
+    def __init__(
+        self,
+        q: Query,
+        qstring: str | None,
+        corr_q: Query,
+        tokens: list[Any],
+    ) -> None:
         self.original_query = q
         self.query = corr_q
         self.original_string = qstring
@@ -230,10 +262,10 @@ class Correction:
         else:
             self.string = ""
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.query!r}, {self.string!r})"
 
-    def format_string(self, formatter):
+    def format_string(self, formatter: highlight.Formatter) -> str:
         """
         Highlights the corrected words in the original query string using the
         given :class:`~whoosh.highlight.Formatter`.
@@ -260,10 +292,10 @@ class QueryCorrector:
     Base class for objects that correct words in a user query.
     """
 
-    def __init__(self, fieldname):
+    def __init__(self, fieldname: str) -> None:
         self.fieldname = fieldname
 
-    def correct_query(self, q, qstring):
+    def correct_query(self, q: Query, qstring: str | None) -> Correction:
         """
         Returns a :class:`Correction` object representing the corrected
         form of the given query.
@@ -278,7 +310,7 @@ class QueryCorrector:
 
         raise NotImplementedError
 
-    def field(self):
+    def field(self) -> str:
         return self.fieldname
 
 
@@ -290,7 +322,14 @@ class SimpleQueryCorrector(QueryCorrector):
     corrected using the appropriate corrector.
     """
 
-    def __init__(self, correctors, terms, aliases=None, prefix=0, maxdist=2):
+    def __init__(
+        self,
+        correctors: dict[str, Corrector],
+        terms: Iterable[tuple[str, str]],
+        aliases: dict[str, str] | None = None,
+        prefix: int = 0,
+        maxdist: int = 2,
+    ) -> None:
         """
         :param correctors: a dictionary mapping field names to
             :class:`Corrector` objects.
@@ -315,7 +354,7 @@ class SimpleQueryCorrector(QueryCorrector):
         self.prefix = prefix
         self.maxdist = maxdist
 
-    def correct_query(self, q, qstring):
+    def correct_query(self, q: Query, qstring: str | None) -> Correction:
         correctors = self.correctors
         aliases = self.aliases
         termset = self.termset

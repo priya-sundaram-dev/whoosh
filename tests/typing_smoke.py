@@ -15,9 +15,10 @@ from __future__ import annotations
 
 import tempfile
 from datetime import datetime
+from operator import add
 from typing import TYPE_CHECKING, Any
 
-from whoosh import classify, highlight, index, scoring
+from whoosh import classify, highlight, index, scoring, spelling
 from whoosh.fields import DATETIME, ID, NUMERIC, TEXT, Schema
 from whoosh.qparser import QueryParser
 from whoosh.query import (
@@ -265,6 +266,46 @@ def run() -> list[str]:
         expander.add([("search", 1.0)])
         expanded: list[tuple[str, float]] = expander.expanded_terms(3)
         assert isinstance(expanded, list)
+
+        # whoosh.spelling public API (gh#61): the "did you mean" surface.
+        # ListCorrector builds from a sorted word list and .suggest() is
+        # annotated ``-> list[str]``, so its return type flows into user code.
+        # A ReaderCorrector pulled from the reader and a MultiCorrector merge
+        # keep the same Corrector interface; the searching layer's
+        # correct_query returns an annotated Correction whose .format_string()
+        # yields str and whose .query stays a Query.
+        list_corr: spelling.Corrector = spelling.ListCorrector(
+            ["indexing", "search", "searching"]
+        )
+        suggestions: list[str] = list_corr.suggest("serch", limit=3, maxdist=2, prefix=1)
+        assert isinstance(suggestions, list)
+        assert all(isinstance(s, str) for s in suggestions)
+
+        reader_corr: spelling.Corrector = searcher.reader().corrector("title")
+        multi: spelling.Corrector = spelling.MultiCorrector(
+            [list_corr, reader_corr], add
+        )
+        merged: list[str] = multi.suggest("serch")
+        assert isinstance(merged, list)
+
+        spell_parser = QueryParser("title", schema=ix.schema)
+        spell_q: Query = spell_parser.parse("serch")
+        correction: spelling.Correction = searcher.correct_query(spell_q, "serch")
+        corrected_query: Query = correction.query
+        corrected_string: str = correction.string
+        formatted: str = correction.format_string(highlight.NullFormatter())
+        repr_text: str = repr(correction)
+        assert isinstance(str(corrected_query), str)
+        assert isinstance(corrected_string, str)
+        assert isinstance(formatted, str)
+        assert repr_text.startswith("Correction(")
+
+        qcorr: spelling.QueryCorrector = spelling.SimpleQueryCorrector(
+            {"title": list_corr}, [("title", "serch")]
+        )
+        assert isinstance(qcorr, spelling.QueryCorrector)
+        spell_field: str = spelling.QueryCorrector("title").field()
+        assert spell_field == "title"
 
     return titles
 

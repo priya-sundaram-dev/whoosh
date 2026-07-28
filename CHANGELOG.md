@@ -6,6 +6,20 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Added
+- Type hints for the public API of `whoosh.spelling` — the spell-correction /
+  "did you mean" surface. `Corrector.suggest()` (and the `_suggestions()` hook
+  subclasses override), `ReaderCorrector` / `ListCorrector` / `MultiCorrector`,
+  the `Correction` result object (`format_string()` → `str`), and
+  `QueryCorrector` / `SimpleQueryCorrector.correct_query()` → `Correction` now
+  carry [PEP 484](https://peps.python.org/pep-0484/) annotations, so downstream
+  users get real signatures from the shipped `py.typed` marker in their editors
+  and `mypy`/`pyright` runs. Heavy imports stay under `TYPE_CHECKING` and the
+  module gains `from __future__ import annotations`, so there is no import-time
+  cost. The spelling entry points are now exercised by the
+  `tests/typing_smoke.py` mypy fixture. Annotations only — no runtime behaviour
+  changes. (#61)
+
 ## [3.28.0] - 2026-07-27
 
 ### Added
