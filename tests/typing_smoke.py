@@ -19,6 +19,14 @@ from operator import add
 from typing import TYPE_CHECKING, Any
 
 from whoosh import classify, highlight, index, scoring, spelling
+from whoosh.analysis.acore import Token
+from whoosh.analysis.ngrams import (
+    NgramAnalyzer,
+    NgramFilter,
+    NgramTokenizer,
+    NgramWordAnalyzer,
+)
+from whoosh.analysis.tokenizers import RegexTokenizer
 from whoosh.fields import DATETIME, ID, NUMERIC, TEXT, Schema
 from whoosh.qparser import QueryParser
 from whoosh.query import (
@@ -42,6 +50,9 @@ from whoosh.query import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator
+
+    from whoosh.analysis.analyzers import CompositeAnalyzer
     from whoosh.matching import Matcher
     from whoosh.query import Query
     from whoosh.reading import IndexReader, TermInfo
@@ -444,6 +455,25 @@ def run() -> list[str]:
 
         term_leaves, phrase_leaves = phrase_q.phrases()
         assert isinstance(term_leaves, list) and isinstance(phrase_leaves, list)
+
+    # whoosh.analysis.ngrams public API (gh#71): the N-gram tokenizer/filter
+    # pair behind autocomplete and prefix search. The annotations flow the
+    # concrete types into user code: the constructors take ``int`` sizes and an
+    # optional ``at`` string, calling the tokenizer or the filter yields
+    # ``Token`` objects, and the analyzer factories return a composed analyzer.
+    ngram_tokenizer = NgramTokenizer(2, 3)
+    ngram_tokens: list[Token] = list(ngram_tokenizer("hi there", positions=True))
+    assert all(isinstance(tok, Token) for tok in ngram_tokens)
+
+    ngram_filter = NgramFilter(2, 4, at="start")
+    filtered: Iterator[Token] = ngram_filter(RegexTokenizer()("hello there"))
+    assert all(isinstance(tok, Token) for tok in filtered)
+
+    ngram_analyzer: CompositeAnalyzer = NgramAnalyzer(3)
+    word_analyzer: CompositeAnalyzer = NgramWordAnalyzer(2, 4, at="end")
+    gram_texts: list[str] = [str(tok.text) for tok in ngram_analyzer("hi there")]
+    word_texts: list[str] = [str(tok.text) for tok in word_analyzer("hello there")]
+    assert gram_texts and word_texts
 
     return titles
 
