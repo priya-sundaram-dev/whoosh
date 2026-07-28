@@ -77,6 +77,30 @@ def run() -> list[str]:
         w.add_document(id="2", title="Second document about indexing")
         w.update_document(id="2", title="Second document about indexing v2")
 
+    # whoosh.writing's IndexWriter public API is annotated (gh#62). Exercise
+    # the schema-mutation, deletion and grouping helpers on a throwaway index
+    # so their side effects don't perturb the search fixture below. The precise
+    # types flow into user code: add_field/remove_field return ``None``, the
+    # delete_by_* helpers return the deleted-document ``int`` count, and
+    # group() yields an AbstractContextManager usable in a ``with`` statement.
+    wtmp = tempfile.mkdtemp()
+    wix = index.create_in(wtmp, build_schema())
+    w2: IndexWriter = wix.writer()
+    w2.add_field("body", TEXT(stored=True))
+    with w2.group():
+        w2.add_document(id="10", title="Grouped parent", body="child text")
+        w2.add_document(id="11", title="Grouped child", body="more text")
+    deleted_by_term: int = w2.delete_by_term("id", "10")
+    deleted_by_query: int = w2.delete_by_query(Term("id", "11"))
+    assert deleted_by_term >= 0 and deleted_by_query >= 0
+    w2.commit()
+
+    # remove_field is applied on a fresh writer (schema edits must precede any
+    # buffered documents); its ``-> None`` annotation flows here too.
+    w3: IndexWriter = wix.writer()
+    w3.remove_field("body")
+    w3.commit()
+
     # The scoring public API is annotated, so tuning constructors and the
     # WeightingModel/BaseScorer surface type-check for downstream users.
     weighting: scoring.WeightingModel = scoring.BM25F(B=0.75, K1=1.2)

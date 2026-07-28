@@ -42,12 +42,14 @@ groups many small updates into periodic commits, and
 the index is locked.
 """
 
+from __future__ import annotations
+
 import threading
 import time
 from abc import abstractmethod
 from bisect import bisect_right
-from contextlib import contextmanager
-from typing import Any
+from contextlib import AbstractContextManager, contextmanager
+from typing import TYPE_CHECKING, Any
 
 from whoosh import columns
 from whoosh.externalsort import SortingPool
@@ -56,6 +58,12 @@ from whoosh.index import LockError
 from whoosh.util import fib, random_name
 from whoosh.util.filelock import try_for
 from whoosh.util.text import utf8encode
+
+if TYPE_CHECKING:
+    from whoosh.fields import FieldType
+    from whoosh.query import Query
+    from whoosh.reading import IndexReader
+    from whoosh.searching import Searcher
 
 # Exceptions
 
@@ -235,7 +243,7 @@ class IndexWriter:
     ...     w.add_document(title="Second document", content="This is easy!")
     """
 
-    def __enter__(self) -> "IndexWriter":
+    def __enter__(self) -> IndexWriter:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
@@ -244,7 +252,7 @@ class IndexWriter:
         else:
             self.commit()
 
-    def group(self):
+    def group(self) -> AbstractContextManager[None]:
         """Returns a context manager that calls
         :meth:`~IndexWriter.start_group` and :meth:`~IndexWriter.end_group` for
         you, allowing you to use a ``with`` statement to group hierarchical
@@ -267,7 +275,7 @@ class IndexWriter:
 
         return groupmanager(self)
 
-    def start_group(self):
+    def start_group(self) -> None:
         """Start indexing a group of hierarchical documents. The backend should
         ensure that these documents are all added to the same segment::
 
@@ -293,14 +301,14 @@ class IndexWriter:
 
         pass
 
-    def end_group(self):
+    def end_group(self) -> None:
         """Finish indexing a group of hierarchical documents. See
         :meth:`~IndexWriter.start_group`.
         """
 
         pass
 
-    def add_field(self, fieldname, fieldtype, **kwargs):
+    def add_field(self, fieldname: str, fieldtype: FieldType, **kwargs: Any) -> None:
         """Adds a field to the index's schema.
 
         :param fieldname: the name of the field to add.
@@ -310,7 +318,7 @@ class IndexWriter:
 
         self.schema.add(fieldname, fieldtype, **kwargs)
 
-    def remove_field(self, fieldname, **kwargs):
+    def remove_field(self, fieldname: str, **kwargs: Any) -> None:
         """Removes the named field from the index's schema. Depending on the
         backend implementation, this may or may not actually remove existing
         data for the field from the index. Optimizing the index should always
@@ -320,17 +328,19 @@ class IndexWriter:
         self.schema.remove(fieldname, **kwargs)
 
     @abstractmethod
-    def reader(self, **kwargs):
+    def reader(self, **kwargs: Any) -> IndexReader:
         """Returns a reader for the existing index."""
 
         raise NotImplementedError
 
-    def searcher(self, **kwargs):
+    def searcher(self, **kwargs: Any) -> Searcher:
         from whoosh.searching import Searcher
 
         return Searcher(self.reader(), **kwargs)
 
-    def delete_by_term(self, fieldname, text, searcher=None):
+    def delete_by_term(
+        self, fieldname: str, text: str, searcher: Searcher | None = None
+    ) -> int:
         """Deletes any documents containing "term" in the "fieldname" field.
         This is useful when you have an indexed field containing a unique ID
         (such as "pathname") for each document.
@@ -343,7 +353,7 @@ class IndexWriter:
         q = Term(fieldname, text)
         return self.delete_by_query(q, searcher=searcher)
 
-    def delete_by_query(self, q, searcher=None):
+    def delete_by_query(self, q: Query, searcher: Searcher | None = None) -> int:
         """Deletes any documents matching a query object.
 
         :returns: the number of documents deleted.
@@ -366,7 +376,7 @@ class IndexWriter:
         return count
 
     @abstractmethod
-    def delete_document(self, docnum, delete=True):
+    def delete_document(self, docnum: int, delete: bool = True) -> None:
         """Deletes a document by number."""
         raise NotImplementedError
 

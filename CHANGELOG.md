@@ -7,6 +7,19 @@ All notable changes to this project are documented here. This project follows
 ## [Unreleased]
 
 ### Added
+- Type hints for the public write API in `whoosh.writing` — the `IndexWriter`
+  surface almost every Whoosh program calls. The schema-mutation helpers
+  (`add_field(name, FieldType)` / `remove_field(name)` → `None`), the deletion
+  helpers (`delete_by_term()` / `delete_by_query()` → `int` count of documents
+  removed, `delete_document(docnum)`), and the grouping helpers
+  (`group()` → context manager, `start_group()` / `end_group()`) now carry
+  [PEP 484](https://peps.python.org/pep-0484/) annotations, alongside the
+  already-typed `add_document` / `update_document` / `commit` / `cancel`. Heavy
+  imports (`Query`, `FieldType`, `IndexReader`, `Searcher`) stay under
+  `TYPE_CHECKING` and the module gains `from __future__ import annotations`, so
+  there is no import-time cost. The writer entry points are now exercised by the
+  `tests/typing_smoke.py` mypy fixture. Annotations only — no runtime behaviour
+  changes. (#62)
 - Type hints for the public API of `whoosh.spelling` — the spell-correction /
   "did you mean" surface. `Corrector.suggest()` (and the `_suggestions()` hook
   subclasses override), `ReaderCorrector` / `ListCorrector` / `MultiCorrector`,
