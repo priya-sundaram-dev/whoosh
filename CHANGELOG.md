@@ -6,6 +6,8 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.29.0] - 2026-07-28
+
 ### Added
 - Type hints for the public read API in `whoosh.reading` — the `IndexReader`
   surface every search touches. The term-enumeration methods
