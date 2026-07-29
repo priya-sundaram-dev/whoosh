@@ -359,6 +359,16 @@ Adding search to a static site
 The script walks the directory to find ``.md`` and ``.rst`` files, strips out simple markup using standard library regular expressions, and builds a Whoosh index. The schema boosts the ``title`` over the ``body`` content. When searching, it opens the index and prints highlighted snippets. This approach allows you to build the index at CI time or distribute it alongside a desktop application without external database dependencies.
 
 
+BM25 retrieval for RAG (hybrid search)
+=======================================
+
+``examples/rag_retriever.py`` — Whoosh provides fast, pure-Python lexical retrieval that catches exact tokens—such as SKUs, error codes, and function names—that dense retrieval embeddings often miss. It pairs seamlessly with any vector store to create a hybrid retrieval pipeline without requiring external servers or native wheels.
+
+The module docstring in ``examples/rag_retriever.py`` demonstrates the complete pipeline (BM25 lexical search combined with a dense retriever using Reciprocal Rank Fusion to assemble context). Run the example with::
+
+    python examples/rag_retriever.py
+
+
 Migrating from Whoosh 2.x / whoosh-reloaded
 ===========================================
 
