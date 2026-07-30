@@ -25,12 +25,15 @@
 # those of the authors and should not be interpreted as representing official
 # policies, either expressed or implied, of Matt Chaput.
 
+from __future__ import annotations
+
+import re
 import unicodedata
+from collections.abc import Iterator
+from typing import TYPE_CHECKING, Any
 
 from whoosh.analysis.acore import Composable, Token
 from whoosh.util.text import rcompile
-
-default_pattern = rcompile(r"[\w\*]+(\.?[\w\*]+)*")
 
 
 # Tokenizers
@@ -54,16 +57,16 @@ class IDTokenizer(Tokenizer):
 
     def __call__(
         self,
-        value,
-        positions=False,
-        chars=False,
-        keeporiginal=False,
-        removestops=True,
-        start_pos=0,
-        start_char=0,
-        mode="",
-        **kwargs,
-    ):
+        value: str,
+        positions: bool = False,
+        chars: bool = False,
+        keeporiginal: bool = False,
+        removestops: bool = True,
+        start_pos: int = 0,
+        start_char: int = 0,
+        mode: str = "",
+        **kwargs: Any,
+    ) -> Iterator[Token]:
         assert isinstance(value, str), f"{value!r} is not unicode"
         t = Token(positions, chars, removestops=removestops, mode=mode, **kwargs)
         t.text = value
@@ -87,7 +90,7 @@ class RegexTokenizer(Tokenizer):
     ["hi", "there", "3.141", "big", "time", "under_score"]
     """
 
-    def __init__(self, expression=default_pattern, gaps=False):
+    def __init__(self, expression: str | re.Pattern[str] = default_pattern, gaps: bool = False,):
         """
         :param expression: A regular expression object or string. Each match
             of the expression equals a token. Group 0 (the entire matched text)
@@ -108,17 +111,18 @@ class RegexTokenizer(Tokenizer):
 
     def __call__(
         self,
-        value,
-        positions=False,
-        chars=False,
-        keeporiginal=False,
-        removestops=True,
-        start_pos=0,
-        start_char=0,
-        tokenize=True,
-        mode="",
-        **kwargs,
-    ):
+        value: str,
+        positions: bool = False,
+        chars: bool = False,
+        keeporiginal: bool = False,
+        removestops: bool = True,
+        start_pos: int = 0,
+        start_char: int = 0,
+        tokenize: bool = True,
+        mode: str = "",
+        **kwargs: Any,
+    ) -> Iterator[Token]:
+
         """
         :param value: The unicode string to tokenize.
         :param positions: Whether to record token positions in the token.
@@ -242,7 +246,7 @@ class NormalizingRegexTokenizer(RegexTokenizer):
         does not affect matching.
     """
 
-    def __init__(self, form="NFKC", expression=default_pattern, gaps=False):
+    def __init__(self, form: str = "NFKC", expression: str | re.Pattern[str] = default_pattern, gaps: bool = False,):
         """
         :param form: the normalization form to apply, any value accepted by
             :func:`unicodedata.normalize` -- ``"NFC"``, ``"NFD"``, ``"NFKC"``
@@ -266,7 +270,7 @@ class NormalizingRegexTokenizer(RegexTokenizer):
             and self.expression.pattern == other.expression.pattern
         )
 
-    def __call__(self, value, *args, **kwargs):
+    def __call__(self, value: str, *args: Any, **kwargs: Any) -> Iterator[Token]:
         assert isinstance(value, str), f"{value!r} is not unicode"
         value = unicodedata.normalize(self.form, value)
         return super().__call__(value, *args, **kwargs)
@@ -297,7 +301,7 @@ class CharsetTokenizer(Tokenizer):
 
     __inittype__ = {"charmap": str}
 
-    def __init__(self, charmap):
+    def __init__(self, charmap: Any):
         """
         :param charmap: a mapping from integer character numbers to unicode
             characters, as used by the unicode.translate() method.
@@ -313,17 +317,17 @@ class CharsetTokenizer(Tokenizer):
 
     def __call__(
         self,
-        value,
-        positions=False,
-        chars=False,
-        keeporiginal=False,
-        removestops=True,
-        start_pos=0,
-        start_char=0,
-        tokenize=True,
-        mode="",
-        **kwargs,
-    ):
+        value: str,
+        positions: bool = False,
+        chars: bool = False,
+        keeporiginal: bool = False,
+        removestops: bool = True,
+        start_pos: int = 0,
+        start_char: int = 0,
+        tokenize: bool = True,
+        mode: str = "",
+        **kwargs: Any,
+    ) -> Iterator[Token]:
         """
         :param value: The unicode string to tokenize.
         :param positions: Whether to record token positions in the token.
@@ -389,7 +393,7 @@ class CharsetTokenizer(Tokenizer):
                 yield t
 
 
-def SpaceSeparatedTokenizer():
+def SpaceSeparatedTokenizer() -> RegexTokenizer:
     """Returns a RegexTokenizer that splits tokens by whitespace.
 
     >>> sst = SpaceSeparatedTokenizer()
@@ -400,7 +404,7 @@ def SpaceSeparatedTokenizer():
     return RegexTokenizer(r"[^ \t\r\n]+")
 
 
-def CommaSeparatedTokenizer():
+def CommaSeparatedTokenizer() -> Composable:
     """Splits tokens by commas.
 
     Note that the tokenizer calls unicode.strip() on each match of the regular
@@ -421,10 +425,16 @@ class PathTokenizer(Tokenizer):
     ``["/a", "/a/b", "/a/b/c"]``.
     """
 
-    def __init__(self, expression="[^/]+"):
+    def __init__(self, expression: str | re.Pattern[str] = "[^/]+"):
         self.expr = rcompile(expression)
 
-    def __call__(self, value, positions=False, start_pos=0, **kwargs):
+    def __call__(
+        self,
+        value: str,
+        positions: bool = False,
+        start_pos: int = 0,
+        **kwargs: Any,
+    ) -> Iterator[Token]:
         assert isinstance(value, str), f"{value!r} is not unicode"
         token = Token(positions, **kwargs)
         pos = start_pos
