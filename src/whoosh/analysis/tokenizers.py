@@ -78,6 +78,13 @@ class IDTokenizer(Tokenizer):
         yield t
 
 
+import re
+from typing import TYPE_CHECKING, Iterator
+
+# Define default_pattern at module level OUTSIDE of TYPE_CHECKING
+default_pattern = re.compile(r"\w+")
+
+
 class RegexTokenizer(Tokenizer):
     """
     Uses a regular expression to extract tokens from text.
