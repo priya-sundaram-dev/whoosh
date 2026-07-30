@@ -505,7 +505,7 @@ def run() -> list[str]:
     tokenizer = RegexTokenizer()
     lc_filter = LowercaseFilter()
     lc_tokens: Iterator[Token] = lc_filter(tokenizer("Hello World"))
-    assert all(tok.text == tok.text.lower() for tok in lc_tokens)  # type: ignore[attr-defined]
+    assert all(tok.text == tok.text.lower() for tok in lc_tokens)
     strip_filter = StripFilter()
     strip_tokens: Iterator[Token] = strip_filter(tokenizer("  hello  "))
     assert all(isinstance(tok, Token) for tok in strip_tokens)
