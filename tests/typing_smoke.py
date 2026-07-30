@@ -26,7 +26,15 @@ from whoosh.analysis.ngrams import (
     NgramTokenizer,
     NgramWordAnalyzer,
 )
-from whoosh.analysis.tokenizers import RegexTokenizer
+from whoosh.analysis.tokenizers import (
+    CharsetTokenizer,
+    CommaSeparatedTokenizer,
+    IDTokenizer,
+    NormalizingRegexTokenizer,
+    PathTokenizer,
+    RegexTokenizer,
+    SpaceSeparatedTokenizer,
+)
 from whoosh.fields import DATETIME, ID, NUMERIC, TEXT, Schema
 from whoosh.qparser import QueryParser
 from whoosh.query import (
@@ -474,6 +482,13 @@ def run() -> list[str]:
     gram_texts: list[str] = [str(tok.text) for tok in ngram_analyzer("hi there")]
     word_texts: list[str] = [str(tok.text) for tok in word_analyzer("hello there")]
     assert gram_texts and word_texts
+
+    # whoosh.analysis.tokenizers public API (gh#72)
+    tok_id = IDTokenizer()
+    tok_norm = NormalizingRegexTokenizer()
+    tok_path = PathTokenizer()
+    assert list(tok_id("test")) and list(tok_norm("test")) and list(tok_path("a/b"))
+    assert list(SpaceSeparatedTokenizer()("a b")) and list(CommaSeparatedTokenizer()("a,b"))
 
     return titles
 
