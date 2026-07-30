@@ -1,3 +1,11 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from whoosh.analysis.analyzers import CompositeAnalyzer
+
+
 # Copyright 2007 Matt Chaput. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -101,9 +109,22 @@ class Token:
     ...or, call token.copy() to get a copy of the token object.
     """
 
+    text: str
+    positions: bool
+    chars: bool
+    stopped: bool
+    boost: float
+    removestops: bool
+    mode: str
+
     def __init__(
-        self, positions=False, chars=False, removestops=True, mode="", **kwargs
-    ):
+        self,
+        positions: bool = False,
+        chars: bool = False,
+        removestops: bool = True,
+        mode: str = "",
+        **kwargs: Any,
+    ) -> None:
         """
         :param positions: Whether tokens should have the token position in the
             'pos' attribute.
@@ -123,11 +144,11 @@ class Token:
         self.mode = mode
         self.__dict__.update(kwargs)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         parms = ", ".join(f"{name}={value!r}" for name, value in self.__dict__.items())
         return f"{self.__class__.__name__}({parms})"
 
-    def copy(self):
+    def copy(self) -> Token:
         # This is faster than using the copy module
         return Token(**self.__dict__)
 
@@ -136,16 +157,16 @@ class Token:
 
 
 class Composable:
-    is_morph = False
+    is_morph: bool = False
 
-    def __or__(self, other):
+    def __or__(self, other: Composable) -> CompositeAnalyzer:
         from whoosh.analysis.analyzers import CompositeAnalyzer
 
         if not isinstance(other, Composable):
             raise TypeError(f"{self!r} is not composable with {other!r}")
         return CompositeAnalyzer(self, other)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         attrs = ""
         if self.__dict__:
             attrs = ", ".join(
@@ -153,5 +174,5 @@ class Composable:
             )
         return self.__class__.__name__ + f"({attrs})"
 
-    def has_morph(self):
+    def has_morph(self) -> bool:
         return self.is_morph

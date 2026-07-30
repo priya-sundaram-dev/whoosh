@@ -5,6 +5,19 @@ from whoosh import analysis, fields, qparser
 from whoosh.filedb.filestore import RamStorage
 
 
+def test_acore_public_type_annotations():
+    token_annotations = analysis.Token.__init__.__annotations__
+    assert token_annotations["positions"] in (bool, "bool")
+    assert token_annotations["chars"] in (bool, "bool")
+    assert token_annotations["removestops"] in (bool, "bool")
+    assert token_annotations["mode"] in (str, "str")
+    assert token_annotations["return"] in (None, type(None), "None")
+
+    composable_annotations = analysis.Composable.__or__.__annotations__
+    assert composable_annotations["other"] in (analysis.Composable, "Composable")
+    assert composable_annotations["return"] in ("CompositeAnalyzer",)
+
+
 def test_regextokenizer():
     value = "AAAaaaBBBbbbCCCcccDDDddd"
 
