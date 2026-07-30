@@ -81,6 +81,7 @@ class IDTokenizer(Tokenizer):
         yield t
 
 
+default_pattern = re.compile(r"[\w\*]+(\.?[\w\*]+)*")
 class RegexTokenizer(Tokenizer):
     """
     Uses a regular expression to extract tokens from text.
