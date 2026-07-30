@@ -31,6 +31,9 @@ import re
 import unicodedata
 from collections.abc import Iterator
 from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from whoosh.analysis.analyzers import CompositeAnalyzer
 
 from whoosh.analysis.acore import Composable, Token
 from whoosh.util.text import rcompile
@@ -405,7 +408,7 @@ def SpaceSeparatedTokenizer() -> RegexTokenizer:
     return RegexTokenizer(r"[^ \t\r\n]+")
 
 
-def CommaSeparatedTokenizer() -> Composable:
+def CommaSeparatedTokenizer() -> CompositeAnalyzer:
     """Splits tokens by commas.
 
     Note that the tokenizer calls unicode.strip() on each match of the regular
