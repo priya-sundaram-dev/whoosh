@@ -56,6 +56,17 @@ from whoosh.query import (
     Variations,
     Wildcard,
 )
+from whoosh.analysis.filters import (
+    CharsetFilter,
+    DelimitedAttributeFilter,
+    LowercaseFilter,
+    PassFilter,
+    ReverseTextFilter,
+    StopFilter,
+    StripFilter,
+    SubstitutionFilter,
+    TeeFilter,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -489,6 +500,38 @@ def run() -> list[str]:
     tok_path = PathTokenizer()
     assert list(tok_id("test")) and list(tok_norm("test")) and list(tok_path("a/b"))
     assert list(SpaceSeparatedTokenizer()("a b")) and list(CommaSeparatedTokenizer()("a,b"))
+
+    # whoosh.analysis.filters public API (gh#76)
+    tokenizer = RegexTokenizer()
+    lc_filter = LowercaseFilter()
+    lc_tokens: Iterator[Token] = lc_filter(tokenizer("Hello World"))
+    assert all(tok.text == tok.text.lower() for tok in lc_tokens)  # type: ignore[attr-defined]
+    strip_filter = StripFilter()
+    strip_tokens: Iterator[Token] = strip_filter(tokenizer("  hello  "))
+    assert all(isinstance(tok, Token) for tok in strip_tokens)
+    rev_filter = ReverseTextFilter()
+    rev_tokens: Iterator[Token] = rev_filter(tokenizer("hello there"))
+    assert all(isinstance(tok, Token) for tok in rev_tokens)
+    # StopFilter: annotated params (stoplist, minsize, maxsize, renumber, lang)
+    stop_filter = StopFilter(minsize=2, maxsize=15, renumber=True)
+    stop_tokens: Iterator[Token] = stop_filter(tokenizer("this is a test"))
+    assert all(isinstance(tok, Token) for tok in stop_tokens)
+    # SubstitutionFilter: pattern + replacement
+    sub_filter = SubstitutionFilter("-", "")
+    sub_tokens: Iterator[Token] = sub_filter(tokenizer("self-aware pre-built"))
+    assert all(isinstance(tok, Token) for tok in sub_tokens)
+    # DelimitedAttributeFilter: delimiter, attribute, default, type
+    daf = DelimitedAttributeFilter(delimiter="^", attribute="boost", default=1.0, type=float)
+    daf_tokens: Iterator[Token] = daf(tokenizer("image render^2 file^0.5"))
+    assert all(isinstance(tok, Token) for tok in daf_tokens)
+    # PassFilter: passes tokens through unchanged
+    pass_filter = PassFilter()
+    pass_tokens: Iterator[Token] = pass_filter(tokenizer("hello"))
+    assert all(isinstance(tok, Token) for tok in pass_tokens)
+    # TeeFilter: interleaves two filter branches
+    tee_filter = TeeFilter(LowercaseFilter(), ReverseTextFilter())
+    tee_tokens: Iterator[Token] = tee_filter(tokenizer("Hello World"))
+    assert all(isinstance(tok, Token) for tok in tee_tokens)
 
     return titles
 
