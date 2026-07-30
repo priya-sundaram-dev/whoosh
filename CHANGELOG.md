@@ -7,16 +7,27 @@ All notable changes to this project are documented here. This project follows
 ## [Unreleased]
 
 ### Added
+
 - Type hints for the `whoosh.analysis.tokenizers` public API — the
   `IDTokenizer`, `RegexTokenizer`, and `NormalizingRegexTokenizer`
   `__call__`/`__init__` signatures now carry [PEP 484](https://peps.python.org/pep-0484/)
   annotations (`value: str`, boolean/int options, `Iterator[Token]` returns),
   with `CompositeAnalyzer` kept under `TYPE_CHECKING` to avoid an import cycle.
   Thanks to @mani787060 for their first contribution. (gh#72)
+- Type hints for the `whoosh.analysis.filters` public API — the `Filter`
+  subclasses (`LowercaseFilter`, `StripFilter`, `ReverseTextFilter`,
+  `StopFilter`, `SubstitutionFilter`, `DelimitedAttributeFilter`,
+  `CharsetFilter`, `PassFilter`, `TeeFilter`, `MultiFilter`, `LoggingFilter`)
+  now carry [PEP 484](https://peps.python.org/pep-0484/) annotations on their
+  `__init__` and `__call__` signatures (`Iterable[Token]` inputs,
+  `Iterator[Token]` returns). `logging`, `re`, and
+  `CompositeAnalyzer` stay behind `TYPE_CHECKING` to avoid any import-time
+  cost. (gh#76)
 
 ## [3.30.0] - 2026-07-29
 
 ### Added
+
 - Type hints for the `whoosh.query.Query` base-class public API — the generic
   query surface every query type inherits and that tree-transformation and
   introspection code calls polymorphically. The boolean predicates
@@ -45,6 +56,7 @@ All notable changes to this project are documented here. This project follows
 ## [3.29.0] - 2026-07-28
 
 ### Added
+
 - Type hints for the public read API in `whoosh.reading` — the `IndexReader`
   surface every search touches. The term-enumeration methods
   (`indexed_field_names()` → `Iterable[str]`, `all_terms()` →
@@ -92,10 +104,11 @@ All notable changes to this project are documented here. This project follows
 ## [3.28.0] - 2026-07-27
 
 ### Added
+
 - **CJK (Chinese / Japanese / Korean) text support** via a new `CJKFilter` and
   `CJKAnalyzer` in `whoosh.analysis`. CJK scripts don't put spaces between
   words, so the default `RegexTokenizer` (which splits on `\w+` runs) indexes a
-  whole CJK phrase as a *single* token — meaning a search only matches if the
+  whole CJK phrase as a _single_ token — meaning a search only matches if the
   query happens to equal the entire run. `CJKFilter` splits any run of CJK
   characters into individual single-character tokens (unigram indexing, the
   same strategy Lucene's CJK analyzer uses) while leaving Latin/other text
@@ -114,6 +127,7 @@ All notable changes to this project are documented here. This project follows
 ## [3.27.0] - 2026-07-27
 
 ### Added
+
 - Type hints for the public API of `whoosh.classify` — the query-expansion
   models `ExpansionModel`, `Bo1Model`, `Bo2Model`, `KLModel`, and the `Expander`
   class used for automatic query expansion / relevance feedback. Constructor and
@@ -144,6 +158,7 @@ their signatures in editors and `mypy`/`pyright`. These are annotation-only
 changes: runtime behaviour and docstrings are unchanged.
 
 ### Added
+
 - Type hints for the public API of `whoosh.query.compound` — the boolean
   combinator query classes `CompoundQuery`, `And`, `Or`, `DisjunctionMax`,
   `BinaryQuery`, and `AndNot`. These are the queries most programs build
@@ -191,6 +206,7 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.25.3] - 2026-07-24
 
 ### Added
+
 - New `examples/django_app.py`: a runnable Django full-text search app,
   completing the FastAPI/Flask/Django trio that all expose the same
   upsert/delete/search JSON API. Django's built-in full-text search only works
@@ -217,6 +233,7 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.25.2] - 2026-07-23
 
 ### Added
+
 - Type hints for the public API of `whoosh.highlight` — `Fragmenter` and its
   subclasses (`WholeFragmenter`, `SentenceFragmenter`, `ContextFragmenter`,
   `PinpointFragmenter`), `Formatter` and its subclasses (`NullFormatter`,
@@ -238,12 +255,14 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.25.1] - 2026-07-22
 
 ### Added
+
 - Type hints for the public API of `whoosh.sorting` (`FacetType`,
   `Categorizer`, `Facets` and the built-in facet/map classes), so type
   checkers can follow faceting and sorting code. Docstrings are unchanged.
   Thanks to @cyber-chic-0. (#45)
 
 ### Changed
+
 - **Type annotations for the scoring public API (gh#44).** `whoosh.scoring` now
   carries type hints across its public surface: `WeightingModel`, `BaseScorer`
   and its subclasses, the concrete weighting models and their scorers (`BM25F`,
@@ -257,6 +276,7 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.25.0] - 2026-07-22
 
 ### Added
+
 - CLI: `whoosh search --min-score FLOAT` drops hits whose relevance score is
   below the given floor, trimming the weak tail of a broad query. It applies
   uniformly across the default text output, `--json`/`--jsonl`, `--count`, and
@@ -267,6 +287,7 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.24.0] - 2026-07-21
 
 ### Added
+
 - CLI: `whoosh search --color {auto,always,never}` colorizes matched terms in
   the default text output with ANSI escape codes instead of UPPERCASE. `auto`
   (the default) colorizes only when writing to a terminal and honors the
@@ -279,6 +300,7 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.23.0] - 2026-07-21
 
 ### Added
+
 - CLI: `whoosh search -l -0` (aliases `--files-with-matches --null`) emits
   NUL-terminated paths for safe use with tools such as `xargs -0`. Requires
   `-l`; errors with exit status `2` otherwise. (#41, thanks @jhtyhc666)
@@ -286,6 +308,7 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.22.0] - 2026-07-21
 
 ### Added
+
 - CLI: `whoosh index --follow-symlinks` follows symlinked directories when
   building the index (off by default for safety). Threaded through `iter_files`
   via `os.walk(..., followlinks=...)` and honored by both the real index pass
@@ -294,6 +317,7 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.21.0] - 2026-07-21
 
 ### Added
+
 - CLI: `whoosh search -l` / `--files-with-matches` prints just the matching
   file paths, one per line (grep `-l` style), with no scores, snippets, or
   numbering. It honors `--limit`/`--page`, is mutually exclusive with the other
@@ -304,6 +328,7 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.20.0] - 2026-07-21
 
 ### Added
+
 - CLI: `whoosh search --page N` pages through results using `--limit` as the
   page size, while keeping JSON, JSON Lines, and count output machine-friendly.
   Human-readable output prints page metadata after the first page; requesting a
@@ -313,6 +338,7 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.19.0] - 2026-07-21
 
 ### Added
+
 - CLI: `whoosh search --jsonl` (alias `--ndjson`) emits one JSON object per
   match for line-oriented processing, using the same per-hit shape as the
   `--json` array. No matches produces no output and exits with status `1`,
@@ -322,6 +348,7 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.18.7] - 2026-07-20
 
 ### Fixed
+
 - `NUMERIC.__setstate__` (and therefore `DATETIME`) now correctly recomputes and
   restores `min_value`/`max_value` when unpickling legacy indices (Whoosh 2.5.2
   and earlier) that were written without those cached bounds. The previous code
@@ -332,6 +359,7 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.18.6] - 2026-07-20
 
 ### Fixed
+
 - `AndMaybeMatcher.weight()` no longer raises `IndexError` when the optional
   (second) sub-matcher is exhausted while the required (first) sub-matcher is
   still producing documents. It now guards on `self.b.is_active()` exactly like
@@ -343,6 +371,7 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.18.5] - 2026-07-20
 
 ### Added
+
 - CLI: `whoosh index --max-size SIZE` skips files larger than `SIZE` before
   they're read (e.g. `10MB`, `500k`, `2048`). Accepts a bare integer (bytes)
   or a `k`/`m`/`g` suffix, case-insensitive, with or without a trailing `b`.
@@ -352,6 +381,7 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.18.4] - 2026-07-19
 
 ### Added
+
 - CLI: `whoosh search --or` matches documents containing **any** query term
   (broader recall) instead of requiring all terms. Uses `OrGroup.factory(0.9)`
   so documents matching more terms still rank higher. (#18)
@@ -359,9 +389,10 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.18.3] - 2026-07-19
 
 ### Fixed
+
 - `PinpointFragmenter` highlighted the wrong word (often the last token in the
   document, e.g. rendering `dog` for a `"quick brown"` query) whenever a search
-  matched more than one term *and* the field did not store character positions
+  matched more than one term _and_ the field did not store character positions
   (so highlighting fell back to re-tokenizing the stored text). The
   non-retokenizing fragmenter collected matched tokens with a list
   comprehension over the analyzer's token stream, but the analyzer yields a
@@ -381,6 +412,7 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.18.2] - 2026-07-19
 
 ### Fixed
+
 - `whoosh.analysis.Filter.__ne__` was defined as `return self != other`, which
   called itself recursively — any `!=` comparison between two analysis filters
   (e.g. `LowercaseFilter() != PassFilter()`) raised `RecursionError`. It now
@@ -400,6 +432,7 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.18.1] - 2026-07-19
 
 ### Fixed
+
 - `whoosh.qparser.RangeNode` (the query-syntax AST node for range queries) is
   now re-exported from the `whoosh.qparser` package namespace, so
   `from whoosh.qparser import RangeNode` works like the other syntax nodes
@@ -414,6 +447,7 @@ changes: runtime behaviour and docstrings are unchanged.
   metadata. There is now a single source of truth for the version.
 
 ### Documentation
+
 - Added an API reference page for the `whoosh.classify` module
   (`docs/source/api/classify.rst`), covering `Expander` and the
   `ExpansionModel` weighting models (`Bo1Model`, `Bo2Model`, `KLModel`). The
@@ -426,6 +460,7 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.18.0] - 2026-07-19
 
 ### Added
+
 - The multiprocessing writer (`whoosh.multiproc.MpWriter`, used via
   `ix.writer(procs=N)`) now accepts an explicit `start_method` argument (e.g.
   `ix.writer(procs=4, start_method="spawn")`). Passing `"spawn"` or
@@ -438,6 +473,7 @@ changes: runtime behaviour and docstrings are unchanged.
   Documented in the batch-indexing guide (`docs/source/batch.rst`).
 
 ### Documentation
+
 - Updated the stale `whoosh.__version__` sample output in the app-integration
   guide (`docs/source/integrations.rst`) from `(3, 16, 1)` to match the current
   release, consistent with the same fix in the CLI guide.
@@ -463,8 +499,9 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.17.0] - 2026-07-18
 
 ### Added
+
 - New built-in `NormalizingRegexTokenizer` (`whoosh.analysis`): a
-  `RegexTokenizer` that Unicode-normalizes its input *before* tokenizing. This
+  `RegexTokenizer` that Unicode-normalizes its input _before_ tokenizing. This
   fixes a subtle correctness bug where the same word indexed in one
   normalization form silently fails to match a query written in another — the
   default `RegexTokenizer` treats a combining accent as a non-word character, so
@@ -477,6 +514,7 @@ changes: runtime behaviour and docstrings are unchanged.
   into batteries-included functionality.
 
 ### Documentation
+
 - Rewrote the **Unicode normalization** section of the stemming/folding guide
   (`docs/source/stemming.rst`) to use the new built-in
   `NormalizingRegexTokenizer` instead of a copy-paste recipe, keeping the
@@ -493,6 +531,7 @@ changes: runtime behaviour and docstrings are unchanged.
   searchers rather than holding handles across a rebuild.
 
 ### Tests
+
 - Added `test_unicode_normalization_tokenizer` and
   `test_normalizing_tokenizer_form_validation_and_equality` covering the new
   built-in `NormalizingRegexTokenizer`: NFC and NFD spellings of `café` tokenize
@@ -507,12 +546,13 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.16.5] - 2026-07-18
 
 ### Fixed
+
 - Strict phrase highlighting (`hit.highlights(..., strict_phrase=True)`) now
   works when the source text contains any uppercase letters. Previously the
   phrase scanner compared the analyzer-normalized (lower-cased, stemmed) phrase
-  words against the *raw* source text re-split on whitespace, so a document
+  words against the _raw_ source text re-split on whitespace, so a document
   like `"... Java Developer ..."` never matched the query phrase `java
-  developer` and strict highlighting silently returned an empty string. The
+developer` and strict highlighting silently returned an empty string. The
   scanner now derives its word sequence from the analyzed tokens themselves, so
   casing and tokenization always line up. This also keeps the highlighted token
   indices correctly aligned with the source when punctuation or contractions
@@ -523,11 +563,12 @@ changes: runtime behaviour and docstrings are unchanged.
   highlighter appeared to mark every stray occurrence of each word.
 
 ### Documentation
+
 - Clarified the meaning of the `~N` phrase "slop" factor. The `Phrase`
   docstring previously described `slop` as "the number of words allowed
   between each word", which is off by one and contradicted its own claim that
   the default of 1 means an exact match. `slop` is actually the maximum
-  allowed difference in *position* between adjacent words (1 = adjacent), so a
+  allowed difference in _position_ between adjacent words (1 = adjacent), so a
   slop of `N` permits up to `N - 1` intervening words. Both the docstring and
   the query-language guide now state this precisely and note that words the
   analyzer removes (stop words, short tokens) are never indexed and so do not
@@ -538,12 +579,13 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.16.4] - 2026-07-18
 
 ### Fixed
+
 - Fields now reject a bare `Filter` passed where a full analyzer is expected
   (for example `TEXT(analyzer=CharsetFilter(accent_map))`). A `Filter` can only
   transform tokens produced by a tokenizer, so used alone it previously failed
   much later during indexing with a cryptic
   `TypeError: CharsetFilter.__call__() got an unexpected keyword argument
-  'mode'`. `TEXT` and `KEYWORD` now raise `FieldConfigurationError` at
+'mode'`. `TEXT` and `KEYWORD` now raise `FieldConfigurationError` at
   construction time with an actionable message
   (e.g. `RegexTokenizer() | CharsetFilter(...)`). Fixes gh#41 (reported
   upstream at mchaput/whoosh#41).
@@ -551,6 +593,7 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.16.3] - 2026-07-18
 
 ### Fixed
+
 - Multiprocessing writer: committing with `procs > 1` and `multisegment=False`
   no longer crashes a sub-writer with `IndexError: list index out of range`
   (in `finish_subsegment`, at `pool.runs[0]`) when a sub-writer received only
@@ -563,14 +606,16 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.16.2] - 2026-07-18
 
 ### Fixed
+
 - `whoosh stats --top-terms FIELD` now prints a clear, actionable error when
   the named field cannot have text terms ranked — for example a `NUMERIC` or
   `DATETIME` field such as the built-in `mtime`. Previously it surfaced a
   leaked low-level decode message (`invalid literal for int() with base 10`).
   It now reports, e.g., `error: field 'mtime' (NUMERIC) does not store text
-  terms, so it has no top terms to list; try a TEXT field` and exits `2`.
+terms, so it has no top terms to list; try a TEXT field` and exits `2`.
 
 ### Documentation
+
 - "Command-line search": corrected the documented `whoosh --version` and
   `whoosh --help` output, which still showed an old version string
   (`3.5.0`) and an outdated usage line. Added an example of the improved
@@ -579,6 +624,7 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.16.1] - 2026-07-17
 
 ### Fixed
+
 - `ListCorrector` (and `MultiCorrector` built on top of it) failed to suggest
   a correction whose only close match was the **first** word in the sorted word
   list. The internal `Skipper` cursor unconditionally advanced past its current
@@ -593,6 +639,7 @@ changes: runtime behaviour and docstrings are unchanged.
   is indexed) listed `apple` itself as a "did you mean" suggestion.
 
 ### Documentation
+
 - "Correcting errors in user queries": fixed two examples that no longer matched
   the API. `MultiCorrector` requires an `op` argument to combine scores
   (e.g. `MultiCorrector([c1, c2], max)`), and a corrected query is formatted with
@@ -602,7 +649,8 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.16.0] - 2026-07-17
 
 ### Added
-- `whoosh index --dry-run`: preview which files *would* be indexed under the
+
+- `whoosh index --dry-run`: preview which files _would_ be indexed under the
   current `--ext`/`--exclude` filters, then exit without creating, clearing, or
   writing the `.whoosh_index` directory. Prints one relative path per line to
   stdout (easy to pipe or `grep`) and a short summary count to stderr. The
@@ -612,6 +660,7 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.15.0] - 2026-07-17
 
 ### Added
+
 - `whoosh.reading.CorruptIndexError`: reading a damaged or truncated postings
   block now raises this clear, dedicated exception instead of a cryptic
   low-level pickle error (for example `UnpicklingError: invalid load key, 'x'`
@@ -625,6 +674,7 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.14.1] - 2026-07-17
 
 ### Fixed
+
 - `NestedParent` no longer silently drops results when the index contains a
   document that matches the child query but does not belong to any parent group
   (an "orphan" child — for example a matching document indexed before the first
@@ -638,9 +688,10 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.14.0] - 2026-07-17
 
 ### Added
+
 - `Phrase(..., degrade=True)` and `PhrasePlugin(degrade=True)`: an opt-in way to
   make a phrase (quoted) query fall back to matching documents that contain
-  *all* of the words (an `AND` of the terms) when the searched field does not
+  _all_ of the words (an `AND` of the terms) when the searched field does not
   store term positions — for example `NGRAMWORDS` fields, which use a frequency
   format and cannot support true phrase matching. Previously such a query
   always raised `QueryError: field has no positions`, which surfaced as a hard
@@ -650,6 +701,7 @@ changes: runtime behaviour and docstrings are unchanged.
   django-haystack#632).
 
 ### Changed
+
 - The `QueryError` raised when running a phrase query against a field with no
   positions is now actionable: it explains that the field needs a
   position-storing format (or `phrase=True`) and points to the new
@@ -658,6 +710,7 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.13.0] - 2026-07-17
 
 ### Added
+
 - `AsyncWriter.wait(timeout=None)`: a public, race-free way to block until the
   background commit thread (if one was started) has finished and to re-raise
   any exception it hit. Previously, callers had to poke `AsyncWriter`
@@ -672,6 +725,7 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.12.4] - 2026-07-17
 
 ### Fixed
+
 - Multiprocessing writing (`index.writer(procs=N)` with `N > 1`) on a
   non-shared storage such as `RamStorage` no longer silently discards every
   document. The multiprocessing writer passes job files to sub-processes
@@ -686,6 +740,7 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.12.3] - 2026-07-17
 
 ### Fixed
+
 - Span/phrase queries containing a wildcard or prefix sub-query (for example a
   `Sequence`/`SpanNear` phrase like `"ro* place house"`) no longer raise
   `Exception: Field does not support spans` on larger indexes. Wildcard and
@@ -699,6 +754,7 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.12.2] - 2026-07-17
 
 ### Fixed
+
 - Date handling: `adatetime.disambiguated()` and `timespan.disambiguated()`
   now default `basedate` to the current UTC time when it is omitted or `None`,
   matching their documented behaviour (their docstrings even show calls with no
@@ -710,6 +766,7 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.12.1] - 2026-07-17
 
 ### Fixed
+
 - Query parser: malformed queries where a `NOT` (or any wrapper node) ends up
   wrapping no sub-node — for example `NOT OR foobar` — no longer raise
   `IndexError: list index out of range` from `Wrapper.query`. The empty wrapper
@@ -718,6 +775,7 @@ changes: runtime behaviour and docstrings are unchanged.
   (gh#19, reported by @CodeOptimist).
 
 ### Documentation
+
 - Rewrote the documentation landing page (`index.rst`). It previously opened
   with stale boilerplate (a "Bitbucket page" label and a "mailing list" link)
   and no description of the library. It now leads with a one-paragraph overview,
@@ -728,7 +786,7 @@ changes: runtime behaviour and docstrings are unchanged.
   imports (copy-pasting them raised `NameError`), and the `NgramFilter` example's
   documented output was simply wrong: with `minsize=2, maxsize=4` it omitted every
   2-gram (showing `['ren', 'rend', ...]` instead of the real `['re', 'ren',
-  'rend', ...]`), so a user checking their output against the docs would think the
+'rend', ...]`), so a user checking their output against the docs would think the
   library was broken. The output is now the exact Python 3 result, and the `u''`
   prefixes were removed.
 - Fixed the runnable examples in the "Stemming and variations" guide
@@ -746,6 +804,7 @@ changes: runtime behaviour and docstrings are unchanged.
   Python 3 (`print(...)` and Python 3 `repr` output without the `u''` prefix).
 
 ### Development
+
 - Added `benchmark/regression.py`, a deterministic, standard-library-only
   performance-regression harness. It times index build, incremental adds, and
   single-term/two-term/prefix/sorted queries against a fixed seeded corpus,
@@ -757,6 +816,7 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.12.0] - 2026-07-17
 
 ### Added
+
 - `whoosh stats --top-terms FIELD` lists the most frequent indexed terms in
   FIELD, most-frequent-first, with their total frequencies; `--top N` caps
   the list (default 10). Unknown fields and field types without term
@@ -767,6 +827,7 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.11.7] - 2026-07-17
 
 ### Fixed
+
 - `IndexReader.field_terms()` no longer raises `OverflowError` (or yields
   garbage values) on `NUMERIC` and `DATETIME` fields. Numeric fields store
   extra lower-precision "shifted" terms to accelerate range queries; those
@@ -780,10 +841,11 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.11.6] - 2026-07-17
 
 ### Fixed
+
 - Boosts on `MultiTerm` queries (`Prefix`, `Wildcard`, `FuzzyTerm`,
   `TermRange`, and friends) are now applied to the final score. Previously
   `MultiTerm.matcher()` expanded the query into generated `Term` sub-queries
-  *without* carrying the parent's boost, so e.g. `Prefix("f", "app", boost=5)`
+  _without_ carrying the parent's boost, so e.g. `Prefix("f", "app", boost=5)`
   scored identically to `boost=1`. The generated terms now carry the boost, and
   the wrapping `Or` no longer re-applies it (which would have multiplied the
   boost twice for multi-term expansions). Fixes gh#42 (reported upstream at
@@ -792,6 +854,7 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.11.5] - 2026-07-17
 
 ### Fixed
+
 - `DateParserPlugin` no longer raises
   `AttributeError: 'NoneType' object has no attribute 'year'` on date-range
   queries when constructed without an explicit `basedate`. The plugin's
@@ -804,6 +867,7 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.11.4] - 2026-07-17
 
 ### Fixed
+
 - `MultiCorrector.suggest()` no longer raises
   `TypeError: unsupported operand type(s) for -: 'int' and 'str'`. Its internal
   `_suggestions()` accumulated results in a dict keyed by suggestion and
@@ -816,6 +880,7 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.11.3] - 2026-07-17
 
 ### Fixed
+
 - Sortable float `NUMERIC` fields no longer raise
   `struct.error: required argument is not an integer` when adding documents.
   The column stores values in their sortable (unsigned-integer) representation,
@@ -829,6 +894,7 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.11.2] - 2026-07-17
 
 ### Fixed
+
 - `Searcher.correct_query()` no longer raises
   `TypeError: 'int' object is not iterable` when the schema contains a
   `NUMERIC`, `DATETIME`, or `BOOLEAN` field. These field types store terms as
@@ -839,6 +905,7 @@ changes: runtime behaviour and docstrings are unchanged.
   drives this behaviour. Fixes gh#55 (reported upstream at mchaput/whoosh#55).
 
 ### Changed
+
 - Extended public-API type annotations to the `Searcher` document-lookup
   methods: `doc_count()`, `doc_count_all()`, `reader()`, `document()`,
   `documents()`, `document_number()`, and `document_numbers()` now carry
@@ -879,7 +946,7 @@ changes: runtime behaviour and docstrings are unchanged.
   on 3.14 in CI, including the multiprocessing writer under 3.14's new
   `forkserver` default start method on Linux. Whoosh now officially supports
   Python 3.9 through 3.14 and advertises the `Programming Language :: Python
-  :: 3.14` classifier.
+:: 3.14` classifier.
 
 ## [3.10.0] - 2026-07-16
 
@@ -997,7 +1064,7 @@ changes: runtime behaviour and docstrings are unchanged.
   (#6, #8).
 
 - **`whoosh search` match summary.** In the default text output mode, `whoosh
-  search` now prints a short summary line to **stderr** — `N matches.` when
+search` now prints a short summary line to **stderr** — `N matches.` when
   everything is shown, or `Showing X of Y matches.` when results are truncated
   by `--limit`. Because it goes to stderr, stdout stays clean for piping, and
   the line is suppressed entirely under `--json`, `--html`, and `--count`.
@@ -1076,6 +1143,7 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.3.0] - 2026-07-14
 
 ### Added
+
 - **`whoosh` command-line tool.** Installing `whoosh3` now also installs a
   `whoosh` console script for indexing and searching a folder of files from
   your terminal — a pure-Python, ranked, stemmed alternative to `grep` for
@@ -1092,6 +1160,7 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.2.0] - 2026-07-14
 
 ### Added
+
 - **CI type-checking smoke job (gh#3).** A new `types` job in CI runs `mypy`
   against `tests/typing_smoke.py` — a realistic downstream-usage snippet
   (create an index, build a `Schema` from the field constructors, add a
@@ -1141,6 +1210,7 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.1.0] - 2026-07-14
 
 ### Added
+
 - **PEP 561 typing support (gh#3).** Whoosh now ships a `py.typed` marker and
   is advertised as a typed package (`Typing :: Typed` classifier), so type
   checkers (`mypy`, `pyright`) and editors pick up its types automatically —
@@ -1162,6 +1232,7 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.0.3] - 2026-07-14
 
 ### Added
+
 - Downstream-compatibility test suite (`tests/test_downstream_compat.py`) that
   exercises the exact public API surface used by
   [paperless-ngx](https://github.com/paperless-ngx/paperless-ngx) — mixed
@@ -1171,11 +1242,12 @@ changes: runtime behaviour and docstrings are unchanged.
   `MIGRATING.md` documents this.
 
 ### Fixed
+
 - ISO-8601 dates such as `2023-05-17`, `2023-05`, `2023-05-17 14:30`, and
   `2023-05-17T14:30:00` were **not recognized** by the natural-language date
   parser (`DateParserPlugin` / `English`), which returned `None` for them.
   The natural-language branch greedily matched only the leading four-digit
-  *year* of an ISO date, so the overall (end-anchored) parse failed on the rest
+  _year_ of an ISO date, so the overall (end-anchored) parse failed on the rest
   of the string. The "simple" ISO parser is now tried before the
   natural-language branch, and the `T` date/time separator is accepted, so
   ISO-8601 dates parse correctly. Natural-language forms (`may 17 2023`,
@@ -1184,12 +1256,13 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.0.2] - 2026-07-14
 
 ### Fixed
+
 - A `filter=`/`mask=` (allow/restrict) set was **silently ignored** when a
   search also had a time limit — i.e. whenever a `TimeLimitCollector` wrapped a
   `FilterCollector`. `TimeLimitCollector.collect_matches()` iterates its
   child's `matches()` and calls `collect()` itself, which bypassed the
   filtering that `FilterCollector` only did in its own `collect_matches()`
-  override, so *every* matching document came back regardless of the filter.
+  override, so _every_ matching document came back regardless of the filter.
   The allow/restrict logic (and `filtered_count` bookkeeping) now lives in
   `FilterCollector.matches()`, so the filter is honored no matter what outer
   collector wraps it. Added a regression test.
@@ -1199,7 +1272,7 @@ changes: runtime behaviour and docstrings are unchanged.
   writer for every `add_document()` call, and the in-memory `MemoryCodec`
   recreated (truncated) each column file per session — so the reader, which
   reads `doc_count_all()` entries, filled every doc except the last-written one
-  with the column's *default* value. Sorting on those near-identical default
+  with the column's _default_ value. Sorting on those near-identical default
   values produced an effectively random order (most visible with a reverse
   sort). Column values are now kept on the persistent in-memory segment and the
   complete column file is rewritten for the whole segment, so both quasi-real-
@@ -1207,6 +1280,7 @@ changes: runtime behaviour and docstrings are unchanged.
   numeric and text sortable fields with a new regression test.
 
 ### Internal
+
 - Made `test_buffered_threads` deterministic. It previously used
   `random.choice` to pick which of four words each thread wrote, so a run
   could leave fewer than four unique documents and fail intermittently (seen
@@ -1215,6 +1289,7 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.0.1] - 2026-07-14
 
 ### Fixed
+
 - `NumericRange` (and therefore range `filter=`/query-parser range searches) with
   an open lower bound could match **every** document instead of the intended
   range. The trie-range splitter underflowed when the range's upper bound was
@@ -1228,6 +1303,7 @@ changes: runtime behaviour and docstrings are unchanged.
   [whoosh-community/whoosh#583](https://github.com/whoosh-community/whoosh/issues/583).
 
 ### Added
+
 - New CI job "Future-proof (warnings as errors)" that runs the full test suite
   on Python 3.13 with `DeprecationWarning`/`PendingDeprecationWarning` promoted
   to errors. The whole suite (624 tests) passes clean, so the "runs on modern
@@ -1244,6 +1320,7 @@ changes: runtime behaviour and docstrings are unchanged.
 ## [3.0.0] - 2026-07-14
 
 ### Changed
+
 - Project revived under new maintainership (Priya Sundaram). The library
   continues from `whoosh-reloaded`, itself a revival of the original Whoosh by
   Matt Chaput. Prior copyright and the BSD-2-Clause license are preserved.
@@ -1254,6 +1331,7 @@ changes: runtime behaviour and docstrings are unchanged.
 - Documented supported Python versions (3.9–3.13) and added a public roadmap.
 
 ### Added
+
 - New Cookbook page in the documentation site (`docs/source/cookbook.rst`) that
   surfaces all the runnable `examples/` recipes (quickstart, tutorial,
   did-you-mean, autocomplete, faceted search, highlighting, SQLite FTS5
@@ -1305,6 +1383,7 @@ changes: runtime behaviour and docstrings are unchanged.
   relevance with `sortedby`, plus a matching Cookbook entry.
 
 ### Fixed
+
 - `MultiFilter` no longer raises `StopIteration` on an empty token stream
   (e.g. a null query with a custom tokenizer); it now yields no tokens.
   Fixes gh#99, based on the fix proposed by @shroom00 in gh#82.
@@ -1315,6 +1394,7 @@ changes: runtime behaviour and docstrings are unchanged.
   (see also whoosh-community#450).
 
 ### Notes
+
 - The full test suite passes on Python 3.12. CI verifies the matrix on each push.
 
 ---
