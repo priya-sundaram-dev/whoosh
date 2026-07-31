@@ -137,7 +137,7 @@ class StemFilter(Filter):
             other and self.__class__ is other.__class__ and self.stemfn == other.stemfn
         )
 
-    def __call__(self, tokens):
+    def __call__(self, tokens: Iterator[Token]) -> Iterator[Token]:
         stemfn = self._stem
         ignore = self.ignore
 
@@ -246,7 +246,7 @@ class DoubleMetaphoneFilter(Filter):
             and self.primary_boost == other.primary_boost
         )
 
-    def __call__(self, tokens):
+    def __call__(self, tokens: Iterator[Token]) -> Iterator[Token]:
         primary_boost = self.primary_boost
         secondary_boost = self.secondary_boost
         combine = self.combine
