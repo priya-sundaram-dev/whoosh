@@ -25,6 +25,13 @@
 # those of the authors and should not be interpreted as representing official
 # policies, either expressed or implied, of Matt Chaput.
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Iterator
+
+if TYPE_CHECKING:
+    from whoosh.analysis.tokenizers import Token
+    
 from whoosh.analysis.filters import Filter
 from whoosh.lang.dmetaphone import double_metaphone
 from whoosh.lang.porter import stem
