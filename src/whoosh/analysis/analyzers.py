@@ -25,6 +25,16 @@
 # those of the authors and should not be interpreted as representing official
 # policies, either expressed or implied, of Matt Chaput.
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Collection, Iterator
+    from typing import Any, Callable
+
+    from whoosh.analysis.acore import Token
+
 from whoosh.analysis.acore import Composable, CompositionError
 from whoosh.analysis.filters import (
     STOP_WORDS,
@@ -50,27 +60,27 @@ from whoosh.lang.porter import stem
 class Analyzer(Composable):
     """Abstract base class for analyzers."""
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.__class__.__name__}()"
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         return (
             other
             and self.__class__ is other.__class__
             and self.__dict__ == other.__dict__
         )
 
-    def __call__(self, value, **kwargs):
+    def __call__(self, value: str, **kwargs: Any) -> Iterator[Token]:
         raise NotImplementedError
 
-    def clean(self):
+    def clean(self) -> None:
         # This method is intentionally left empty.
         pass
 
 
 class CompositeAnalyzer(Analyzer):
-    def __init__(self, *composables):
-        self.items = []
+    def __init__(self, *composables: Composable) -> None:
+        self.items: list[Composable] = []
 
         for comp in composables:
             if isinstance(comp, CompositeAnalyzer):
@@ -87,13 +97,13 @@ class CompositeAnalyzer(Analyzer):
                     f"Only one tokenizer allowed at the start of the analyzer: {self.items}"
                 )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "{}({})".format(
             self.__class__.__name__,
             ", ".join(repr(item) for item in self.items),
         )
 
-    def __call__(self, value, no_morph=False, **kwargs):
+    def __call__(self, value: str, no_morph: bool = False, **kwargs: Any) -> Iterator[Token]:
         items = self.items
         # Start with tokenizer
         gen = items[0](value, **kwargs)
@@ -103,28 +113,28 @@ class CompositeAnalyzer(Analyzer):
                 gen = item(gen)
         return gen
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: int | slice) -> Composable | list[Composable]:
         return self.items.__getitem__(item)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.items)
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         return other and self.__class__ is other.__class__ and self.items == other.items
 
-    def clean(self):
+    def clean(self) -> None:
         for item in self.items:
             if hasattr(item, "clean"):
                 item.clean()
 
-    def has_morph(self):
+    def has_morph(self) -> bool:
         return any(item.is_morph for item in self.items)
 
 
 # Functions that return composed analyzers
 
 
-def IDAnalyzer(lowercase=False):
+def IDAnalyzer(lowercase: bool = False) -> Analyzer:
     """Deprecated, just use an IDTokenizer directly, with a LowercaseFilter if
     desired.
     """
@@ -135,7 +145,7 @@ def IDAnalyzer(lowercase=False):
     return tokenizer
 
 
-def KeywordAnalyzer(lowercase=False, commas=False):
+def KeywordAnalyzer(lowercase: bool = False, commas: bool = False) -> Analyzer:
     """Parses whitespace- or comma-separated tokens.
 
     >>> ana = KeywordAnalyzer()
@@ -156,13 +166,13 @@ def KeywordAnalyzer(lowercase=False, commas=False):
     return tokenizer
 
 
-def RegexAnalyzer(expression=r"\w+(\.?\w+)*", gaps=False):
+def RegexAnalyzer(expression: str = r"\w+(\.?\w+)*", gaps: bool = False) -> Analyzer:
     """Deprecated, just use a RegexTokenizer directly."""
 
     return RegexTokenizer(expression=expression, gaps=gaps)
 
 
-def SimpleAnalyzer(expression=default_pattern, gaps=False):
+def SimpleAnalyzer(expression: str = default_pattern, gaps: bool = False) -> Analyzer:
     """Composes a RegexTokenizer with a LowercaseFilter.
 
     >>> ana = SimpleAnalyzer()
@@ -178,8 +188,12 @@ def SimpleAnalyzer(expression=default_pattern, gaps=False):
 
 
 def StandardAnalyzer(
-    expression=default_pattern, stoplist=STOP_WORDS, minsize=2, maxsize=None, gaps=False
-):
+    expression: str = default_pattern,
+    stoplist: Collection[str] | None = STOP_WORDS,
+    minsize: int = 2,
+    maxsize:int | None = None,
+    gaps: bool = False
+) -> Analyzer:
     """Composes a RegexTokenizer with a LowercaseFilter and optional
     StopFilter.
 
@@ -204,15 +218,15 @@ def StandardAnalyzer(
 
 
 def StemmingAnalyzer(
-    expression=default_pattern,
-    stoplist=STOP_WORDS,
-    minsize=2,
-    maxsize=None,
-    gaps=False,
-    stemfn=stem,
-    ignore=None,
-    cachesize=50000,
-):
+    expression: str = default_pattern,
+    stoplist: Collection[str] | None = STOP_WORDS,
+    minsize: int = 2,
+    maxsize: int | None = None,
+    gaps: bool = False,
+    stemfn: Callable[[str], str] = stem,
+    ignore: Collection[str] | None = None,
+    cachesize: int | None = 50000,
+) -> Analyzer:
     """Composes a RegexTokenizer with a lower case filter, an optional stop
     filter, and a stemming filter.
 
@@ -240,7 +254,11 @@ def StemmingAnalyzer(
     return chain | StemFilter(stemfn=stemfn, ignore=ignore, cachesize=cachesize)
 
 
-def CJKAnalyzer(expression=default_pattern, stoplist=STOP_WORDS, gaps=False):
+def CJKAnalyzer(
+    expression: str = default_pattern,
+    stoplist: Collection[str] | None = STOP_WORDS,
+    gaps: bool = False,
+) -> Analyzer:
     """Composes a :class:`~whoosh.analysis.RegexTokenizer` with a
     :class:`~whoosh.analysis.LowercaseFilter`, an optional
     :class:`~whoosh.analysis.StopFilter`, and a
@@ -276,15 +294,15 @@ def CJKAnalyzer(expression=default_pattern, stoplist=STOP_WORDS, gaps=False):
 
 
 def FancyAnalyzer(
-    expression=r"\s+",
-    stoplist=STOP_WORDS,
-    minsize=2,
-    gaps=True,
-    splitwords=True,
-    splitnums=True,
-    mergewords=False,
-    mergenums=False,
-):
+    expression: str = r"\s+",
+    stoplist: Collection[str] | None = STOP_WORDS,
+    minsize: int = 2,
+    gaps: bool = True,
+    splitwords: bool = True,
+    splitnums: bool = True,
+    mergewords: bool = False,
+    mergenums: bool = False,
+) -> Analyzer:
     """Composes a RegexTokenizer with an IntraWordFilter, LowercaseFilter, and
     StopFilter.
 
@@ -314,7 +332,12 @@ def FancyAnalyzer(
     )
 
 
-def LanguageAnalyzer(lang, expression=default_pattern, gaps=False, cachesize=50000):
+def LanguageAnalyzer(
+    lang: str,
+    expression: str = default_pattern,
+    gaps: bool = False,
+    cachesize: int | None = 50000
+) -> Analyzer:
     """Configures a simple analyzer for the given language, with a
     LowercaseFilter, StopFilter, and StemFilter.
 

@@ -20,6 +20,7 @@ from typing import TYPE_CHECKING, Any
 
 from whoosh import classify, highlight, index, scoring, spelling
 from whoosh.analysis.acore import Token
+from whoosh.analysis.analyzers import StandardAnalyzer
 from whoosh.analysis.ngrams import (
     NgramAnalyzer,
     NgramFilter,
@@ -532,6 +533,14 @@ def run() -> list[str]:
     tee_filter = TeeFilter(LowercaseFilter(), ReverseTextFilter())
     tee_tokens: Iterator[Token] = tee_filter(tokenizer("Hello World"))
     assert all(isinstance(tok, Token) for tok in tee_tokens)
+
+    # whoosh.analysis.analyzers public API (gh#85): analyzer factories return
+    # an Analyzer, and calling one with text yields an Iterator[Token].
+    standard_analyzer = StandardAnalyzer()
+    standard_tokens: Iterator[Token] = standard_analyzer(
+        "Testing is testing and searchable"
+    )
+    assert all(isinstance(tok, Token) for tok in standard_tokens)
 
     return titles
 
