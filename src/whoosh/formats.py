@@ -31,7 +31,10 @@ The field format essentially determines what information is stored about each
 occurance of a term.
 """
 
+from __future__ import annotations
+
 from collections import defaultdict
+from typing import Any, Callable, Iterable, Iterator, Union, List, Tuple
 from pickle import dumps, loads
 
 from whoosh.analysis import entoken, unstopped
@@ -59,7 +62,7 @@ class Format:
     textual = True
     __inittypes__ = {"field_boost": float}
 
-    def __init__(self, field_boost=1.0, **options):
+    def __init__(self, field_boost: float = 1.0, **options: Any) -> None:
         """
         :param field_boost: A constant boost factor to scale to the score
             of all queries matching terms in this field.
@@ -68,22 +71,22 @@ class Format:
         self.field_boost = field_boost
         self.options = options
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         return (
             other
             and self.__class__ is other.__class__
             and self.__dict__ == other.__dict__
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.__class__.__name__}(boost={self.field_boost})"
 
-    def fixed_value_size(self):
+    def fixed_value_size(self) -> int | None:
         if self.posting_size < 0:
             return None
         return self.posting_size
 
-    def word_values(self, value, analyzer, **kwargs):
+    def word_values(self, value: Any, analyzer: Any, **kwargs: Any) -> Iterable[tuple[bytes, int, float, bytes]]:
         """Takes the text value to be indexed and yields a series of
         ("tokentext", frequency, weight, valuestring) tuples, where frequency
         is the number of times "tokentext" appeared in the value, weight is the
@@ -99,20 +102,20 @@ class Format:
 
         raise NotImplementedError
 
-    def supports(self, name):
+    def supports(self, name: str) -> bool:
         """Returns True if this format supports interpreting its posting
         value as 'name' (e.g. "frequency" or "positions").
         """
         return hasattr(self, "decode_" + name)
 
-    def decoder(self, name):
+    def decoder(self, name: str) -> Callable[[bytes], Any]:
         """Returns the bound method for interpreting value as 'name',
         where 'name' is for example "frequency" or "positions". This
         object must have a corresponding Format.decode_<name>() method.
         """
         return getattr(self, "decode_" + name)
 
-    def decode_as(self, astype, valuestring):
+    def decode_as(self, astype: str, valuestring: bytes) -> Any:
         """Interprets the encoded value string as 'astype', where 'astype' is
         for example "frequency" or "positions". This object must have a
         corresponding decode_<astype>() method.
@@ -127,7 +130,7 @@ class Format:
 # postreader.value_as("weight") will not match postreader.weight()
 
 
-def tokens(value, analyzer, kwargs):
+def tokens(value: Any, analyzer: Any, kwargs: dict[str, Any]) -> Iterable[Any]:
     if isinstance(value, (tuple, list)):
         gen = entoken(value, **kwargs)
     else:
@@ -146,25 +149,25 @@ class Existence(Format):
     posting_size = 0
     __inittypes__ = {"field_boost": float}
 
-    def __init__(self, field_boost=1.0, **options):
+    def __init__(self, field_boost: float = 1.0, **options: Any) -> None:
         self.field_boost = field_boost
         self.options = options
 
-    def word_values(self, value, analyzer, **kwargs):
+    def word_values(self, value: Any, analyzer: Any, **kwargs: Any) -> Iterable[tuple[bytes, int, float, bytes]]:
         fb = self.field_boost
         wordset = {t.text for t in tokens(value, analyzer, kwargs)}
         return ((w, 1, fb, emptybytes) for w in wordset)
 
-    def encode(self, value):
+    def encode(self, value: Any) -> Any:
         return emptybytes
 
-    def decode_frequency(self, valuestring):
+    def decode_frequency(self, valuestring: bytes) -> int:
         return 1
 
-    def decode_weight(self, valuestring):
+    def decode_weight(self, valuestring: bytes) -> float:
         return self.field_boost
 
-    def combine(self, vs):
+    def combine(self, vs: Iterable[bytes]) -> bytes:
         return emptybytes
 
 
@@ -177,7 +180,7 @@ class Frequency(Format):
     posting_size = _INT_SIZE
     __inittypes__ = {"field_boost": float, "boost_as_freq": bool}
 
-    def __init__(self, field_boost=1.0, boost_as_freq=False, **options):
+    def __init__(self, field_boost: float = 1.0, boost_as_freq: bool = False, **options: Any) -> None:
         """
         :param field_boost: A constant boost factor to scale to the score of
             all queries matching terms in this field.
@@ -187,11 +190,11 @@ class Frequency(Format):
         self.field_boost = field_boost
         self.options = options
 
-    def word_values(self, value, analyzer, **kwargs):
+    def word_values(self, value: Any, analyzer: Any, **kwargs: Any) -> Iterable[tuple[bytes, int, float, bytes]]:
         fb = self.field_boost
         length = 0
-        freqs = defaultdict(int)
-        weights = defaultdict(float)
+        freqs: dict[Any, int] = defaultdict(int)
+        weights: dict[Any, float] = defaultdict(float)
 
         kwargs["boosts"] = True
         for t in tokens(value, analyzer, kwargs):
@@ -202,15 +205,15 @@ class Frequency(Format):
         wvs = ((w, freq, weights[w] * fb, pack_uint(freq)) for w, freq in freqs.items())
         return wvs
 
-    def decode_frequency(self, valuestring):
+    def decode_frequency(self, valuestring: bytes) -> int:
         return unpack_uint(valuestring)[0]
 
-    def decode_weight(self, valuestring):
+    def decode_weight(self, valuestring: bytes) -> float:
         freq = unpack_uint(valuestring)[0]
         return freq * self.field_boost
 
-    def combine(self, vs):
-        return pack_uint(sum(self.decode_value(v) for v in vs))
+    def combine(self, vs: Iterable[bytes]) -> bytes:
+        return pack_uint(sum(self.decode_frequency(v) for v in vs))
 
 
 class Positions(Format):
@@ -221,10 +224,10 @@ class Positions(Format):
     position boost = 1.0).
     """
 
-    def word_values(self, value, analyzer, **kwargs):
+    def word_values(self, value: Any, analyzer: Any, **kwargs: Any) -> Iterable[tuple[bytes, int, float, bytes]]:
         fb = self.field_boost
         poses = defaultdict(list)
-        weights = defaultdict(float)
+        weights: dict[Any, float] = defaultdict(float)
         kwargs["positions"] = True
         kwargs["boosts"] = True
         for t in tokens(value, analyzer, kwargs):
@@ -235,7 +238,7 @@ class Positions(Format):
             value = self.encode(poslist)
             yield (w, len(poslist), weights[w] * fb, value)
 
-    def encode(self, poslist):
+    def encode(self, poslist: Any) -> Any:
         deltas = []
         base = 0
         for pos in poslist:
@@ -243,7 +246,7 @@ class Positions(Format):
             base = pos
         return pack_uint(len(deltas)) + dumps(deltas, 2)
 
-    def decode_positions(self, valuestring):
+    def decode_positions(self, valuestring: bytes) -> list[int]:
         if not valuestring.endswith(b"."):
             valuestring += b"."
         codes = loads(valuestring[_INT_SIZE:])
@@ -254,16 +257,16 @@ class Positions(Format):
             positions.append(position)
         return positions
 
-    def decode_frequency(self, valuestring):
+    def decode_frequency(self, valuestring: bytes) -> int:
         return unpack_uint(valuestring[:_INT_SIZE])[0]
 
-    def decode_weight(self, valuestring):
+    def decode_weight(self, valuestring: bytes) -> float:
         return self.decode_frequency(valuestring) * self.field_boost
 
-    def decode_position_boosts(self, valuestring):
+    def decode_position_boosts(self, valuestring: bytes) -> list[tuple[int, float]]:
         return [(pos, 1) for pos in self.decode_positions(valuestring)]
 
-    def combine(self, vs):
+    def combine(self, vs: Iterable[bytes]) -> bytes:
         s = set()
         for v in vs:
             s.update(self.decode_positions(v))
@@ -278,10 +281,10 @@ class Characters(Positions):
     position boost = 1.0), characters.
     """
 
-    def word_values(self, value, analyzer, **kwargs):
+    def word_values(self, value: Any, analyzer: Any, **kwargs: Any) -> Iterable[tuple[bytes, int, float, bytes]]:
         fb = self.field_boost
         seen = defaultdict(list)
-        weights = defaultdict(float)
+        weights: dict[Any, float] = defaultdict(float)
 
         kwargs["positions"] = True
         kwargs["chars"] = True
@@ -294,7 +297,7 @@ class Characters(Positions):
             value = self.encode(poslist)
             yield (w, len(poslist), weights[w] * fb, value)
 
-    def encode(self, poslist):
+    def encode(self, poslist: Any) -> Any:
         deltas = []
         posbase = 0
         charbase = 0
@@ -304,7 +307,7 @@ class Characters(Positions):
             charbase = endchar
         return pack_uint(len(deltas)) + dumps(deltas, 2)
 
-    def decode_characters(self, valuestring):
+    def decode_characters(self, valuestring: bytes) -> list[tuple[int, int, int]]:
         if not valuestring.endswith(b"."):
             valuestring += b"."
         codes = loads(valuestring[_INT_SIZE:])
@@ -318,7 +321,7 @@ class Characters(Positions):
             posns_chars.append((position, startchar, endchar))
         return posns_chars
 
-    def decode_positions(self, valuestring):
+    def decode_positions(self, valuestring: bytes) -> list[int]:
         if not valuestring.endswith(b"."):
             valuestring += b"."
         codes = loads(valuestring[_INT_SIZE:])
@@ -329,12 +332,12 @@ class Characters(Positions):
             posns.append(position)
         return posns
 
-    def combine(self, vs):
-        s = {}
+    def combine(self, vs: Iterable[bytes]) -> bytes:
+        s: dict[int, tuple[int, int]] = {}
         for v in vs:
             for pos, sc, ec in self.decode_characters(v):
                 if pos in s:
-                    old_sc, old_ec = pos[s]
+                    old_sc, old_ec = s[pos]
                     s[pos] = (min(sc, old_sc), max(ec, old_ec))
                 else:
                     s[pos] = (sc, ec)
@@ -349,7 +352,7 @@ class PositionBoosts(Positions):
     Supports: frequency, weight, positions, position_boosts.
     """
 
-    def word_values(self, value, analyzer, **kwargs):
+    def word_values(self, value: Any, analyzer: Any, **kwargs: Any) -> Iterable[tuple[bytes, int, float, bytes]]:
         fb = self.field_boost
         seen = defaultdict(list)
 
@@ -364,7 +367,7 @@ class PositionBoosts(Positions):
             value = self.encode(poses)
             yield (w, len(poses), sum(p[1] for p in poses) * fb, value)
 
-    def encode(self, poses):
+    def encode(self, poses: Any) -> Any:
         codes = []
         base = 0
         summedboost = 0
@@ -374,7 +377,7 @@ class PositionBoosts(Positions):
             base = pos
         return pack_uint(len(poses)) + pack_float(summedboost) + dumps(codes, 2)
 
-    def decode_position_boosts(self, valuestring):
+    def decode_position_boosts(self, valuestring: bytes) -> list[tuple[int, float]]:
         if not valuestring.endswith(b"."):
             valuestring += b"."
         codes = loads(valuestring[_INT_SIZE + _FLOAT_SIZE :])
@@ -385,7 +388,7 @@ class PositionBoosts(Positions):
             posns_boosts.append((position, code[1]))
         return posns_boosts
 
-    def decode_positions(self, valuestring):
+    def decode_positions(self, valuestring: bytes) -> list[int]:
         if not valuestring.endswith(b"."):
             valuestring += b"."
         codes = loads(valuestring[_INT_SIZE + _FLOAT_SIZE :])
@@ -396,12 +399,12 @@ class PositionBoosts(Positions):
             posns.append(position)
         return posns
 
-    def decode_weight(self, v):
+    def decode_weight(self, v: bytes) -> float:
         summedboost = unpack_float(v[_INT_SIZE : _INT_SIZE + _FLOAT_SIZE])[0]
         return summedboost * self.field_boost
 
-    def combine(self, vs):
-        s = defaultdict(float)
+    def combine(self, vs: Iterable[bytes]) -> bytes:
+        s: dict[int, float] = defaultdict(float)
         for v in vs:
             for pos, boost in self.decode_position_boosts(v):
                 s[pos] += boost
@@ -416,7 +419,7 @@ class CharacterBoosts(Characters):
     character_boosts.
     """
 
-    def word_values(self, value, analyzer, **kwargs):
+    def word_values(self, value: Any, analyzer: Any, **kwargs: Any) -> Iterable[tuple[bytes, int, float, bytes]]:
         seen = defaultdict(list)
 
         kwargs["positions"] = True
@@ -429,7 +432,7 @@ class CharacterBoosts(Characters):
             value, summedboost = self.encode(poses)
             yield (w, len(poses), summedboost, value)
 
-    def encode(self, poses):
+    def encode(self, poses: Any) -> Any:
         fb = self.field_boost
         # posns_chars_boosts = [(pos, startchar, endchar, boost), ...]
         codes = []
@@ -449,7 +452,7 @@ class CharacterBoosts(Characters):
             summedboost,
         )
 
-    def decode_character_boosts(self, valuestring):
+    def decode_character_boosts(self, valuestring: bytes) -> list[tuple[int, int, int, float]]:
         if not valuestring.endswith(b"."):
             valuestring += b"."
         codes = loads(valuestring[_INT_SIZE + _FLOAT_SIZE :])
@@ -463,27 +466,27 @@ class CharacterBoosts(Characters):
             posn_char_boosts.append((position, startchar, endchar, code[3]))
         return posn_char_boosts
 
-    def decode_positions(self, valuestring):
+    def decode_positions(self, valuestring: bytes) -> list[int]:
         return [item[0] for item in self.decode_character_boosts(valuestring)]
 
-    def decode_characters(self, valuestring):
+    def decode_characters(self, valuestring: bytes) -> list[tuple[int, int, int]]:
         return [
             (pos, startchar, endchar)
             for pos, startchar, endchar, _ in self.decode_character_boosts(valuestring)
         ]
 
-    def decode_position_boosts(self, valuestring):
+    def decode_position_boosts(self, valuestring: bytes) -> list[tuple[int, float]]:
         return [
             (pos, boost)
             for pos, _, _, boost in self.decode_character_boosts(valuestring)
         ]
 
-    def combine(self, vs):
-        s = {}
+    def combine(self, vs: Iterable[bytes]) -> bytes:
+        s: dict[int, tuple[int, int, float]] = {}
         for v in vs:
             for pos, sc, ec, boost in self.decode_character_boosts(v):
                 if pos in s:
-                    old_sc, old_ec, old_boost = pos[s]
+                    old_sc, old_ec, old_boost = s[pos]
                     s[pos] = (min(sc, old_sc), max(ec, old_ec), old_boost + boost)
                 else:
                     s[pos] = (sc, ec, boost)
