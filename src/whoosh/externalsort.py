@@ -29,11 +29,17 @@
 This module implements a general external merge sort for Python objects.
 """
 
+from __future__ import annotations
 
 import os
 import tempfile
 from heapq import heapify, heappop, heapreplace
 from pickle import dump, load
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Iterator
+    from typing import Any, BinaryIO
 
 ## Python 3.2 had a bug that make marshal.load unusable
 # if (hasattr(platform, "python_implementation")
@@ -52,18 +58,18 @@ from pickle import dump, load
 try:
     from heapq import merge
 
-    def imerge(iterables):
+    def imerge(iterables: Iterable[Iterable[Any]]) -> Iterator[Any]:
         return merge(*iterables)
 
 except ImportError:
 
-    def imerge(iterables):
+    def imerge(iterables: Iterable[Iterable[Any]]) -> Iterator[Any]:
         _hpop, _hreplace, _Stop = (heappop, heapreplace, StopIteration)
-        h = []
+        h: list[list[Any]] = []
         h_append = h.append
         for itnum, it in enumerate(map(iter, iterables)):
             try:
-                nx = it.next
+                nx = it.__next__
                 h_append([nx(), itnum, nx])
             except _Stop:
                 pass
@@ -100,7 +106,13 @@ class SortingPool:
     tuples, lists, and dicts).
     """
 
-    def __init__(self, maxsize=1000000, tempdir=None, prefix="", suffix=".run"):
+    def __init__(
+        self,
+        maxsize: int = 1000000,
+        tempdir: str | None = None,
+        prefix: str = "",
+        suffix: str = ".run",
+    ) -> None:
         """
         :param maxsize: the maximum number of items to keep in memory at once.
         :param tempdir: the path of a directory to use for temporary file
@@ -116,24 +128,24 @@ class SortingPool:
         self.prefix = prefix
         self.suffix = suffix
         # Current run queue
-        self.current = []
+        self.current: list[Any] = []
         # List of run filenames
-        self.runs = []
+        self.runs: list[str] = []
 
-    def _new_run(self):
+    def _new_run(self) -> tuple[str, BinaryIO]:
         fd, path = tempfile.mkstemp(
             prefix=self.prefix, suffix=self.suffix, dir=self.tempdir
         )
         f = os.fdopen(fd, "wb")
         return path, f
 
-    def _open_run(self, path):
+    def _open_run(self, path: str) -> BinaryIO:
         return open(path, "rb")
 
-    def _remove_run(self, path):
+    def _remove_run(self, path: str) -> None:
         os.remove(path)
 
-    def _read_run(self, path):
+    def _read_run(self, path: str) -> Iterator[Any]:
         f = self._open_run(path)
         try:
             while True:
@@ -144,26 +156,26 @@ class SortingPool:
             f.close()
             self._remove_run(path)
 
-    def _merge_runs(self, paths):
+    def _merge_runs(self, paths: Iterable[str]) -> Iterator[Any]:
         iters = [self._read_run(path) for path in paths]
         yield from imerge(iters)
 
-    def add(self, item):
+    def add(self, item: Any) -> None:
         """Adds `item` to the pool to be sorted."""
 
         if len(self.current) >= self.maxsize:
             self.save()
         self.current.append(item)
 
-    def _write_run(self, f, items):
+    def _write_run(self, f: BinaryIO, items: Iterable[Any]) -> None:
         for item in items:
             dump(item, f, 2)
         f.close()
 
-    def _add_run(self, filename):
+    def _add_run(self, filename: str) -> None:
         self.runs.append(filename)
 
-    def save(self):
+    def save(self) -> None:
         current = self.current
         if current:
             current.sort()
@@ -172,14 +184,14 @@ class SortingPool:
             self._add_run(path)
             self.current = []
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         for path in self.runs:
             try:
                 os.remove(path)
             except OSError:
                 pass
 
-    def reduce_to(self, target, k):
+    def reduce_to(self, target: int, k: int) -> None:
         # Reduce the number of runs to "target" by merging "k" runs at a time
 
         if k < 2:
@@ -190,14 +202,14 @@ class SortingPool:
         while len(runs) > target:
             newpath, f = self._new_run()
             # Take k runs off the end of the run list
-            tomerge = []
+            tomerge: list[str] = []
             while runs and len(tomerge) < k:
                 tomerge.append(runs.pop())
             # Merge them into a new run and add it at the start of the list
             self._write_run(f, self._merge_runs(tomerge))
             runs.insert(0, newpath)
 
-    def items(self, maxfiles=128):
+    def items(self, maxfiles: int = 128) -> list[Any] | Iterator[Any]:
         """Returns a sorted list or iterator of the items in the pool.
 
         :param maxfiles: maximum number of files to open at once.
@@ -223,7 +235,12 @@ class SortingPool:
         return self._merge_runs(runs)
 
 
-def sort(items, maxsize=100000, tempdir=None, maxfiles=128):
+def sort(
+    items: Iterable[Any],
+    maxsize: int = 100000,
+    tempdir: str | None = None,
+    maxfiles: int = 128,
+) -> list[Any] | Iterator[Any]:
     """Sorts the given items using an external merge sort.
 
     :param tempdir: the path of a directory to use for temporary file
