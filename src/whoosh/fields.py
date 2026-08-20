@@ -38,12 +38,17 @@ import struct
 import sys
 from array import array
 from decimal import Decimal
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, NoReturn
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Iterator
 
     FieldSpec = "FieldType | type[FieldType]"
+
+    from collections.abc import Generator, Sequence
+
+    from whoosh.analysis import Analyzer, Token
+    from whoosh.formats import Format
 
 from whoosh import analysis, columns, formats
 from whoosh.system import emptybytes, pack_byte
@@ -62,7 +67,7 @@ class UnknownFieldError(Exception):
     pass
 
 
-def _check_analyzer(analyzer):
+def _check_analyzer(analyzer: Any) -> Any:
     """Validate that ``analyzer`` can be used as a field analyzer and return it.
 
     A field analyzer must be able to turn raw text into a stream of tokens, so
@@ -146,15 +151,15 @@ class FieldType:
 
     def __init__(
         self,
-        format,
-        analyzer,
-        scorable=False,
-        stored=False,
-        unique=False,
-        multitoken_query="default",
-        sortable=False,
-        vector=None,
-    ):
+        format: Format,
+        analyzer: Analyzer,
+        scorable: bool = False,
+        stored: bool = False,
+        unique: bool = False,
+        multitoken_query: str = "default",
+        sortable: bool = False,
+        vector: Format | bool | None = None,
+    ) -> None:
         self.format = format
         self.analyzer = analyzer
         self.scorable = scorable
@@ -170,16 +175,10 @@ class FieldType:
         else:
             self.vector = None
 
-    def __repr__(self):
-        return "{}(format={!r}, scorable={}, stored={}, unique={})".format(
-            self.__class__.__name__,
-            self.format,
-            self.scorable,
-            self.stored,
-            self.unique,
-        )
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(format={self.format!r}, scorable={self.scorable}, stored={self.stored}, unique={self.unique})"
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         return all(
             (
                 isinstance(other, FieldType),
@@ -191,12 +190,16 @@ class FieldType:
             )
         )
 
-    def __ne__(self, other):
+    def __ne__(self, other: object) -> bool:
         return not (self.__eq__(other))
 
     # Text
 
-    def index(self, value, **kwargs):
+    def index(
+        self,
+        value: Any,
+        **kwargs: Any
+    ) -> Generator[tuple[bytes, int, float | int, bytes], Any, None]:
         """Returns an iterator of (btext, frequency, weight, encoded_value)
         tuples for each unique word in the input value.
 
@@ -221,7 +224,7 @@ class FieldType:
         for tstring, freq, wt, vbytes in word_values(value, ana, **kwargs):
             yield utf8encode(tstring)[0], freq, wt, vbytes
 
-    def tokenize(self, value, **kwargs):
+    def tokenize(self, value: str, **kwargs: Any) -> Iterator[Token]:
         """
         Analyzes the given string and returns an iterator of Token objects
         (note: for performance reasons, actually the same token yielded over
@@ -232,7 +235,10 @@ class FieldType:
             raise Exception(f"{self.__class__} field has no analyzer")
         return self.analyzer(value, **kwargs)
 
-    def process_text(self, qstring, mode="", **kwargs):
+    def process_text(self,
+                     qstring: str,
+                     mode: str = "",
+                     **kwargs: Any) -> Iterator[str]:
         """
         Analyzes the given string and returns an iterator of token texts.
 
@@ -247,7 +253,7 @@ class FieldType:
 
     # Conversion
 
-    def to_bytes(self, value):
+    def to_bytes(self, value: Any) -> bytes:
         """
         Returns a bytes representation of the given value, appropriate to be
         written to disk. The default implementation assumes a unicode value and
@@ -260,7 +266,7 @@ class FieldType:
             value = utf8encode(value)[0]
         return value
 
-    def to_column_value(self, value):
+    def to_column_value(self, value: Any) -> bytes:
         """
         Returns an object suitable to be inserted into the document values
         column for this field. The default implementation simply calls
@@ -269,15 +275,15 @@ class FieldType:
 
         return self.to_bytes(value)
 
-    def from_bytes(self, bs):
+    def from_bytes(self, bs: object) -> str:
         return utf8decode(bs)[0]
 
-    def from_column_value(self, value):
+    def from_column_value(self, value: object) -> str:
         return self.from_bytes(value)
 
     # Columns/sorting
 
-    def set_sortable(self, sortable):
+    def set_sortable(self, sortable: bool | columns.Column) -> None:
         if sortable:
             if isinstance(sortable, columns.Column):
                 self.column_type = sortable
@@ -286,7 +292,7 @@ class FieldType:
         else:
             self.column_type = None
 
-    def sortable_terms(self, ixreader, fieldname):
+    def sortable_terms(self, ixreader: Any, fieldname: str) -> Iterator[bytes]:
         """
         Returns an iterator of the "sortable" tokens in the given reader and
         field. These values can be used for sorting. The default implementation
@@ -298,12 +304,12 @@ class FieldType:
 
         return ixreader.lexicon(fieldname)
 
-    def default_column(self):
+    def default_column(self) -> columns.VarBytesColumn:
         return columns.VarBytesColumn()
 
     # Parsing
 
-    def self_parsing(self):
+    def self_parsing(self) -> bool:
         """
         Subclasses should override this method to return True if they want
         the query parser to call the field's ``parse_query()`` method instead
@@ -314,7 +320,10 @@ class FieldType:
 
         return False
 
-    def parse_query(self, fieldname, qstring, boost=1.0):
+    def parse_query(self,
+                    fieldname: str,
+                    qstring: str,
+                    boost: float = 1.0) -> NoReturn:
         """
         When ``self_parsing()`` returns True, the query parser will call
         this method to parse basic query text.
@@ -322,7 +331,13 @@ class FieldType:
 
         raise NotImplementedError(self.__class__.__name__)
 
-    def parse_range(self, fieldname, start, end, startexcl, endexcl, boost=1.0):
+    def parse_range(self,
+                    fieldname: str,
+                    start: Any,
+                    end: Any,
+                    startexcl: bool,
+                    endexcl: bool,
+                    boost: float = 1.0) -> None:
         """
         When ``self_parsing()`` returns True, the query parser will call
         this method to parse range query text. If this method returns None
@@ -343,7 +358,7 @@ class FieldType:
     #: raises ``TypeError: 'int' object is not iterable`` (see gh#55).
     spellable = True
 
-    def separate_spelling(self):
+    def separate_spelling(self) -> bool:
         """
         Returns True if the field stores unstemmed words in a separate field for
         spelling suggestions.
@@ -351,7 +366,7 @@ class FieldType:
 
         return False
 
-    def spelling_fieldname(self, fieldname):
+    def spelling_fieldname(self, fieldname: str) -> str:
         """
         Returns the name of a field to use for spelling suggestions instead of
         this field.
@@ -361,7 +376,7 @@ class FieldType:
 
         return fieldname
 
-    def spellable_words(self, value):
+    def spellable_words(self, value: Any) -> Iterator[str]:
         """Returns an iterator of each unique word (in sorted order) in the
         input value, suitable for inclusion in the field's word graph.
 
@@ -381,7 +396,7 @@ class FieldType:
 
     # Utility
 
-    def subfields(self):
+    def subfields(self) -> Iterator[tuple[str, FieldType]]:
         """
         Returns an iterator of ``(name_prefix, fieldobject)`` pairs for the
         fields that need to be indexed when content is put in this field. The
@@ -390,7 +405,7 @@ class FieldType:
 
         yield "", self
 
-    def supports(self, name):
+    def supports(self, name: str) -> bool:
         """
         Returns True if the underlying format supports the given posting
         value type.
@@ -404,7 +419,7 @@ class FieldType:
 
         return self.format.supports(name)
 
-    def clean(self):
+    def clean(self) -> None:
         """
         Clears any cached information in the field and any child objects.
         """
@@ -414,10 +429,10 @@ class FieldType:
 
     # Events
 
-    def on_add(self, schema, fieldname):
+    def on_add(self, schema: Schema, fieldname: str) -> None:
         pass
 
-    def on_remove(self, schema, fieldname):
+    def on_remove(self, schema: Schema, fieldname: str) -> None:
         pass
 
 
@@ -715,13 +730,13 @@ class NUMERIC(FieldType):
         self.default = default
         self.set_sortable(sortable)
 
-    def __getstate__(self):
+    def __getstate__(self) -> dict[str, Any]:
         d = self.__dict__.copy()
         if "_struct" in d:
             del d["_struct"]
         return d
 
-    def __setstate__(self, d):
+    def __setstate__(self, d: dict[str, Any]) -> None:
         self.__dict__.update(d)
         self._struct = struct.Struct(">" + str(self.sortable_typecode))
         if "min_value" not in d:
@@ -732,7 +747,7 @@ class NUMERIC(FieldType):
             # whoosh-community #359.
             self.min_value, self.max_value = self._min_max()
 
-    def _min_max(self):
+    def _min_max(self) -> tuple[Any, Any]:
         numtype = self.numtype
         bits = self.bits
         signed = self.signed
@@ -743,7 +758,7 @@ class NUMERIC(FieldType):
 
         return min_value, max_value
 
-    def default_column(self):
+    def default_column(self) -> columns.NumericColumn:
         # The column stores values in their *sortable* (unsigned integer)
         # representation (see to_column_value), so the column default must be
         # encoded the same way. Passing the raw self.default (which is NaN for
@@ -753,7 +768,7 @@ class NUMERIC(FieldType):
         default = to_sortable(self.numtype, self.bits, self.signed, self.default)
         return columns.NumericColumn(self.sortable_typecode, default=default)
 
-    def is_valid(self, x):
+    def is_valid(self, x: Any) -> bool:
         try:
             x = self.to_bytes(x)
         except ValueError:
@@ -763,7 +778,9 @@ class NUMERIC(FieldType):
 
         return True
 
-    def index(self, num, **kwargs):
+    def index(
+        self, num: Any, **kwargs: Any
+    ) -> Generator[tuple[bytes, int, float, bytes], Any, None]:
         # If the user gave us a list of numbers, recurse on the list
         if isinstance(num, (list, tuple)):
             for n in num:
@@ -777,7 +794,7 @@ class NUMERIC(FieldType):
         else:
             yield self.to_bytes(num), 1, 1.0, emptybytes
 
-    def prepare_number(self, x):
+    def prepare_number(self, x: Any) -> Any:
         if x == emptybytes or x is None:
             return x
 
@@ -802,24 +819,24 @@ class NUMERIC(FieldType):
             )
         return x
 
-    def unprepare_number(self, x):
+    def unprepare_number(self, x: Any) -> Any:
         dc = self.decimal_places
         if dc:
             s = str(x)
             x = Decimal(s[:-dc] + "." + s[-dc:])
         return x
 
-    def to_column_value(self, x):
+    def to_column_value(self, x: Any) -> Any:
         if isinstance(x, (list, tuple, array)):
             x = x[0]
         x = self.prepare_number(x)
         return to_sortable(self.numtype, self.bits, self.signed, x)
 
-    def from_column_value(self, x):
+    def from_column_value(self, x: Any) -> Any:
         x = from_sortable(self.numtype, self.bits, self.signed, x)
         return self.unprepare_number(x)
 
-    def to_bytes(self, x, shift=0):
+    def to_bytes(self, x: Any, shift: int = 0) -> bytes:
         # Try to avoid re-encoding; this sucks because on Python 2 we can't
         # tell the difference between a string and encoded bytes, so we have
         # to require the user use unicode when they mean string
@@ -833,24 +850,26 @@ class NUMERIC(FieldType):
         x = to_sortable(self.numtype, self.bits, self.signed, x)
         return self.sortable_to_bytes(x, shift)
 
-    def sortable_to_bytes(self, x, shift=0):
+    def sortable_to_bytes(self, x: int, shift: int = 0) -> bytes:
         if shift:
             x >>= shift
         return pack_byte(shift) + self._struct.pack(x)
 
-    def from_bytes(self, bs):
+    def from_bytes(self, bs: bytes) -> Any:
         x = self._struct.unpack(bs[1:])[0]
         x = from_sortable(self.numtype, self.bits, self.signed, x)
         x = self.unprepare_number(x)
         return x
 
-    def process_text(self, text, **kwargs):
+    def process_text(self, text: Any, **kwargs: Any) -> tuple[bytes]:
         return (self.to_bytes(text),)
 
-    def self_parsing(self):
+    def self_parsing(self) -> bool:
         return True
 
-    def parse_query(self, fieldname, qstring, boost=1.0):
+    def parse_query(
+        self, fieldname: str, qstring: str, boost: float = 1.0
+    ) -> Any:
         from whoosh import query
         from whoosh.qparser.common import QueryParserError
 
@@ -863,7 +882,15 @@ class NUMERIC(FieldType):
         token = self.to_bytes(qstring)
         return query.Term(fieldname, token, boost=boost)
 
-    def parse_range(self, fieldname, start, end, startexcl, endexcl, boost=1.0):
+    def parse_range(
+        self,
+        fieldname: str,
+        start: Any,
+        end: Any,
+        startexcl: bool,
+        endexcl: bool,
+        boost: float = 1.0,
+    ) -> Any:
         from whoosh import query
         from whoosh.qparser.common import QueryParserError
 
@@ -879,7 +906,7 @@ class NUMERIC(FieldType):
             fieldname, start, end, startexcl, endexcl, boost=boost
         )
 
-    def sortable_terms(self, ixreader, fieldname):
+    def sortable_terms(self, ixreader: Any, fieldname: str) -> Iterator[bytes]:
         zero = b"\x00"
         for token in ixreader.lexicon(fieldname):
             if token[0:1] != zero:
@@ -920,7 +947,7 @@ class DATETIME(NUMERIC):
             int, 64, stored=stored, unique=unique, shift_step=8, sortable=sortable
         )
 
-    def prepare_datetime(self, x):
+    def prepare_datetime(self, x: Any) -> Any:
         from whoosh.util.times import floor
 
         if isinstance(x, str):
@@ -936,25 +963,25 @@ class DATETIME(NUMERIC):
         else:
             raise Exception(f"{x!r} is not a datetime")
 
-    def to_column_value(self, x):
+    def to_column_value(self, x: Any) -> Any:
         if isinstance(x, bytes):
             raise Exception(f"{x!r} is not a datetime")
         if isinstance(x, (list, tuple)):
             x = x[0]
         return self.prepare_datetime(x)
 
-    def from_column_value(self, x):
+    def from_column_value(self, x: Any) -> datetime.datetime:
         return long_to_datetime(x)
 
-    def to_bytes(self, x, shift=0):
+    def to_bytes(self, x: Any, shift: int = 0) -> bytes:
         x = self.prepare_datetime(x)
         return NUMERIC.to_bytes(self, x, shift=shift)
 
-    def from_bytes(self, bs):
+    def from_bytes(self, bs: bytes) -> datetime.datetime:
         x = NUMERIC.from_bytes(self, bs)
         return long_to_datetime(x)
 
-    def _parse_datestring(self, qstring):
+    def _parse_datestring(self, qstring: str) -> Any:
         # This method parses a very simple datetime representation of the form
         # YYYY[MM[DD[hh[mm[ss[uuuuuu]]]]]]
         from whoosh.util.times import adatetime, fix, is_void
@@ -981,7 +1008,9 @@ class DATETIME(NUMERIC):
             raise Exception(f"{qstring!r} is not a parseable date")
         return at
 
-    def parse_query(self, fieldname, qstring, boost=1.0):
+    def parse_query(
+        self, fieldname: str, qstring: str, boost: float = 1.0
+    ) -> Any:
         from whoosh import query
         from whoosh.util.times import is_ambiguous
 
@@ -998,7 +1027,15 @@ class DATETIME(NUMERIC):
         else:
             return query.Term(fieldname, at, boost=boost)
 
-    def parse_range(self, fieldname, start, end, startexcl, endexcl, boost=1.0):
+    def parse_range(
+        self,
+        fieldname: str,
+        start: Any,
+        end: Any,
+        startexcl: bool,
+        endexcl: bool,
+        boost: float = 1.0,
+    ) -> Any:
         from whoosh import query
 
         if start is None and end is None:
@@ -1045,7 +1082,7 @@ class BOOLEAN(FieldType):
         # Don't store any information other than the doc ID
         self.format = formats.Existence(field_boost=field_boost)
 
-    def _obj_to_bool(self, x):
+    def _obj_to_bool(self, x: Any) -> bool:
         # We special case strings such as "true", "false", "yes", "no", but
         # otherwise call bool() on the query value. This lets you pass objects
         # as query values and do the right thing.
@@ -1058,7 +1095,7 @@ class BOOLEAN(FieldType):
             x = bool(x)
         return x
 
-    def to_bytes(self, x):
+    def to_bytes(self, x: Any) -> bytes:
         if isinstance(x, bytes):
             return x
         elif isinstance(x, str):
@@ -1068,7 +1105,7 @@ class BOOLEAN(FieldType):
         bs = self.bytestrings[int(x)]
         return bs
 
-    def index(self, bit, **kwargs):
+    def index(self, bit: Any, **kwargs: Any) -> list[tuple[bytes, int, float, bytes]]:
         if isinstance(bit, str):
             bit = bit.lower() in self.trues
         else:
@@ -1076,10 +1113,12 @@ class BOOLEAN(FieldType):
         # word, freq, weight, valuestring
         return [(self.bytestrings[int(bit)], 1, 1.0, emptybytes)]
 
-    def self_parsing(self):
+    def self_parsing(self) -> bool:
         return True
 
-    def parse_query(self, fieldname, qstring, boost=1.0):
+    def parse_query(
+        self, fieldname: str, qstring: str, boost: float = 1.0
+    ) -> Any:
         from whoosh import query
 
         if qstring == "*":
@@ -1116,10 +1155,10 @@ class COLUMN(FieldType):
             raise TypeError(f"{columnobj!r} is not a column object")
         self.column_type = columnobj
 
-    def to_bytes(self, v):
+    def to_bytes(self, v: Any) -> Any:
         return v
 
-    def from_bytes(self, b):
+    def from_bytes(self, b: Any) -> Any:
         return b
 
 
@@ -1259,7 +1298,7 @@ class TEXT(FieldType):
         else:
             self.vector = None
 
-    def subfields(self):
+    def subfields(self) -> Iterator[tuple[str, FieldType]]:
         yield "", self
 
         # If the user indicated this is a spellable field, and the analyzer
@@ -1268,10 +1307,10 @@ class TEXT(FieldType):
         if self.separate_spelling():
             yield self.spelling_prefix, SpellField(self.analyzer)
 
-    def separate_spelling(self):
+    def separate_spelling(self) -> bool:
         return self.spelling and self.analyzer.has_morph()
 
-    def spelling_fieldname(self, fieldname):
+    def spelling_fieldname(self, fieldname: str) -> str:
         if self.separate_spelling():
             return self.spelling_prefix + fieldname
         else:
