@@ -219,7 +219,7 @@ class FieldType:
         word_values = self.format.word_values
         ana = self.analyzer
         for tstring, freq, wt, vbytes in word_values(value, ana, **kwargs):
-            yield (utf8encode(tstring)[0], freq, wt, vbytes)
+            yield utf8encode(tstring)[0], freq, wt, vbytes
 
     def tokenize(self, value, **kwargs):
         """
@@ -773,9 +773,9 @@ class NUMERIC(FieldType):
         # word, freq, weight, valuestring
         if self.shift_step:
             for shift in range(0, self.bits, self.shift_step):
-                yield (self.to_bytes(num, shift), 1, 1.0, emptybytes)
+                yield self.to_bytes(num, shift), 1, 1.0, emptybytes
         else:
-            yield (self.to_bytes(num), 1, 1.0, emptybytes)
+            yield self.to_bytes(num), 1, 1.0, emptybytes
 
     def prepare_number(self, x):
         if x == emptybytes or x is None:
