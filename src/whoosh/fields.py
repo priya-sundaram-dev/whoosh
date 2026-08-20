@@ -49,6 +49,7 @@ if TYPE_CHECKING:
 
     from whoosh.analysis import Analyzer, Token
     from whoosh.formats import Format
+    from whoosh.query import Query
 
 from whoosh import analysis, columns, formats
 from whoosh.system import emptybytes, pack_byte
@@ -323,7 +324,7 @@ class FieldType:
     def parse_query(self,
                     fieldname: str,
                     qstring: str,
-                    boost: float = 1.0) -> NoReturn:
+                    boost: float = 1.0) -> Query:
         """
         When ``self_parsing()`` returns True, the query parser will call
         this method to parse basic query text.
@@ -337,7 +338,7 @@ class FieldType:
                     end: Any,
                     startexcl: bool,
                     endexcl: bool,
-                    boost: float = 1.0) -> None:
+                    boost: float = 1.0) -> Query:
         """
         When ``self_parsing()`` returns True, the query parser will call
         this method to parse range query text. If this method returns None
@@ -869,7 +870,7 @@ class NUMERIC(FieldType):
 
     def parse_query(
         self, fieldname: str, qstring: str, boost: float = 1.0
-    ) -> Any:
+    ) -> Query:
         from whoosh import query
         from whoosh.qparser.common import QueryParserError
 
@@ -890,7 +891,7 @@ class NUMERIC(FieldType):
         startexcl: bool,
         endexcl: bool,
         boost: float = 1.0,
-    ) -> Any:
+    ) -> Query:
         from whoosh import query
         from whoosh.qparser.common import QueryParserError
 
@@ -1010,7 +1011,7 @@ class DATETIME(NUMERIC):
 
     def parse_query(
         self, fieldname: str, qstring: str, boost: float = 1.0
-    ) -> Any:
+    ) -> Query:
         from whoosh import query
         from whoosh.util.times import is_ambiguous
 
@@ -1035,7 +1036,7 @@ class DATETIME(NUMERIC):
         startexcl: bool,
         endexcl: bool,
         boost: float = 1.0,
-    ) -> Any:
+    ) -> Query:
         from whoosh import query
 
         if start is None and end is None:
@@ -1600,7 +1601,7 @@ class Schema:
             state["_subfields"] = {}
         self.__dict__.update(state)
 
-    def to_bytes(self, fieldname: str, value):
+    def to_bytes(self, fieldname: str, value: Any) -> bytes:
         return self[fieldname].to_bytes(value)
 
     def items(self) -> list[tuple[str, FieldType]]:
