@@ -46,6 +46,7 @@ provides two important methods: ``writer()`` to return a ``ColumnWriter`` object
 and ``reader()`` to return a ``ColumnReader`` object.
 """
 
+from __future__ import annotations
 
 import struct
 import warnings
@@ -53,11 +54,15 @@ from array import array
 from bisect import bisect_right
 from io import BytesIO
 from pickle import dumps, loads
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 try:
     import zlib
 except ImportError:
-    zlib = None
+    zlib = None  # type: ignore[assignment]
 
 from whoosh.filedb.structfile import StructFile
 from whoosh.idsets import BitSet, OnDiskBitSet
@@ -78,8 +83,11 @@ class Column:
     """
 
     reversible = False
+    Writer: type[ColumnWriter]
+    Reader: type[ColumnReader]
+    _default: Any
 
-    def writer(self, dbfile):
+    def writer(self, dbfile: StructFile) -> ColumnWriter:
         """Returns a :class:`ColumnWriter` object you can use to use to create
         a column of this type on disk.
 
@@ -89,7 +97,9 @@ class Column:
 
         return self.Writer(dbfile)
 
-    def reader(self, dbfile, basepos, length, doccount):
+    def reader(
+        self, dbfile: StructFile, basepos: int, length: int, doccount: int
+    ) -> ColumnReader:
         """Returns a :class:`ColumnReader` object you can use to read a column
         of this type from disk.
 
@@ -102,13 +112,13 @@ class Column:
 
         return self.Reader(dbfile, basepos, length, doccount)
 
-    def default_value(self, reverse=False):
+    def default_value(self, reverse: bool = False) -> Any:
         """Returns the default value for this column type."""
         _ = reverse  # unused variable
 
         return self._default
 
-    def stores_lists(self):
+    def stores_lists(self) -> bool:
         """Returns True if the column stores a list of values for each document
         instead of a single value.
         """
@@ -117,49 +127,53 @@ class Column:
 
 
 class ColumnWriter:
-    def __init__(self, dbfile):
+    _defaultbytes: bytes
+
+    def __init__(self, dbfile: StructFile) -> None:
         self._dbfile = dbfile
         self._count = 0
 
-    def fill(self, docnum):
+    def fill(self, docnum: int) -> None:
         write = self._dbfile.write
         default = self._defaultbytes
         if docnum > self._count:
             for _ in range(docnum - self._count):
                 write(default)
 
-    def add(self, docnum, value):
+    def add(self, docnum: int, value: Any) -> None:
         raise NotImplementedError
 
-    def finish(self, docnum):
+    def finish(self, docnum: int) -> None:
         # This method is intentionally left empty.
         pass
 
 
 class ColumnReader:
-    def __init__(self, dbfile, basepos, length, doccount):
+    def __init__(
+        self, dbfile: StructFile, basepos: int, length: int, doccount: int
+    ) -> None:
         self._dbfile = dbfile
         self._basepos = basepos
         self._length = length
         self._doccount = doccount
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self._doccount
 
-    def __getitem__(self, docnum):
+    def __getitem__(self, docnum: int) -> Any:
         raise NotImplementedError
 
-    def sort_key(self, docnum):
+    def sort_key(self, docnum: int) -> bytes:
         return self[docnum]
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Any]:
         for i in range(self._doccount):
             yield self[i]
 
-    def load(self):
+    def load(self) -> list[Any]:
         return list(self)
 
-    def set_reverse(self):
+    def set_reverse(self) -> None:
         raise NotImplementedError
 
 
