@@ -38,14 +38,14 @@ import struct
 import sys
 from array import array
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, NoReturn
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Iterator
 
     FieldSpec = "FieldType | type[FieldType]"
 
-    from collections.abc import Generator, Sequence
+    from collections.abc import Generator
 
     from whoosh.analysis import Analyzer, Token
     from whoosh.formats import Format
