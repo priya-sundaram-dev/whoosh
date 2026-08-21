@@ -827,3 +827,67 @@ def test_whoosh2_legacy_codec_importable():
     ):
         assert hasattr(w2, name), name
     assert issubclass(w2.NoGraphError, Exception)
+
+
+def test_tiny_blocks_stored_uncompressed_round_trip(tmp_path):
+    # Single-posting terms produce postings blocks below
+    # COMPRESSION_MIN_SIZE, which are stored uncompressed because zlib
+    # expands payloads that small. The stored compression flag must say
+    # so, and the terms must read back exactly (issue #99).
+    from whoosh import index
+    from whoosh.codec import whoosh3
+    from whoosh.qparser import QueryParser
+
+    d = str(tmp_path)
+    schema = fields.Schema(id=fields.ID(stored=True), body=fields.TEXT)
+    ix = index.create_in(d, schema)
+    w = ix.writer()
+    # Every rare_N term occurs exactly once, in one document: the
+    # single-posting shape that dominates Zipfian vocabularies.
+    for i in range(50):
+        w.add_document(id=str(i), body=u(f"common rare_{i}"))
+    w.commit()
+
+    ix2 = index.open_dir(d)
+    with ix2.searcher() as s:
+        qp = QueryParser("body", ix2.schema)
+        # Every single-posting term is findable in its one document.
+        for i in range(50):
+            hits = s.search(qp.parse(u(f"rare_{i}")), limit=None)
+            assert [hit["id"] for hit in hits] == [str(i)], f"rare_{i}"
+        # The common term appears everywhere.
+        assert len(s.search(qp.parse(u("common")), limit=None)) == 50
+
+    # The guard itself, pinned for real: rebuild the same index with
+    # zlib.compress replaced by a tripwire, and prove no payload below
+    # the threshold is ever handed to zlib.
+    import zlib as real_zlib
+
+    calls = []
+
+    class TripwireZlib:
+        @staticmethod
+        def compress(data, level=6):
+            calls.append(len(data))
+            assert len(data) >= whoosh3.COMPRESSION_MIN_SIZE, (
+                f"zlib called for a {len(data)} byte block below the "
+                f"{whoosh3.COMPRESSION_MIN_SIZE} byte threshold"
+            )
+            return real_zlib.compress(data, level)
+
+        decompress = staticmethod(real_zlib.decompress)
+
+    (tmp_path / "tripwire").mkdir()
+    d2 = str(tmp_path / "tripwire")
+    old_zlib = whoosh3.zlib
+    whoosh3.zlib = TripwireZlib
+    try:
+        ix3 = index.create_in(d2, schema)
+        w3 = ix3.writer()
+        for i in range(50):
+            w3.add_document(id=str(i), body=u(f"common rare_{i}"))
+        w3.commit()
+    finally:
+        whoosh3.zlib = old_zlib
+    # Compression still ran for payloads at or above the threshold.
+    assert calls, "expected at least one compressed block"

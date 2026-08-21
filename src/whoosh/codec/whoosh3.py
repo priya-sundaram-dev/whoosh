@@ -65,6 +65,10 @@ except ImportError:
 # codec/version
 WHOOSH3_HEADER_MAGIC = b"W3Bl"
 
+# Below this pickled-block size, zlib reliably expands the payload
+# (measured crossover on the reuters benchmark corpus; see issue #99).
+COMPRESSION_MIN_SIZE = 80
+
 # Column type to store field length info
 LENGTHS_COLUMN = columns.NumericColumn("B", default=0)
 # Column type to store pointers to vector posting lists
@@ -816,16 +820,16 @@ class W3PostingsWriter(base.PostingsWriter):
         # Pickle the tuple
         databytes = dumps(data, 2)
         # Compress the pickle (if self._compression > 0), but skip compression
-        # for a payload so small that zlib's header would only add overhead
-        # instead of shrinking it. NOTE: the previous code set ``comp = 0`` here
-        # and then immediately overwrote it with ``comp = self._compression``,
-        # so this tiny-block skip never actually took effect. Ordered correctly
-        # now. (The threshold is conservative — the smallest real block pickle
-        # is ~56 bytes — so this is behaviourally a no-op today; raising it to
-        # skip compression on single-posting blocks of rare terms is tracked as
-        # a follow-up optimization.)
+        # for payloads below COMPRESSION_MIN_SIZE, where zlib's header and
+        # checksum expand the data instead of shrinking it while still
+        # costing CPU. Measured on the reuters benchmark corpus: no block
+        # under 80 bytes ever compressed smaller, and the sub-80 range is
+        # dominated by single-posting blocks of rare terms (roughly half of
+        # all blocks in a Zipfian vocabulary); from 80 bytes up, compression
+        # always helped. The read path honours the stored compression flag,
+        # so uncompressed blocks are format-legal.
         comp = self._compression
-        if len(databytes) < 20:
+        if len(databytes) < COMPRESSION_MIN_SIZE:
             comp = 0
         if comp:
             databytes = zlib.compress(databytes, comp)
