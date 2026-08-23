@@ -153,7 +153,7 @@ def test_index_files_deletable_after_close(tmp_path):
     import shutil
 
     from whoosh.fields import TEXT, Schema
-    from whoosh.index import create_in, open_dir
+    from whoosh.index import create_in
 
     idx_dir = tmp_path / "ix"
     idx_dir.mkdir()

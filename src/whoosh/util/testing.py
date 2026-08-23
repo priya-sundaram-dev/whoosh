@@ -66,7 +66,7 @@ class TempDir:
             try:
                 shutil.rmtree(self.dir)
             except OSError:
-                e = sys.exc_info()[1]
+                _e = sys.exc_info()[1]
                 # sys.stderr.write("Can't remove temp dir: " + str(e) + "\n")
                 # if exc_type is None:
                 #    raise

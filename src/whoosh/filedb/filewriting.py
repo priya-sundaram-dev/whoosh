@@ -24,7 +24,6 @@ from whoosh.filedb.filepostings import FilePostingWriter
 from whoosh.filedb.filetables import (
     FileListWriter,
     FileTableWriter,
-    LengthWriter,
     StructHashWriter,
 )
 from whoosh.filedb.pools import MultiPool, TempfilePool

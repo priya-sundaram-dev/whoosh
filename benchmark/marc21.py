@@ -3,7 +3,7 @@ import logging
 import os.path
 import re
 
-from whoosh import analysis, fields, index, qparser, query, scoring
+from whoosh import analysis, fields, index, qparser, scoring
 from whoosh.util import now
 
 log = logging.getLogger(__name__)

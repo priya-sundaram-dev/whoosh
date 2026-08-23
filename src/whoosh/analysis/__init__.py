@@ -83,7 +83,6 @@ from whoosh.analysis.filters import (
     STOP_WORDS,
     CharsetFilter,
     CJKFilter,
-    Composable,
     DelimitedAttributeFilter,
     Filter,
     LoggingFilter,

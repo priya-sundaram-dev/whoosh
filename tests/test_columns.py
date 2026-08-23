@@ -6,7 +6,7 @@ from pickle import dumps, loads
 
 import pytest
 
-from whoosh import columns, fields, query
+from whoosh import columns, fields
 from whoosh.codec.whoosh3 import W3Codec
 from whoosh.filedb import compound
 from whoosh.filedb.filestore import RamStorage

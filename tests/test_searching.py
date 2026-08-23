@@ -171,7 +171,7 @@ def test_andnot2():
 
         anq = query.AndNot(q, oq)
 
-        m = anq.matcher(s)
+        anq.matcher(s)
         r = s.search(anq)
         assert list(anq.docs(s)) == sorted(hit.docnum for hit in r)
         assert " ".join(sorted(hit["a"] for hit in r)) == "charlie foxtrot india juliet"
@@ -1684,8 +1684,8 @@ def test_score_length():
         assert not s.is_atomic()
         p = s.postings("a", "mike")
         while p.is_active():
-            docnum = p.id()
-            score = p.score()
+            _docnum = p.id()
+            _score = p.score()
             p.next()
 
 

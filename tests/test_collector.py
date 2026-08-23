@@ -48,7 +48,7 @@ def test_filter_honored_inside_timelimit():
         w.add_document(id=i, text="fruit")
     w.commit()
 
-    allow = query.Or([query.Term("text", "fruit")])  # matches everything
+    _allow = query.Or([query.Term("text", "fruit")])  # matches everything
     # Restrict to even ids by allowing an explicit doc set.
     even = set(range(0, 20, 2))
 

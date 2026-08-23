@@ -36,7 +36,7 @@ import pickle
 import re
 import sys
 from time import sleep, time
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from whoosh import __version__
 from whoosh.fields import ensure_schema

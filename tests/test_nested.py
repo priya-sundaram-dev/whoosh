@@ -30,7 +30,7 @@ def test_nested_parent():
             w.add_document(part="case", price=50)
 
     with ix.searcher() as s:
-        price = s.schema["price"]
+        _price = s.schema["price"]
 
         pq = query.Term("type", "product")
         cq = query.Term("price", 50)

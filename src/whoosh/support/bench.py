@@ -442,7 +442,7 @@ class NucularModule(Module):
             raise
         self.count += 1
         if not self.count % int(self.options.batch):
-            t = now()
+            _t = now()
             self.archive.store(lazy=True)
             self.indexer(create=False)
 

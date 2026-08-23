@@ -265,7 +265,7 @@ class ArrayUnionMatcher(CombinationMatcher):
 
         # Advance all active submatchers
         submatchers = self._submatchers
-        active = False
+        _active = False
         for subm in submatchers:
             if subm.is_active():
                 subm.skip_to(docnum)

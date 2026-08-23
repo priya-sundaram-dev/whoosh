@@ -40,7 +40,7 @@ def test_bigsort():
 
     t = now()
     for y in x:
-        p = list(s.postings("date", y).all_ids())
+        _p = list(s.postings("date", y).all_ids())
     print(now() - t)
 
     t = now()

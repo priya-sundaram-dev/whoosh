@@ -53,9 +53,6 @@ from whoosh.mcp import (  # noqa: F401
     build_mcp_server,
     main,
 )
-from whoosh.mcp import (
-    SAMPLE_DOCS as DOCS,
-)
 
 if __name__ == "__main__":
     raise SystemExit(main())

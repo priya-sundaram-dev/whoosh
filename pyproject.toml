@@ -129,9 +129,7 @@ lint.ignore = [
   # tzinfo everywhere would be incorrect for this library's supported data model.
   "DTZ",     # flake8-datetimez (naive datetimes are a supported feature)
   "EXE001",
-  "F401",
-  "F811",
-  "F841",
+  "F401",    # unused imports are often used for type-checking or optional features
   "FLY002",
   "PERF203",
   # Whoosh deliberately uses function-local (lazy) imports throughout to avoid

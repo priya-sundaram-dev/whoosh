@@ -33,8 +33,8 @@ ops = ()
 
 
 def parse(pattern):
-    stack = []
-    ops = []
+    _stack = []
+    _ops = []
 
 
 class RegexBuilder:

@@ -4,7 +4,7 @@ from array import array
 import pytest
 
 from whoosh import analysis, fields, formats, query
-from whoosh.codec import default_codec, memory
+from whoosh.codec import default_codec
 from whoosh.codec.memory import MemoryCodec, MemSegment, MemTermsReader, MemWriter
 from whoosh.codec.plaintext import PlainTextCodec
 from whoosh.codec.whoosh3 import W3Codec

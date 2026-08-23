@@ -22,7 +22,6 @@ from whoosh import classify, highlight, index, scoring, spelling
 from whoosh.analysis.acore import Token
 from whoosh.analysis.analyzers import StandardAnalyzer
 from whoosh.analysis.filters import (
-    CharsetFilter,
     DelimitedAttributeFilter,
     LowercaseFilter,
     PassFilter,
@@ -39,7 +38,6 @@ from whoosh.analysis.ngrams import (
     NgramWordAnalyzer,
 )
 from whoosh.analysis.tokenizers import (
-    CharsetTokenizer,
     CommaSeparatedTokenizer,
     IDTokenizer,
     NormalizingRegexTokenizer,

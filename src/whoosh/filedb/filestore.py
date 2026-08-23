@@ -29,7 +29,6 @@
 import errno
 import os
 import sys
-import tempfile
 from io import BytesIO
 from threading import Lock
 

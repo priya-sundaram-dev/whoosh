@@ -17,13 +17,11 @@
 from marshal import loads
 from threading import Lock
 
-from whoosh.fields import FieldConfigurationError
 from whoosh.filedb import misc
 from whoosh.filedb.filepostings import FilePostingReader
 from whoosh.filedb.filetables import (
     FileListReader,
     FileTableReader,
-    LengthReader,
     StructHashReader,
 )
 

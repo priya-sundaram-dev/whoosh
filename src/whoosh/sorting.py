@@ -48,7 +48,7 @@ from collections import defaultdict
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Iterator, Mapping, Sequence
+    from collections.abc import Callable, Iterator, Sequence
 
     from whoosh.matching import Matcher
     from whoosh.query import Query

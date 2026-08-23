@@ -341,7 +341,7 @@ class Or(CompoundQuery):
 
     def _matcher(self, subs, searcher, context):
         needs_current = context.needs_current if context else True
-        weighting = context.weighting if context else None
+        _weighting = context.weighting if context else None
         matcher_type = self.matcher_type
 
         if matcher_type == self.AUTO_MATCHER:

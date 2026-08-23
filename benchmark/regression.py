@@ -39,7 +39,6 @@ import os
 import platform
 import random
 import shutil
-import statistics
 import sys
 import tempfile
 import time
@@ -47,7 +46,7 @@ from typing import Callable
 
 from whoosh import index
 from whoosh.analysis import StemmingAnalyzer
-from whoosh.fields import DATETIME, ID, NUMERIC, TEXT, Schema
+from whoosh.fields import ID, NUMERIC, TEXT, Schema
 from whoosh.qparser import QueryParser
 
 # A small, fixed vocabulary so queries reliably match something and the corpus

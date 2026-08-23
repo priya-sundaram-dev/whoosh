@@ -200,7 +200,7 @@ class FieldWriter:
         # The bytes text of the previous posting
         lasttext = None
         # The (fieldname, btext) of the previous spelling posting
-        lastspell = None
+        _lastspell = None
         # The field object for the current field
         fieldobj = None
         for fieldname, btext, docnum, weight, value in items:

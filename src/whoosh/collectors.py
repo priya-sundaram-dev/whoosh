@@ -92,7 +92,6 @@ from whoosh.searching import Results, TimeLimit
 from whoosh.util import now
 
 if TYPE_CHECKING:
-    from whoosh.matching import Matcher
     from whoosh.query import Query
     from whoosh.searching import SearchContext, Searcher
 

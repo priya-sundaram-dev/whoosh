@@ -269,7 +269,7 @@ def test_query_facet_overlap():
             "myfacet", {"a-c": q1, "d-f": q2, "g-i": q3}, allow_overlap=True
         )
         r = s.search(query.Every(), groupedby=facets)
-        gr = r.groups("myfacet")
+        _gr = r.groups("myfacet")
         assert r.groups("myfacet") == {
             "a-c": [0, 1, 2, 6, 7, 8],
             "d-f": [3, 4, 5],

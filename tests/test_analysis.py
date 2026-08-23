@@ -686,7 +686,7 @@ def test_ngramwords_tokenizer():
     tags = fields.NGRAMWORDS(
         minsize=3, maxsize=50, tokenizer=tk, stored=True, queryor=True
     )
-    schema = fields.Schema(tags=tags)
+    _schema = fields.Schema(tags=tags)
 
 
 def test_unicode_normalization_tokenizer():

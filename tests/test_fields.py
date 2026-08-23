@@ -326,7 +326,7 @@ def test_decimal_ranges():
 
 def test_numeric_errors():
     f = fields.NUMERIC(int, bits=16, signed=True)
-    schema = fields.Schema(f=f)
+    _schema = fields.Schema(f=f)
 
     with pytest.raises(ValueError):
         list(f.index(-32769))

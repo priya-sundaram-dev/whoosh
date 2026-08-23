@@ -14,7 +14,6 @@
 # limitations under the License.
 # ===============================================================================
 
-import os
 import pickle
 import re
 from bisect import bisect_right
@@ -31,7 +30,6 @@ from whoosh.index import (
     LockError,
     OutOfDateError,
 )
-from whoosh.support.bitvector import BitVector
 from whoosh.system import _FLOAT_SIZE, _INT_SIZE
 
 _INDEX_VERSION = -105

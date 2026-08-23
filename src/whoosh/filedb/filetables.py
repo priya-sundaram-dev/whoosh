@@ -32,7 +32,6 @@ D. J. Bernstein's CDB format (http://cr.yp.to/cdb.html).
 
 import os
 import struct
-import sys
 from binascii import crc32
 from hashlib import md5  # type: ignore @UnresolvedImport
 
@@ -646,7 +645,7 @@ class FieldedOrderedHashReader(HashReader):
 
     def contains_term(self, fieldname, btext):
         try:
-            x = self.range_for_term(fieldname, btext)
+            _x = self.range_for_term(fieldname, btext)
             return True
         except KeyError:
             return False
