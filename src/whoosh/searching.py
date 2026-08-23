@@ -271,7 +271,7 @@ class Searcher:
         if self._ix.latest_generation() == self.reader().generation():
             return self
 
-        # Get a new reader, re-using resources from the current reader if
+        # Get a new reader, reusing resources from the current reader if
         # possible
         self.is_closed = True
         newreader = self._ix.reader(reuse=self.ixreader)
@@ -814,7 +814,7 @@ class Searcher:
         :param limit: the maximum number of documents to score. If you're only
             interested in the top N documents, you can set limit=N to limit the
             scoring for a faster search. Default is 10.
-        :param scored: whether to score the results. Overriden by ``sortedby``.
+        :param scored: whether to score the results. Overridden by ``sortedby``.
             If both ``scored=False`` and ``sortedby=None``, the results will be
             in arbitrary order, but will usually be computed faster than
             scored or sorted results.
@@ -948,13 +948,13 @@ class Searcher:
             appear in the index. You can use this argument to override that
             behavior and explicitly specify the terms that should be corrected.
         :param maxdist: the maximum number of "edits" (insertions, deletions,
-            subsitutions, or transpositions of letters) allowed between the
+            substitutions, or transpositions of letters) allowed between the
             original word and any suggestion. Values higher than ``2`` may be
             slow.
         :param prefix: suggested replacement words must share this number of
             initial characters with the original word. Increasing this even to
             just ``1`` can dramatically speed up suggestions, and may be
-            justifiable since spellling mistakes rarely involve the first
+            justifiable since spelling mistakes rarely involve the first
             letter of a word.
         :param aliases: an optional dictionary mapping field names in the query
             to different field names to use as the source of spelling

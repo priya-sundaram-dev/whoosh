@@ -101,7 +101,7 @@ See :doc:`facets`.
 Score results based on the position of the matched term
 -------------------------------------------------------
 
-The following scoring function uses the position of the first occurance of a
+The following scoring function uses the position of the first occurrence of a
 term in each document to calculate the score, so documents with the given term
 earlier in the document will score higher::
 

@@ -192,7 +192,7 @@ documents that have been flushed to disk::
     writer.add_document(path="/a", text="Hi there")
     writer.update_document(path="/a", text="Hello there")
 
-    # Search committed and uncommited documents by getting a searcher from the
+    # Search committed and uncommitted documents by getting a searcher from the
     # writer instead of the index
     searcher = writer.searcher()
 
@@ -316,7 +316,7 @@ Whoosh 1.0
 Whoosh 1.0 is a major milestone release with vastly improved performance and
 several useful new features.
 
-*The index format of this version is not compatibile with indexes created by
+*The index format of this version is not compatible with indexes created by
 previous versions of Whoosh*. You will need to reindex your data to use this
 version.
 

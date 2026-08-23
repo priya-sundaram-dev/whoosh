@@ -251,7 +251,7 @@ To use a different order::
 Formatter
 ---------
 
-A formatter contols how the highest scoring fragments are turned into a
+A formatter controls how the highest scoring fragments are turned into a
 formatted bit of text for display to the user. It can return anything
 (e.g. plain text, HTML, a Genshi event stream, a SAX event generator,
 or anything else useful to the calling system).
@@ -370,7 +370,7 @@ content and whitespace, or break on word boundaries, for example::
     >>> hit.highlights("content")
     're when the <b>fragmenter</b>\n       ad'
 
-(This can be embarassing when the word fragments form dirty words!)
+(This can be embarrassing when the word fragments form dirty words!)
 
 One way to avoid this is to not show any surrounding context, but then
 fragments containing one matched term will contain ONLY that matched term::

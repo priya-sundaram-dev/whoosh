@@ -806,7 +806,7 @@ changes: runtime behaviour and docstrings are unchanged.
   (e.g. `LowercaseFilter() != PassFilter()`) raised `RecursionError`. It now
   correctly returns `not self == other`. Filter inequality is used when
   comparing analyzers, so this could surface in schema/field comparisons.
-- `whoosh.analysis.TeeFilter.__eq__` compared `self.filters == other.fitlers`
+- `whoosh.analysis.TeeFilter.__eq__` compared `self.filters == other.filters`
   (misspelled attribute), so comparing two `TeeFilter` instances raised
   `AttributeError` instead of returning a boolean. It now compares
   `other.filters`.

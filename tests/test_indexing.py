@@ -353,7 +353,7 @@ def test_writer_reuse():
     w.add_document(key="C")
     w.commit()
 
-    # You can't re-use a commited/canceled writer
+    # You can't reuse a committed/canceled writer
     pytest.raises(IndexingError, w.add_document, key="D")
     pytest.raises(IndexingError, w.update_document, key="B")
     pytest.raises(IndexingError, w.delete_document, 0)

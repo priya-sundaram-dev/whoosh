@@ -267,7 +267,7 @@ objects just like stored field values::
     for hit in results:
         print(hit["title"], hit["price"])
 
-ADVANCED: if you want to access abitrary per-document values quickly you can get
+ADVANCED: if you want to access arbitrary per-document values quickly you can get
 a column reader object::
 
     with ix.searcher() as s:
@@ -463,7 +463,7 @@ multi-valued fields, use the ``allow_overlap=True`` keyword argument::
 This supports overlapping group membership where documents have more than one
 term in a field (e.g. KEYWORD fields). If you don't need overlapping, don't
 use ``allow_overlap`` because it's *much* slower and uses more memory (see
-the secion on ``allow_overlap`` below).
+the section on ``allow_overlap`` below).
 
 
 QueryFacet
@@ -588,7 +588,7 @@ arguments. For example, if you have an index with term vectors::
     ix = RamStorage().create_index(schema)
 
 ...you could use a function to sort documents higher the closer they are to
-having equal occurances of two terms::
+having equal occurrences of two terms::
 
     def fn(searcher, docnum):
         v = dict(searcher.vector_as("frequency", docnum, "text"))

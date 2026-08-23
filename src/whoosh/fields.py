@@ -137,7 +137,7 @@ class FieldType:
 
     * vector (formats.Format or boolean): the format to use to store term
         vectors. If not a ``Format`` object, any true value means to use the
-        index format as the term vector format. Any flase value means don't
+        index format as the term vector format. Any false value means don't
         store term vectors for this field.
 
     The constructor for the base field type simply lets you supply your own
@@ -1243,7 +1243,7 @@ class TEXT(FieldType):
         :param sortable: If True, make this field sortable using the default
             column type. If you pass a :class:`whoosh.columns.Column` instance
             instead of True, the field will use the given column type.
-        :param lang: automaticaly configure a
+        :param lang: automatically configure a
             :class:`whoosh.analysis.LanguageAnalyzer` for the given language.
             This is ignored if you also specify an ``analyzer``.
         :param vector: if this value evaluates to true, store a list of the

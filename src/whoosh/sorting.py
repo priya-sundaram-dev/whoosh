@@ -548,7 +548,7 @@ class RangeFacet(QueryFacet):
 
     def _queries(self) -> None:
         if not self.gap:
-            raise Exception(f"No gap secified ({self.gap!r})")
+            raise Exception(f"No gap specified ({self.gap!r})")
         if isinstance(self.gap, (list, tuple)):
             gaps = self.gap
             gapindex = 0

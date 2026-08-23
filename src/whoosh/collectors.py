@@ -508,7 +508,7 @@ class TopCollector(ScoredCollector):
                 return
 
     def results(self) -> Results:
-        # The items are stored (postive score, negative docnum) so the heap
+        # The items are stored (positive score, negative docnum) so the heap
         # keeps the highest scores and lowest docnums, in order from lowest to
         # highest. Since for the results we want the highest scores first,
         # sort the heap in reverse order

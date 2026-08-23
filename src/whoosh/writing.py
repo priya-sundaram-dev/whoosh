@@ -870,7 +870,7 @@ class SegmentWriter(IndexWriter):
 
     def searcher(self, **kwargs):
         # If possible, cache a Searcher that doesn't close until we want it to.
-        # We have a write lock, nothing is changing. Only cache if kwargs is emtpy
+        # We have a write lock, nothing is changing. Only cache if kwargs is empty
         # and the SegmentWriter is still open.
         if kwargs or self.is_closed:
             return super().searcher(**kwargs)
@@ -1081,7 +1081,7 @@ class AsyncWriter(threading.Thread, IndexWriter):
     writer, add, and commit, without having to worry about index locks,
     retries, etc.
 
-    For example, to get an aynchronous writer, instead of this:
+    For example, to get an asynchronous writer, instead of this:
 
     >>> writer = myindex.writer()
 

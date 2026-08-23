@@ -32,7 +32,7 @@ import time
 from bisect import insort
 from functools import wraps
 
-# These must be valid separate characters in CASE-INSENSTIVE filenames
+# These must be valid separate characters in CASE-INSENSITIVE filenames
 IDCHARS = "0123456789abcdefghijklmnopqrstuvwxyz"
 
 

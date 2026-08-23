@@ -52,7 +52,7 @@ Whoosh 2.5
 
 * You can now use the
   :meth:`whoosh.filedb.filestore.Storage.create()` and
-  :meth:`whoosh.filedb.filestore.Storage.destory()`
+  :meth:`whoosh.filedb.filestore.Storage.destroy()`
   methods as a consistent API to set up and tear down different types of
   storage.
 
@@ -185,7 +185,7 @@ Whoosh 2.2
 Whoosh 2.1
 ==========
 
-This release fixes several bugs, and contains speed improvments to highlighting.
+This release fixes several bugs, and contains speed improvements to highlighting.
 See :doc:`/highlight` for more information.
 
 

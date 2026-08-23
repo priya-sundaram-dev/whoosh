@@ -28,7 +28,7 @@
 """
 The classes in this module encode and decode posting information for a field.
 The field format essentially determines what information is stored about each
-occurance of a term.
+occurrence of a term.
 """
 
 from __future__ import annotations
@@ -100,7 +100,7 @@ class Format:
         boosts) and valuestring is encoded field-specific posting value for the
         token. For example, in a Frequency format, the value string would be
         the same as frequency; in a Positions format, the value string would
-        encode a list of token positions at which "tokentext" occured.
+        encode a list of token positions at which "tokentext" occurred.
 
         :param value: The unicode text to index.
         :param analyzer: The analyzer to use to process the text.

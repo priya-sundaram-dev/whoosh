@@ -343,7 +343,7 @@ class SimpleQueryCorrector(QueryCorrector):
             justifiable since spellling mistakes rarely involve the first
             letter of a word.
         :param maxdist: the maximum number of "edits" (insertions, deletions,
-            subsitutions, or transpositions of letters) allowed between the
+            substitutions, or transpositions of letters) allowed between the
             original word and any suggestion. Values higher than ``2`` may be
             slow.
         """
@@ -371,7 +371,7 @@ class SimpleQueryCorrector(QueryCorrector):
 
         # For every word in the original query...
         # Note we can't put these in a set, because we must preserve WHERE
-        # in the query each token occured so we can format them later
+        # in the query each token occurred so we can format them later
         for token in q.all_tokens():
             fname = token.fieldname
             aname = aliases.get(fname, fname)

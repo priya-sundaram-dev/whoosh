@@ -385,7 +385,7 @@ class WholeFragmenter(Fragmenter):
         return [Fragment(text, matches)]
 
 
-# Backwards compatiblity
+# Backwards compatibility
 NullFragmeter = WholeFragmenter
 
 
@@ -841,7 +841,7 @@ class HtmlFormatter(Formatter):
 
     This object maintains a dictionary mapping terms to HTML class names (e.g.
     ``term0`` and ``term1`` above), so that multiple excerpts will use the same
-    class for the same term. If you want to re-use the same HtmlFormatter
+    class for the same term. If you want to reuse the same HtmlFormatter
     object with different searches, you should call HtmlFormatter.clear()
     between searches to clear the mapping.
     """

@@ -36,7 +36,7 @@ date parser contained in the :class:`whoosh.qparser.dateparse.DateParserPlugin`:
 
     ix = index.open_dir("indexdir")
 
-    # Instatiate a query parser
+    # Instantiate a query parser
     qp = QueryParser("content", ix.schema)
 
     # Add the DateParserPlugin to the parser

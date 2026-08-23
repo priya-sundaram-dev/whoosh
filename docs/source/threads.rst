@@ -119,7 +119,7 @@ version** of the index. If someone writes changes to the index, any readers
 that are already open **will not** pick up the changes automatically. A reader
 always sees the index as it existed when the reader was opened.
 
-If you are re-using a Searcher across multiple search requests, you can check
+If you are reusing a Searcher across multiple search requests, you can check
 whether the Searcher is a view of the latest version of the index using
 :meth:`whoosh.searching.Searcher.up_to_date`. If the searcher is not up to date,
 you can get an up-to-date copy of the searcher using
@@ -132,5 +132,5 @@ you can get an up-to-date copy of the searcher using
 returns it.)
 
 Calling ``Searcher.refresh()`` is more efficient that closing the searcher and
-opening a new one, since it will re-use any underlying readers and caches that
+opening a new one, since it will reuse any underlying readers and caches that
 haven't changed.

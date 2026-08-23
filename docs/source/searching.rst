@@ -211,7 +211,7 @@ You can use the ``terms=True`` keyword argument to ``search()`` to have the
 search record which terms in the query matched which documents::
 
     with myindex.searcher() as s:
-        results = s.seach(myquery, terms=True)
+        results = s.search(myquery, terms=True)
 
 You can then get information about which terms matched from the
 :class:`whoosh.searching.Results` and :class:`whoosh.searching.Hit` objects::

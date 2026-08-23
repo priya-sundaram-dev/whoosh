@@ -469,12 +469,12 @@ def test_patterns():
         assert str(q.simplify(r)) == "(word:able OR word:ago)"
         assert q._find_prefix(q.text) == ""
 
-        # special case: ? may mean "zero occurences"
+        # special case: ? may mean "zero occurrences"
         q = query.Regex("word", "ah?i")
         assert str(q.simplify(r)) == "(word:ahi OR word:aim)"
         assert q._find_prefix(q.text) == "a"
 
-        # special case: * may mean "zero occurences"
+        # special case: * may mean "zero occurrences"
         q = query.Regex("word", "ah*i")
         assert str(q.simplify(r)) == "(word:ahi OR word:aim)"
         assert q._find_prefix(q.text) == "a"

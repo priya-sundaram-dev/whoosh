@@ -197,7 +197,7 @@ for most Western languages, as well as a much more extensive Sphinx charset
 table and a function to convert Sphinx charset tables into the character maps
 required by ``CharsetTokenizer`` and ``CharsetFilter``::
 
-    # To create a filter using an enourmous character map for most languages
+    # To create a filter using an enormous character map for most languages
     # generated from a Sphinx charset table
     from whoosh.analysis import CharsetFilter
     from whoosh.support.charset import default_charset, charset_table_to_dict

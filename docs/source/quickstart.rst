@@ -218,9 +218,9 @@ Once you have a ``Searcher`` and a query object, you can use the ``Searcher``'s
     <Hit {'icon': '/icons/sheep.png', 'path': '/b', 'title': 'Second try'}>
 
 The default ``QueryParser`` implements a query language very similar to
-Lucene's. It lets you connect terms with ``AND`` or ``OR``, eleminate terms with
+Lucene's. It lets you connect terms with ``AND`` or ``OR``, eliminate terms with
 ``NOT``, group terms together into clauses with parentheses, do range, prefix,
-and wilcard queries, and specify different fields to search. By default it joins
+and wildcard queries, and specify different fields to search. By default it joins
 clauses together with ``AND`` (so by default, all terms you specify must be in
 the document for the document to match)::
 
