@@ -90,7 +90,7 @@ class EmptyIndexError(IndexError):
 
 
 def create_in(
-    dirname: str, schema: Schema, indexname: Optional[str] = None
+    dirname: str, schema: Schema, indexname: str | None = None
 ) -> FileIndex:
     """Convenience function to create an index in a directory. Takes care of
     creating a FileStorage object for you.
@@ -115,9 +115,9 @@ def create_in(
 
 def open_dir(
     dirname: str,
-    indexname: Optional[str] = None,
+    indexname: str | None = None,
     readonly: bool = False,
-    schema: Optional[Schema] = None,
+    schema: Schema | None = None,
 ) -> FileIndex:
     """Convenience function for opening an index in a directory. Takes care of
     creating a FileStorage object for you. dirname is the filename of the
@@ -139,7 +139,7 @@ def open_dir(
     return FileIndex(storage, schema=schema, indexname=indexname)
 
 
-def exists_in(dirname: str, indexname: Optional[str] = None) -> bool:
+def exists_in(dirname: str, indexname: str | None = None) -> bool:
     """Returns True if dirname contains a Whoosh index.
 
     :param dirname: the file path of a directory.
@@ -157,7 +157,7 @@ def exists_in(dirname: str, indexname: Optional[str] = None) -> bool:
     return False
 
 
-def exists(storage: Storage, indexname: Optional[str] = None) -> bool:
+def exists(storage: Storage, indexname: str | None = None) -> bool:
     """Deprecated; use ``storage.index_exists()``.
 
     :param storage: a store.Storage object.
@@ -363,7 +363,7 @@ class Index:
 
         raise NotImplementedError
 
-    def writer(self, **kwargs) -> "IndexWriter":
+    def writer(self, **kwargs) -> IndexWriter:
         """Returns an IndexWriter object for this index.
 
         :rtype: :class:`whoosh.writing.IndexWriter`
@@ -469,7 +469,7 @@ class FileIndex(Index):
 
     # searcher
 
-    def writer(self, procs=1, **kwargs) -> "IndexWriter":
+    def writer(self, procs=1, **kwargs) -> IndexWriter:
         if procs > 1:
             # The multiprocessing writer hands job files to sub-processes via a
             # shared filesystem. Storages that aren't shared between processes

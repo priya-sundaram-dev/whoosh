@@ -76,8 +76,8 @@ class LineReader:
             if lindent == indent and lcommand == command:
                 matched = True
                 if kwargs:
-                    for k in kwargs:
-                        if kwargs[k] != largs.get(k):
+                    for k, v in kwargs.items():
+                        if v != largs.get(k):
                             matched = False
                             break
 

@@ -3,6 +3,7 @@ from collections import deque
 from itertools import permutations
 
 import pytest
+
 from whoosh import fields, query
 from whoosh.util.numeric import byte_to_length, length_to_byte
 from whoosh.util.testing import TempIndex
@@ -183,16 +184,16 @@ def _do_merge(writerclass):
                 == "aa cc dd ee ff gg hh ii jj kk ll mm nn oo pp qq rr ss tt uu ww xx yy zz"
             )
 
-            for key in domain:
+            for key, value in domain.items():
                 docnum = s.document_number(key=key)
                 assert docnum is not None
 
                 length = r.doc_field_length(docnum, "value")
                 assert length
-                assert _byten(len(domain[key].split())) == length
+                assert _byten(len(value.split())) == length
 
                 sf = r.stored_fields(docnum)
-                assert domain[key] == sf["value"]
+                assert value == sf["value"]
 
             words = sorted(set((" ".join(domain.values())).split()))
             assert words == list(r.field_terms("value"))

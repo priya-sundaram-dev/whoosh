@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from itertools import permutations
 
 import pytest
+
 from whoosh import __version__, analysis, fields, index, qparser, query
 from whoosh.filedb.filestore import RamStorage
 from whoosh.util.numeric import byte_to_length, length_to_byte

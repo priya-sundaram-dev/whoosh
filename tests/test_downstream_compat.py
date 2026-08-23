@@ -187,7 +187,7 @@ def test_index_files_deletable_after_close(tmp_path):
     # Every on-disk index file must now be removable. On Windows a leaked
     # handle would raise PermissionError here; on POSIX this simply confirms
     # the files exist and unlink cleanly.
-    seg_files = [f for f in os.listdir(str(idx_dir))]
+    seg_files = list(os.listdir(str(idx_dir)))
     assert seg_files, "expected the index to have written segment files"
     for name in seg_files:
         os.remove(os.path.join(str(idx_dir), name))

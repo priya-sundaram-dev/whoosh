@@ -83,8 +83,9 @@ from abc import abstractmethod
 from array import array
 from bisect import insort
 from collections import defaultdict
+from collections.abc import Iterable, Iterator
 from heapq import heapify, heappush, heapreplace
-from typing import TYPE_CHECKING, Any, Iterable, Iterator
+from typing import TYPE_CHECKING, Any
 
 from whoosh import sorting
 from whoosh.searching import Results, TimeLimit

@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone
 from itertools import permutations, zip_longest
 
 import pytest
+
 from whoosh import analysis, fields, index, qparser, query, scoring
 from whoosh.codec.whoosh3 import W3Codec
 from whoosh.filedb.filestore import RamStorage

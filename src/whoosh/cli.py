@@ -39,8 +39,8 @@ from typing import TYPE_CHECKING
 
 from whoosh import __version_str__, index
 from whoosh.analysis import StemmingAnalyzer
-from whoosh.fields import ID, NUMERIC, TEXT, Schema
 from whoosh.colorize import AnsiFormatter, resolve_color_mode
+from whoosh.fields import ID, NUMERIC, TEXT, Schema
 from whoosh.highlight import ContextFragmenter, HtmlFormatter, UppercaseFormatter
 from whoosh.qparser import MultifieldParser, OrGroup
 from whoosh.query import Every

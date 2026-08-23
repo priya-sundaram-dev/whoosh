@@ -1,6 +1,7 @@
 from random import randint, shuffle
 
 from nose.tools import assert_equal  # type: ignore @UnresolvedImport
+
 from whoosh.filedb.filetables import HashReader, HashWriter
 from whoosh.util.testing import TempStorage
 

@@ -3,6 +3,7 @@ import threading
 import time
 
 import pytest
+
 from whoosh import fields, formats, reading
 from whoosh.filedb.filestore import RamStorage
 from whoosh.reading import SegmentReader

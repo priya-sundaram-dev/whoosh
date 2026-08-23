@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, timezone
 
 import pytest
+
 from whoosh import fields, qparser, query
 from whoosh.filedb.filestore import RamStorage
 from whoosh.util import times

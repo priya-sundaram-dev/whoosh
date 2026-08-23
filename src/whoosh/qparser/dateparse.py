@@ -517,15 +517,7 @@ class PlusMinus(Regex):
         rel_mins = f"((?P<mins>[0-9]+) *({minutes}))?"
         rel_secs = f"((?P<secs>[0-9]+) *({seconds}))?"
 
-        self.pattern = "(?P<dir>[+-]) *{} *{} *{} *{} *{} *{} *{}(?=(\\W|$))".format(
-            rel_years,
-            rel_months,
-            rel_weeks,
-            rel_days,
-            rel_hours,
-            rel_mins,
-            rel_secs,
-        )
+        self.pattern = f"(?P<dir>[+-]) *{rel_years} *{rel_months} *{rel_weeks} *{rel_days} *{rel_hours} *{rel_mins} *{rel_secs}(?=(\\W|$))"
         self.expr = rcompile(self.pattern, re.IGNORECASE)
 
     def props_to_date(self, p, dt):

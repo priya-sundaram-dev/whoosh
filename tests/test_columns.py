@@ -5,6 +5,7 @@ from io import BytesIO
 from pickle import dumps, loads
 
 import pytest
+
 from whoosh import columns, fields, query
 from whoosh.codec.whoosh3 import W3Codec
 from whoosh.filedb import compound

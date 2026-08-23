@@ -19,9 +19,9 @@ LangChain, LlamaIndex, MCP) or command-line arguments (``static_site_search``,
 """
 
 import os
+import pathlib
 import subprocess
 import sys
-import pathlib
 
 import pytest
 

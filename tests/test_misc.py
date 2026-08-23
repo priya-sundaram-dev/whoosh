@@ -136,9 +136,11 @@ def test_version_object():
 
 
 def test_concurrent_writers_lock():
-    import pytest
     import tempfile
     import uuid
+
+    import pytest
+
     from whoosh import fields
     from whoosh.filedb.filestore import FileStorage
     from whoosh.index import LockError
@@ -156,7 +158,7 @@ def test_concurrent_writers_lock():
                 ix.writer()
         finally:
             w1.cancel()
-            
+
         # After w1 is closed, we should be able to get a new writer
         w2 = ix.writer()
         w2.cancel()

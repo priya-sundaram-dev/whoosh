@@ -81,8 +81,8 @@ from whoosh.analysis.analyzers import (
 )
 from whoosh.analysis.filters import (
     STOP_WORDS,
-    CJKFilter,
     CharsetFilter,
+    CJKFilter,
     Composable,
     DelimitedAttributeFilter,
     Filter,

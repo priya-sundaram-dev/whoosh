@@ -1,4 +1,5 @@
 import os
+
 from whoosh.colorize import highlight, resolve_color_mode
 
 

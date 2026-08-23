@@ -32,8 +32,9 @@ from __future__ import annotations
 
 import copy
 import weakref
+from collections.abc import Iterator
 from math import ceil
-from typing import TYPE_CHECKING, Any, Iterator
+from typing import TYPE_CHECKING, Any
 
 from whoosh import classify, highlight, query, scoring
 from whoosh.idsets import BitSet, DocIdSet

@@ -165,6 +165,25 @@ ignore = [
   "F841",
   "PERF203",
   "UP031",
+  # Whoosh deliberately uses function-local (lazy) imports throughout to avoid
+  # circular imports between tightly-coupled modules and to defer loading of
+  # optional/heavy dependencies until they are actually needed. These are an
+  # intentional design choice, not a defect, so we do not enforce top-level imports.
+  "PLC0415",  # `import` should be at the top-level of a file
+  # `re` and typing-only stdlib imports are used at runtime in several modules;
+  # moving them into TYPE_CHECKING blocks trades real correctness risk for a
+  # marginal import-time saving in a library that already curates its imports.
+  "TC003",    # move std-library import into a type-checking block
+  # __enter__ returning the concrete class (IndexReader/IndexWriter) rather than
+  # Self is intentional and correct here; forcing `Self` would need a version-
+  # guarded import on the 3.9 floor for no practical benefit.
+  "PYI034",   # __enter__ should return `Self`
+  "PLR0915",  # too-many-statements (only trips a large end-to-end typing test)
+  # Whoosh's DATETIME field indexes and queries naive datetimes by design; users
+  # store tz-naive values and callers control any tz handling. Requiring an explicit
+  # tzinfo everywhere would be incorrect for this library's supported data model.
+  "DTZ",      # flake8-datetimez (naive datetimes are a supported feature)
+  "BLE001",   # blind `except Exception` is used intentionally around optional features
 ]
 
 [tool.ruff.lint.mccabe]

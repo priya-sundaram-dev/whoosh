@@ -21,6 +21,17 @@ from typing import TYPE_CHECKING, Any
 from whoosh import classify, highlight, index, scoring, spelling
 from whoosh.analysis.acore import Token
 from whoosh.analysis.analyzers import StandardAnalyzer
+from whoosh.analysis.filters import (
+    CharsetFilter,
+    DelimitedAttributeFilter,
+    LowercaseFilter,
+    PassFilter,
+    ReverseTextFilter,
+    StopFilter,
+    StripFilter,
+    SubstitutionFilter,
+    TeeFilter,
+)
 from whoosh.analysis.ngrams import (
     NgramAnalyzer,
     NgramFilter,
@@ -56,17 +67,6 @@ from whoosh.query import (
     TermRange,
     Variations,
     Wildcard,
-)
-from whoosh.analysis.filters import (
-    CharsetFilter,
-    DelimitedAttributeFilter,
-    LowercaseFilter,
-    PassFilter,
-    ReverseTextFilter,
-    StopFilter,
-    StripFilter,
-    SubstitutionFilter,
-    TeeFilter,
 )
 
 if TYPE_CHECKING:
@@ -214,8 +214,7 @@ def run() -> list[str]:
         # Searcher.find() parses a query string and returns Results, so its
         # return type flows into user code and type-checks here.
         found: Results = searcher.find("title", "search")
-        for fhit in found:
-            titles.append(str(fhit["title"]))
+        titles.extend(str(fhit["title"]) for fhit in found)
 
         # whoosh.query.terms' public API is annotated (gh#51). Constructing the
         # term-level query classes and running them through the searcher flows

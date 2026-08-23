@@ -57,8 +57,6 @@ def cdb_hash(key):
 
 
 def md5_hash(key):
-    if sys.version_info < (3, 9):
-        return int(md5(key).hexdigest(), 16) & 0xFFFFFFFF
     return int(md5(key, usedforsecurity=False).hexdigest(), 16) & 0xFFFFFFFF
 
 

@@ -1,4 +1,5 @@
 import pytest
+
 from whoosh import collectors, fields, query, searching
 from whoosh.filedb.filestore import RamStorage
 from whoosh.util.testing import TempIndex

@@ -2,6 +2,7 @@ import random
 from array import array
 
 import pytest
+
 from whoosh import analysis, fields, formats, query
 from whoosh.codec import default_codec, memory
 from whoosh.codec.memory import MemoryCodec, MemSegment, MemTermsReader, MemWriter

@@ -50,7 +50,7 @@ def _write(path: str, text: str) -> None:
 
 def current_version() -> str:
     text = _read(INIT)
-    m = re.search(r"__version__:\s*Tuple\[int, \.\.\.\]\s*=\s*\(([^)]+)\)", text)
+    m = re.search(r"__version__:\s*[Tt]uple\[int, \.\.\.\]\s*=\s*\(([^)]+)\)", text)
     if not m:
         raise SystemExit("Could not find __version__ tuple in %s" % INIT)
     parts = [p.strip() for p in m.group(1).split(",") if p.strip()]
@@ -73,7 +73,7 @@ def set_version(new: str) -> None:
     init = _read(INIT)
     init = _sub_once(
         init,
-        r"(__version__:\s*Tuple\[int, \.\.\.\]\s*=\s*\()[^)]+(\))",
+        r"(__version__:\s*[Tt]uple\[int, \.\.\.\]\s*=\s*\()[^)]+(\))",
         r"\g<1>%s, %s, %s\g<2>" % (a, b, c),
         INIT,
     )

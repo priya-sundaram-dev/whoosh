@@ -333,11 +333,11 @@ def test_correct_query_with_numeric_field():
     schema = fields.Schema(title=fields.TEXT(spelling=True), price=fields.NUMERIC)
     with TempIndex(schema) as ix:
         with ix.writer() as w:
-            w.add_document(title=u"hello world", price=10)
-            w.add_document(title=u"goodbye moon", price=20)
+            w.add_document(title="hello world", price=10)
+            w.add_document(title="goodbye moon", price=20)
 
         with ix.searcher() as s:
-            qtext = u"price:15 helo"
+            qtext = "price:15 helo"
             qp = qparser.QueryParser("title", ix.schema)
             q = qp.parse(qtext, ix.schema)
             # Must not raise; the numeric term is left untouched and the text
@@ -355,11 +355,11 @@ def test_correct_query_with_datetime_field():
     schema = fields.Schema(title=fields.TEXT(spelling=True), when=fields.DATETIME)
     with TempIndex(schema) as ix:
         with ix.writer() as w:
-            w.add_document(title=u"hello world", when=datetime(2026, 1, 1))
-            w.add_document(title=u"goodbye moon", when=datetime(2026, 2, 2))
+            w.add_document(title="hello world", when=datetime(2026, 1, 1))
+            w.add_document(title="goodbye moon", when=datetime(2026, 2, 2))
 
         with ix.searcher() as s:
-            qtext = u"helo"
+            qtext = "helo"
             qp = qparser.QueryParser("title", ix.schema)
             q = qp.parse(qtext, ix.schema)
             c = s.correct_query(q, qtext)
@@ -373,11 +373,11 @@ def test_correct_query_with_boolean_field():
     schema = fields.Schema(title=fields.TEXT(spelling=True), done=fields.BOOLEAN)
     with TempIndex(schema) as ix:
         with ix.writer() as w:
-            w.add_document(title=u"hello world", done=True)
-            w.add_document(title=u"goodbye moon", done=False)
+            w.add_document(title="hello world", done=True)
+            w.add_document(title="goodbye moon", done=False)
 
         with ix.searcher() as s:
-            qtext = u"helo"
+            qtext = "helo"
             qp = qparser.QueryParser("title", ix.schema)
             q = qp.parse(qtext, ix.schema)
             c = s.correct_query(q, qtext)

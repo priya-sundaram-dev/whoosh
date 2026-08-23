@@ -17,7 +17,7 @@ Everything here runs in memory (RamStorage) so there are no files to clean up.
 """
 
 from whoosh.analysis import NgramWordAnalyzer
-from whoosh.fields import Schema, TEXT, STORED
+from whoosh.fields import STORED, TEXT, Schema
 from whoosh.filedb.filestore import RamStorage
 from whoosh.qparser import QueryParser
 from whoosh.query import Prefix

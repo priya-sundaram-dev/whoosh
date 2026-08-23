@@ -1,6 +1,7 @@
 import random
 
 from nose.tools import assert_equal
+
 from whoosh import fields, query
 from whoosh.util.testing import TempIndex
 

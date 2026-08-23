@@ -15,30 +15,30 @@ import re
 import sys
 from urllib.request import pathname2url
 
-from whoosh.index import create_in, open_dir
-from whoosh.fields import Schema, TEXT, ID, STORED
-from whoosh.qparser import MultifieldParser
+from whoosh.fields import ID, STORED, TEXT, Schema
 from whoosh.highlight import Formatter
+from whoosh.index import create_in, open_dir
+from whoosh.qparser import MultifieldParser
 
 
 def strip_markup(text):
     """A naive regex-based markup stripper for Markdown/RST."""
     # Remove HTML tags
-    text = re.sub(r'<[^>]+>', ' ', text)
+    text = re.sub(r"<[^>]+>", " ", text)
     # Remove Markdown headers/links/images
-    text = re.sub(r'#+\s', ' ', text)
-    text = re.sub(r'\[([^\]]+)\]\([^\)]+\)', r'\1', text)
+    text = re.sub(r"#+\s", " ", text)
+    text = re.sub(r"\[([^\]]+)\]\([^\)]+\)", r"\1", text)
     # Remove asterisks and underscores used for bold/italic
-    text = re.sub(r'[*_]{1,2}', '', text)
+    text = re.sub(r"[*_]{1,2}", "", text)
     return text
 
 
 def get_title(text, filename):
     """Extract a simple title from the first heading or fallback to filename."""
-    match = re.search(r'^#+\s+(.+)$', text, re.MULTILINE)
+    match = re.search(r"^#+\s+(.+)$", text, re.MULTILINE)
     if match:
         return match.group(1).strip()
-    match_rst = re.search(r'^([^\n]+)\n[=-]+$', text, re.MULTILINE)
+    match_rst = re.search(r"^([^\n]+)\n[=-]+$", text, re.MULTILINE)
     if match_rst:
         return match_rst.group(1).strip()
     return os.path.basename(filename)
@@ -58,22 +58,22 @@ def build_index(directory, indexdir="site_index"):
     )
 
     ix = create_in(indexdir, schema)
-    
+
     with ix.writer() as writer:
         for root, dirs, files in os.walk(directory):
             for file in files:
-                if file.endswith('.md') or file.endswith('.rst') or file.endswith('.txt'):
+                if file.endswith(".md") or file.endswith(".rst") or file.endswith(".txt"):
                     filepath = os.path.join(root, file)
-                    with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
+                    with open(filepath, encoding="utf-8", errors="ignore") as f:
                         content = f.read()
-                    
+
                     title = get_title(content, file)
                     clean_body = strip_markup(content)
-                    
+
                     # Create a simple relative URL
                     rel_path = os.path.relpath(filepath, directory)
                     url = pathname2url(rel_path)
-                    
+
                     writer.update_document(
                         path=filepath,
                         url=url,
@@ -90,7 +90,7 @@ def search_index(query_string, indexdir="site_index"):
         return
 
     ix = open_dir(indexdir)
-    
+
     # Search both title and body
     parser = MultifieldParser(["title", "body"], ix.schema)
     query = parser.parse(query_string)
@@ -98,14 +98,14 @@ def search_index(query_string, indexdir="site_index"):
     with ix.searcher() as searcher:
         results = searcher.search(query, limit=10)
         print(f"Found {len(results)} results for '{query_string}':\n")
-        
+
         # Configure highlighting to output console-friendly text instead of HTML
         results.formatter = ConsoleFormatter()
-        
+
         for hit in results:
             print(f"Title: {hit['title']}")
             print(f"URL:   {hit['url']}")
-            
+
             # Print a highlighted snippet from the body
             snippet = hit.highlights("body")
             if snippet:
@@ -124,10 +124,10 @@ if __name__ == "__main__":
     if len(sys.argv) < 3:
         print(__doc__)
         sys.exit(1)
-        
+
     command = sys.argv[1]
     arg = sys.argv[2]
-    
+
     if command == "index":
         build_index(arg)
     elif command == "search":

@@ -6,6 +6,22 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Internal / tooling
+- Made the linter gate meaningful. The `ruff check` CI step previously ran with
+  `|| true`, so 457 latent findings never failed the build (thanks to @cclauss
+  for spotting this in #104). The lint run now passes for real: the ~80 genuine
+  style nits were fixed automatically (double quotes, sorted imports, dropped
+  `u""` prefixes, `Optional[x]` → `x | None` in files that already use
+  `from __future__ import annotations`, `Tuple` → `tuple`, dict-`.items()`
+  iteration), and the intentional patterns Whoosh relies on are now suppressed
+  with documented rationale instead of being silently ignored: function-local
+  lazy imports (`PLC0415`), naive `datetime` handling in the `DATETIME` field
+  (`DTZ`), and deliberate blind-except guards around optional features
+  (`BLE001`). No runtime behaviour changes.
+- Fixed the broken CONTRIBUTING link in the pull-request template (#103), which
+  pointed at a relative path that 404s from the PR-compose page; it now uses an
+  absolute URL.
+
 ### Testing
 - Added a forward-compatibility regression test for `MpWriter` that runs the
   default (`start_method=None`) indexing path under a non-`fork` default

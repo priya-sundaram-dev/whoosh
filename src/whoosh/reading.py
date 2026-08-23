@@ -178,10 +178,10 @@ class IndexReader:
     #: in their ``__init__``.
     schema: Schema
 
-    def __enter__(self) -> "IndexReader":
+    def __enter__(self) -> IndexReader:
         return self
 
-    def __exit__(self, *args: Any) -> None:
+    def __exit__(self, *args: object) -> None:
         self.close()
 
     @abstractmethod

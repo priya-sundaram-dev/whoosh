@@ -19,7 +19,7 @@ leaves nothing behind on disk.
 """
 
 from whoosh import qparser
-from whoosh.fields import Schema, TEXT, ID
+from whoosh.fields import ID, TEXT, Schema
 from whoosh.filedb.filestore import RamStorage
 from whoosh.highlight import HtmlFormatter
 

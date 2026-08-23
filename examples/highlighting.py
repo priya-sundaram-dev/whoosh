@@ -128,7 +128,7 @@ def main():
     with ix2.searcher() as s:
         q = QueryParser("body", schema=ix2.schema).parse("analyzer tokens")
         results = s.search(q, terms=True)
-        original_text = dict((d[0], d[2]) for d in DOCS)
+        original_text = {d[0]: d[2] for d in DOCS}
         for hit in results:
             text = original_text[hit["id"]]
             show(

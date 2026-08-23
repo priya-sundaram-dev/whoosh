@@ -7,10 +7,10 @@ Companion to TUTORIAL.md. Uses an in-memory index so it leaves nothing behind.
 
 import datetime
 
-from whoosh.fields import Schema, TEXT, ID, KEYWORD, NUMERIC, DATETIME
-from whoosh.filedb.filestore import RamStorage
-from whoosh.qparser import QueryParser, MultifieldParser
 from whoosh import query, sorting
+from whoosh.fields import DATETIME, ID, KEYWORD, NUMERIC, TEXT, Schema
+from whoosh.filedb.filestore import RamStorage
+from whoosh.qparser import MultifieldParser, QueryParser
 
 
 def build_index():

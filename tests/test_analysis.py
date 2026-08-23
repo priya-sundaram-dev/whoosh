@@ -1,6 +1,7 @@
 from pickle import dumps
 
 import pytest
+
 from whoosh import analysis, fields, qparser
 from whoosh.filedb.filestore import RamStorage
 

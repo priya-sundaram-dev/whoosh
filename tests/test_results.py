@@ -1,6 +1,7 @@
 from itertools import permutations
 
 import pytest
+
 from whoosh import analysis, fields, formats, highlight, qparser, query
 from whoosh.codec.whoosh3 import W3Codec
 from whoosh.filedb.filestore import RamStorage

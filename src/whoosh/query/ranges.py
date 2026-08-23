@@ -41,16 +41,7 @@ class RangeMixin:
     # Contains methods shared by TermRange and NumericRange
 
     def __repr__(self) -> str:
-        return "{}({!r}, {!r}, {!r}, {}, {}, boost={}, constantscore={})".format(
-            self.__class__.__name__,
-            self.fieldname,
-            self.start,
-            self.end,
-            self.startexcl,
-            self.endexcl,
-            self.boost,
-            self.constantscore,
-        )
+        return f"{self.__class__.__name__}({self.fieldname!r}, {self.start!r}, {self.end!r}, {self.startexcl}, {self.endexcl}, boost={self.boost}, constantscore={self.constantscore})"
 
     def __str__(self) -> str:
         startchar = "{" if self.startexcl else "["
@@ -447,12 +438,4 @@ class DateRange(NumericRange):
         )
 
     def __repr__(self) -> str:
-        return "{}({!r}, {!r}, {!r}, {}, {}, boost={})".format(
-            self.__class__.__name__,
-            self.fieldname,
-            self.startdate,
-            self.enddate,
-            self.startexcl,
-            self.endexcl,
-            self.boost,
-        )
+        return f"{self.__class__.__name__}({self.fieldname!r}, {self.startdate!r}, {self.enddate!r}, {self.startexcl}, {self.endexcl}, boost={self.boost})"
