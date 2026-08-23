@@ -54,7 +54,7 @@ from whoosh.qparser import MultifieldParser
 if TYPE_CHECKING:  # pragma: no cover - typing only, avoids importing the SDK
     from collections.abc import Sequence
 
-    from mcp.server.fastmcp import FastMCP
+    from mcp.server import MCPServer
 
 __all__ = ["SearchCore", "build_mcp_server", "main", "DEFAULT_EXTS", "SAMPLE_DOCS"]
 
@@ -194,15 +194,15 @@ class SearchCore:
             return {"id": hit["id"], "title": hit["title"], "text": hit["body"]}
 
 
-def build_mcp_server(core: SearchCore | None = None) -> FastMCP:
-    """Wrap a :class:`SearchCore` in a FastMCP server exposing ``search`` + ``fetch``.
+def build_mcp_server(core: SearchCore | None = None) -> MCPServer:
+    """Wrap a :class:`SearchCore` in an MCPServer exposing ``search`` + ``fetch``.
 
     Requires the official MCP SDK (``pip install "whoosh3[mcp]"``). If ``core``
     is ``None``, a corpus directory named in ``WHOOSH_MCP_CORPUS`` is indexed,
     otherwise the built-in sample documents are used.
     """
     try:
-        from mcp.server.fastmcp import FastMCP  # noqa: PLC0415
+        from mcp.server import MCPServer  # noqa: PLC0415
     except ModuleNotFoundError as exc:  # pragma: no cover - depends on optional dep
         raise ModuleNotFoundError(
             "The MCP server requires the 'mcp' package. "
@@ -212,7 +212,7 @@ def build_mcp_server(core: SearchCore | None = None) -> FastMCP:
     if core is None:
         corpus = os.environ.get("WHOOSH_MCP_CORPUS")
         core = SearchCore.from_directory(corpus) if corpus else SearchCore.build()
-    server = FastMCP("whoosh-search")
+    server = MCPServer("whoosh-search")
 
     @server.tool()
     def search(query: str, limit: int = 5) -> list[dict]:
