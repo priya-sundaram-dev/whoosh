@@ -39,7 +39,7 @@ dynamic = [ "version" ]
 optional-dependencies.dev = [ "mypy", "pre-commit", "pytest>=7", "pytest-cov", "ruff" ]
 optional-dependencies.langchain = [ "langchain-core>=0.3" ]
 optional-dependencies.llamaindex = [ "llama-index-core>=0.10; python_version>'3.9'" ]
-optional-dependencies.mcp = [ "mcp>=2.0.0; python_version>'3.9'" ]
+optional-dependencies.mcp = [ "mcp>=2; python_version>'3.9'" ]
 urls.Changelog = "https://github.com/priya-sundaram-dev/whoosh/blob/main/CHANGELOG.md"
 urls.Documentation = "https://priya-sundaram-dev.github.io/whoosh/"
 urls.Homepage = "https://github.com/priya-sundaram-dev/whoosh"
