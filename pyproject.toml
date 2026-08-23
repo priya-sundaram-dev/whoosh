@@ -105,6 +105,7 @@ select = [
   "EXE",    # flake8-executable
   "F",      # Pyflakes
   "FA",     # flake8-future-annotations
+  "FLY",    # flynt
   "G",      # flake8-logging-format
   "I",      # isort
   "ICN",    # flake8-import-conventions
@@ -120,7 +121,6 @@ select = [
   "SLOT",   # flake8-slots
   "TCH",    # flake8-type-checking
   "TID",    # flake8-tidy-imports
-  "TRIO",   # flake8-trio
   "UP",     # pyupgrade
   "W",      # pycodestyle
   "YTT",    # flake8-2020
@@ -136,7 +136,6 @@ select = [
   # "ERA",  # eradicate
   # "FBT",  # flake8-boolean-trap
   # "FIX",  # flake8-fixme
-  # "FLY",  # flynt
   # "FURB", # refurb
   # "INP",  # flake8-no-pep420
   # "ISC",  # flake8-implicit-str-concat
@@ -163,6 +162,7 @@ ignore = [
   "F401",
   "F811",
   "F841",
+  "FLY002",
   "PERF203",
   "UP031",
   # Whoosh deliberately uses function-local (lazy) imports throughout to avoid
