@@ -38,12 +38,12 @@ import struct
 import sys
 from array import array
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, TypeAlias
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Iterator
 
-    FieldSpec = "FieldType | type[FieldType]"
+    FieldSpec: TypeAlias = "FieldType | type[FieldType]"
 
     from collections.abc import Generator
 

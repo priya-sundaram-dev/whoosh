@@ -180,7 +180,7 @@ warn_unused_ignores = true
 
 [tool.ty]
 # TODO: Gradual typing: Revisit these ignores and remove them as the codebase is
-# incrementally typed (gh#3).  The instance comments below were calculated in the
+# incrementally typed (gh#121).  The instance comments below were calculated in the
 # past so they should be treated as a historical reference, not a current count.
 rules.call-non-callable = "ignore"  # 20 instances
 rules.empty-body = "ignore"  # 1 instance
@@ -190,7 +190,6 @@ rules.invalid-ignore-comment = "ignore"  # 1 instance
 rules.invalid-method-override = "ignore"  # 132 instances
 rules.invalid-raise = "ignore"  # 3 instances
 rules.invalid-return-type = "ignore"  # 28 instances
-rules.invalid-type-form = "ignore"  # 2 instances
 rules.missing-argument = "ignore"  # 12 instances
 rules.no-matching-overload = "ignore"  # 2 instances
 rules.not-iterable = "ignore"  # 7 instances
