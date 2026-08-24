@@ -46,6 +46,8 @@ from whoosh.system import _FLOAT_SIZE, _INT_SIZE, _LONG_SIZE
 if TYPE_CHECKING:
     from whoosh.fields import Schema
     from whoosh.filedb.filestore import Storage
+    from whoosh.reading import IndexReader
+    from whoosh.searching import Searcher
     from whoosh.writing import IndexWriter
 
 _DEF_INDEX_NAME = "MAIN"
@@ -89,7 +91,7 @@ class EmptyIndexError(IndexError):
 # Convenience functions
 
 
-def create_in(dirname: str, schema: Schema, indexname: str | None = None) -> FileIndex:
+def create_in(dirname: str, schema: Schema, indexname: str | None = None) -> Index:
     """Convenience function to create an index in a directory. Takes care of
     creating a FileStorage object for you.
 
@@ -116,7 +118,7 @@ def open_dir(
     indexname: str | None = None,
     readonly: bool = False,
     schema: Schema | None = None,
-) -> FileIndex:
+) -> Index:
     """Convenience function for opening an index in a directory. Takes care of
     creating a FileStorage object for you. dirname is the filename of the
     directory in containing the index. indexname is the name of the index to
@@ -166,7 +168,7 @@ def exists(storage: Storage, indexname: str | None = None) -> bool:
     return storage.index_exists(indexname)
 
 
-def version_in(dirname, indexname=None):
+def version_in(dirname, indexname=None) -> tuple[tuple[int, ...] | None, int]:
     """Returns a tuple of (release_version, format_version), where
     release_version is the release version number of the Whoosh code that
     created the index -- e.g. (0, 1, 24) -- and format_version is the version
@@ -193,7 +195,7 @@ def version_in(dirname, indexname=None):
     return version(storage, indexname=indexname)
 
 
-def version(storage, indexname=None):
+def version(storage, indexname=None) -> tuple[tuple[int, ...] | None, int]:
     """Returns a tuple of (release_version, format_version), where
     release_version is the release version number of the Whoosh code that
     created the index -- e.g. (0, 1, 24) -- and format_version is the version
@@ -220,8 +222,7 @@ def version(storage, indexname=None):
 
         ix = storage.open_index(indexname)
         return (ix.release, ix.version)
-    except IndexVersionError:
-        e = sys.exc_info()[1]
+    except IndexVersionError as e:
         return (None, e.version)
 
 
@@ -231,14 +232,14 @@ def version(storage, indexname=None):
 class Index:
     """Represents an indexed collection of documents."""
 
-    def close(self):
+    def close(self) -> None:
         """Closes any open resources held by the Index object itself. This may
         not close all resources being used everywhere, for example by a
         Searcher object.
         """
         pass
 
-    def add_field(self, fieldname, fieldspec):
+    def add_field(self, fieldname, fieldspec) -> None:
         """Adds a field to the index's schema.
 
         :param fieldname: the name of the field to add.
@@ -250,7 +251,7 @@ class Index:
         w.add_field(fieldname, fieldspec)
         w.commit()
 
-    def remove_field(self, fieldname):
+    def remove_field(self, fieldname) -> None:
         """Removes the named field from the index's schema. Depending on the
         backend implementation, this may or may not actually remove existing
         data for the field from the index. Optimizing the index should always
@@ -261,13 +262,13 @@ class Index:
         w.remove_field(fieldname)
         w.commit()
 
-    def latest_generation(self):
+    def latest_generation(self) -> int:
         """Returns the generation number of the latest generation of this
         index, or -1 if the backend doesn't support versioning.
         """
         return -1
 
-    def refresh(self):
+    def refresh(self) -> Index:
         """Returns a new Index object representing the latest generation
         of this index (if this object is the latest generation, or the backend
         doesn't support versioning, returns self).
@@ -276,7 +277,7 @@ class Index:
         """
         return self
 
-    def up_to_date(self):
+    def up_to_date(self) -> bool:
         """Returns True if this object represents the latest generation of
         this index. Returns False if this object is not the latest generation
         (that is, someone else has updated the index since you opened this
@@ -284,23 +285,23 @@ class Index:
         """
         return True
 
-    def last_modified(self):
+    def last_modified(self) -> int:
         """Returns the last modified time of the index, or -1 if the backend
         doesn't support last-modified times.
         """
         return -1
 
-    def is_empty(self):
+    def is_empty(self) -> bool:
         """Returns True if this index is empty (that is, it has never had any
         documents successfully written to it.
         """
         raise NotImplementedError
 
-    def optimize(self):
+    def optimize(self) -> None:
         """Optimizes this index, if necessary."""
         pass
 
-    def doc_count_all(self):
+    def doc_count_all(self) -> int:
         """Returns the total number of documents, DELETED OR UNDELETED,
         in this index.
         """
@@ -311,7 +312,7 @@ class Index:
         finally:
             r.close()
 
-    def doc_count(self):
+    def doc_count(self) -> int:
         """Returns the total number of UNDELETED documents in this index."""
 
         r = self.reader()
@@ -320,7 +321,7 @@ class Index:
         finally:
             r.close()
 
-    def searcher(self, **kwargs):
+    def searcher(self, **kwargs) -> Searcher:
         """Returns a Searcher object for this index. Keyword arguments are
         passed to the Searcher object's constructor.
 
@@ -331,7 +332,7 @@ class Index:
 
         return Searcher(self.reader(), fromindex=self, **kwargs)
 
-    def field_length(self, fieldname):
+    def field_length(self, fieldname) -> int:
         """Returns the total length of the field across all documents."""
 
         r = self.reader()
@@ -340,7 +341,7 @@ class Index:
         finally:
             r.close()
 
-    def max_field_length(self, fieldname):
+    def max_field_length(self, fieldname) -> int:
         """Returns the maximum length of the field across all documents."""
 
         r = self.reader()
@@ -349,7 +350,7 @@ class Index:
         finally:
             r.close()
 
-    def reader(self, reuse=None):
+    def reader(self, reuse=None) -> IndexReader:
         """Returns an IndexReader object for this index.
 
         :param reuse: an existing reader. Some implementations may recycle
@@ -368,12 +369,12 @@ class Index:
         """
         raise NotImplementedError
 
-    def delete_by_term(self, fieldname, text, searcher=None):
+    def delete_by_term(self, fieldname, text, searcher=None) -> None:
         w = self.writer()
         w.delete_by_term(fieldname, text, searcher=searcher)
         w.commit()
 
-    def delete_by_query(self, q, searcher=None):
+    def delete_by_query(self, q, searcher=None) -> None:
         w = self.writer()
         w.delete_by_query(q, searcher=searcher)
         w.commit()
@@ -382,7 +383,7 @@ class Index:
 # Codec-based index implementation
 
 
-def clean_files(storage, indexname, gen, segments):
+def clean_files(storage, indexname, gen, segments) -> None:
     # Attempts to remove unused index files (called when a new generation
     # is created). If existing Index and/or reader objects have the files
     # open, they may not be deleted immediately (i.e. on Windows) but will
