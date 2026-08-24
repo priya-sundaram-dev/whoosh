@@ -186,9 +186,9 @@ class FieldWriter:
             get_dfl_reader = getattr(lengths, "doc_field_length_reader", None)
             if get_dfl_reader is None:
                 plain_dfl = lengths.doc_field_length
-                get_dfl_reader = lambda fieldname: (
-                    lambda docnum, _fn=fieldname: plain_dfl(docnum, _fn)
-                )
+
+                def get_dfl_reader(fieldname):
+                    return lambda docnum, _fn=fieldname: plain_dfl(docnum, _fn)
         else:
             get_dfl_reader = None
         # Per-field bound length accessor, (re)bound whenever the field
@@ -227,7 +227,9 @@ class FieldWriter:
                 if get_dfl_reader is not None:
                     field_dfl = get_dfl_reader(fieldname)
                 else:
-                    field_dfl = lambda docnum: 0
+
+                    def field_dfl(docnum):
+                        return 0
 
             # HACK: items where docnum == -1 indicate words that should be added
             # to the spelling graph, not the postings

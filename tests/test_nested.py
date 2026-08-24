@@ -442,7 +442,9 @@ def test_nested_parent_orphan_child_gh31():
             r = s.search(q, limit=None)
             return [hit["name"] for hit in r]
 
-    parent = lambda nm: {"kind": "parent", "name": nm}
+    def parent(nm):
+        return {"kind": "parent", "name": nm}
+
     match = {"kind": "child", "fn": "match"}
     nomatch = {"kind": "child", "fn": "nomatch"}
 

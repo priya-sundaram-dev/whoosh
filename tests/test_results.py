@@ -211,7 +211,8 @@ def test_extend_filtered():
     w.add_document(id=5, text="foxtrot sierra tango")
     w.commit()
 
-    hits = lambda result: [hit["id"] for hit in result]
+    def hits(result):
+        return [hit["id"] for hit in result]
 
     with ix.searcher() as s:
         r1 = s.search(query.Term("text", "alfa"), filter={1, 4})

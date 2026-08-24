@@ -126,7 +126,7 @@ def test_no_add():
     schema = fields.Schema(text=fields.TEXT(stored=True, spelling=True, vector=True))
     with TempIndex(schema) as ix:
         with ix.writer(procs=3) as w:
-            assert type(w) == MpWriter
+            assert type(w) is MpWriter
 
 
 def _do_merge(writerclass):

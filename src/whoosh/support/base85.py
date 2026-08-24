@@ -48,8 +48,8 @@ def from_base85(text):
 
 
 def b85encode(text, pad=False):
-    l = len(text)
-    if r := l % 4:
+    length = len(text)
+    if r := length % 4:
         text += "\0" * (4 - r)
     longs = len(text) >> 2
     out = []
@@ -66,15 +66,15 @@ def b85encode(text, pad=False):
         return out
 
     # Trim padding
-    olen = l % 4
+    olen = length % 4
     if olen:
         olen += 1
-    olen += l / 4 * 5
+    olen += length // 4 * 5
     return out[0:olen]
 
 
 def b85decode(text):
-    l = len(text)
+    length = len(text)
     out = []
     for i in range(0, len(text), 5):
         chunk = text[i : i + 5]
@@ -89,14 +89,14 @@ def b85decode(text):
         out.append(acc)
 
     # Pad final chunk if necessary
-    cl = l % 5
+    cl = length % 5
     if cl:
         acc *= 85 ** (5 - cl)
         if cl > 1:
             acc += 0xFFFFFF >> (cl - 2) * 8
         out[-1] = acc
 
-    out = struct.pack(">" + "L" * ((l + 4) / 5), *out)
+    out = struct.pack(">" + "L" * ((length + 4) / 5), *out)
     if cl:
         out = out[: -(5 - cl)]
 

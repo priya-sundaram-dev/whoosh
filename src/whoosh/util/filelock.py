@@ -70,7 +70,7 @@ class LockBase:
         if hasattr(self, "fd") and self.fd:
             try:
                 self.release()
-            except:
+            except Exception:
                 pass
 
     def acquire(self, blocking=False):

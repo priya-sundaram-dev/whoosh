@@ -1975,7 +1975,7 @@ def deminimize_values(postingsize, count, string, compression=0):
 
 # Legacy field types
 
-from whoosh.fields import NUMERIC
+from whoosh.fields import NUMERIC  # noqa: E402
 
 
 class OLD_NUMERIC(NUMERIC):
@@ -2183,7 +2183,7 @@ class OLD_DATETIME(OLD_NUMERIC):
 
         try:
             at = self._parse_datestring(qstring)
-        except:
+        except:  # noqa: E722
             e = sys.exc_info()[1]
             return query.error_query(e)
 
@@ -2249,7 +2249,7 @@ def text_to_float(text, signed=True):
 
 # Functions for converting sortable representations to and from text.
 
-from whoosh.support.base85 import from_base85, to_base85
+from whoosh.support.base85 import from_base85, to_base85  # noqa: E402
 
 
 def sortable_int_to_text(x, shift=0):

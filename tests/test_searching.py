@@ -1605,7 +1605,7 @@ def test_coord():
 
     with ix.searcher() as s:
         m = q.matcher(s)
-        assert type(m) == CoordMatcher
+        assert type(m) is CoordMatcher
 
         r = s.search(q, optimize=False)
         assert [hit["id"] for hit in r] == [4, 5, 3, 6, 1, 8, 2, 7]

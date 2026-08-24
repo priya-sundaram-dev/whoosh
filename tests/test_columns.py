@@ -239,11 +239,11 @@ def test_column_field():
 
             cra = r.column_reader("a")
             assert cra[0] == "alfa bravo"
-            assert type(cra[0]) == str
+            assert type(cra[0]) is str
 
             crb = r.column_reader("b")
             assert crb[0] == cd
-            assert type(crb[0]) == bytes
+            assert type(crb[0]) is bytes
 
 
 def test_column_query():
@@ -356,7 +356,10 @@ def test_varbytes_offsets():
 # Initializes the 'fieldname' and 'condition' attributes with the values passed as parameters.
 def test_initializes_fieldname_and_condition_attributes():
     fieldname = "test_field"
-    condition = lambda x: x > 0
+
+    def condition(x):
+        return x > 0
+
     query = ColumnQuery(fieldname, condition)
     assert query.fieldname == fieldname
     assert query.condition == condition
@@ -365,7 +368,10 @@ def test_initializes_fieldname_and_condition_attributes():
 # If 'condition' is a callable, sets it as the 'condition' attribute.
 def test_sets_condition_attribute_if_condition_is_callable():
     fieldname = "test_field"
-    condition = lambda x: x > 0
+
+    def condition(x):
+        return x > 0
+
     query = ColumnQuery(fieldname, condition)
     assert query.condition == condition
 
@@ -381,7 +387,10 @@ def test_creates_lambda_function_if_condition_is_not_callable():
 # If 'fieldname' is not a string, it should not raise a TypeError.
 def test_raises_typeerror_if_fieldname_is_not_string():
     fieldname = 10
-    condition = lambda x: x > 0
+
+    def condition(x):
+        return x > 0
+
     query = ColumnQuery(fieldname, condition)
     assert query.fieldname == fieldname
     assert query.condition == condition
@@ -399,7 +408,10 @@ def test_behavior_if_condition_is_not_callable_and_not_hashable():
 # If 'condition' is a callable and it raises an exception when called with a document value, raises that exception.
 def test_raises_exception_if_condition_callable_raises_exception():
     fieldname = "test_field"
-    condition = lambda x: 1 / x
+
+    def condition(x):
+        return 1 / x
+
     with pytest.raises(ZeroDivisionError):
         query = ColumnQuery(fieldname, condition)
         query.condition(0)
@@ -408,7 +420,10 @@ def test_raises_exception_if_condition_callable_raises_exception():
 # If 'condition' is a callable and it returns a non-boolean value when called with a document value, does not raise a TypeError.
 def test_does_not_raise_typeerror_if_condition_callable_returns_non_boolean_value():
     fieldname = "test_field"
-    condition = lambda x: "True"
+
+    def condition(x):
+        return "True"
+
     query = ColumnQuery(fieldname, condition)
     assert isinstance(query, ColumnQuery)
 
@@ -418,7 +433,10 @@ def test_returns_constantscorematcher_matching_all_documents_if_condition_callab
     from unittest.mock import Mock
 
     fieldname = "test_field"
-    condition = lambda x: True
+
+    def condition(x):
+        return True
+
     query = ColumnQuery(fieldname, condition)
     searcher = Mock()
     creader = Mock()
@@ -434,7 +452,10 @@ def test_matcher_initialization_may_take_long_time_if_condition_callable_is_very
     from unittest.mock import Mock, patch
 
     fieldname = "test_field"
-    condition = lambda x: time.sleep(10)
+
+    def condition(x):
+        return time.sleep(10)
+
     query = ColumnQuery(fieldname, condition)
     searcher = Mock()
     searcher.reader.return_value.has_column.return_value = True
@@ -445,7 +466,9 @@ def test_matcher_initialization_may_take_long_time_if_condition_callable_is_very
 
 # Initializes the '_i' attribute to 0.
 def test_initializes_i_attribute_to_0():
-    condition = lambda x: x > 0
+    def condition(x):
+        return x > 0
+
     creader = []  # Define creader variable
     matcher = ColumnMatcher(creader, condition)
     assert matcher._i == 0
@@ -453,7 +476,9 @@ def test_initializes_i_attribute_to_0():
 
 # Initializes the 'creader' attribute with the value passed as parameter.
 def test_initializes_creader_attribute():
-    condition = lambda x: x > 0
+    def condition(x):
+        return x > 0
+
     creader = [1, 2, 3, 4, 5]
     matcher = ColumnMatcher(creader, condition)
     assert matcher.creader == creader
@@ -461,7 +486,9 @@ def test_initializes_creader_attribute():
 
 # Initializes the 'condition' attribute with the value passed as parameter.
 def test_initializes_condition_attribute():
-    condition = lambda x: x > 0
+    def condition(x):
+        return x > 0
+
     creader = []
     matcher = ColumnMatcher(creader, condition)
     assert matcher.condition == condition
@@ -469,24 +496,31 @@ def test_initializes_condition_attribute():
 
 # Returns True if the '_i' attribute is less than the length of the 'creader' attribute.
 def test_returns_true_if_i_attribute_is_less_than_length_of_creader_attribute():
-    condition = lambda x: x > 0
+    def condition(x):
+        return x > 0
+
     creader = [1, 2, 3, 4, 5]
     matcher = ColumnMatcher(creader, condition)
-    assert matcher.is_active() == True
+    assert matcher.is_active()
 
 
 # Returns False if the '_i' attribute is equal to or greater than the length of the 'creader' attribute.
 def test_returns_false_if_i_attribute_is_equal_to_or_greater_than_length_of_creader_attribute():
-    condition = lambda x: x > 0
+    def condition(x):
+        return x > 0
+
     creader = [1, 2, 3, 4, 5]
     matcher = ColumnMatcher(creader, condition)
     matcher._i = len(creader)
-    assert matcher.is_active() == False
+    assert not matcher.is_active()
 
 
 # test if the `is_leaf` function is True
 def test_is_leaf_true():
     fieldname = "test_field"
-    condition = lambda x: x > 0
+
+    def condition(x):
+        return x > 0
+
     query = ColumnQuery(fieldname, condition)
-    assert query.is_leaf() == True
+    assert query.is_leaf()

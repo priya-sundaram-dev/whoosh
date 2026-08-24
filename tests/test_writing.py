@@ -694,7 +694,7 @@ def test_add_fail_with_absorbed_exception():
         try:
             # Integer value is invalid, but absorbed exception causes silent failure
             w.add_document(id=1)
-        except:
+        except Exception:
             pass
         with pytest.raises(Exception) as ex:
             w.add_document(id=2)

@@ -68,6 +68,7 @@ lint.select = [
   "C90",    # McCabe cyclomatic complexity
   "DJ",     # flake8-django
   "DTZ",    # flake8-datetimez
+  "E",      # pycodestyle
   "EXE",    # flake8-executable
   "F",      # Pyflakes
   "FA",     # flake8-future-annotations
@@ -102,7 +103,6 @@ lint.select = [
   # "COM",  # flake8-commas
   # "CPY",  # flake8-copyright
   # "D",    # pydocstyle
-  # "E",    # pycodestyle
   # "EM",   # flake8-errmsg
   # "ERA",  # eradicate
   # "FBT",  # flake8-boolean-trap
@@ -129,6 +129,7 @@ lint.ignore = [
   # store tz-naive values and callers control any tz handling. Requiring an explicit
   # tzinfo everywhere would be incorrect for this library's supported data model.
   "DTZ",     # flake8-datetimez (naive datetimes are a supported feature)
+  "E501",    # line-length is enforced by ruff format, not ruff check
   "F401",    # unused imports are often used for type-checking or optional features
   "FLY002",
   "PERF203",

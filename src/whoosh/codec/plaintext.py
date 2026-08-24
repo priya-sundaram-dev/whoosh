@@ -89,12 +89,12 @@ class LineReader:
     def _parse_line(self, line):
         line = line.decode("latin1")
         line = line.rstrip()
-        l = len(line)
+        length = len(line)
         line = line.lstrip()
         if not line or line.startswith("#"):
             return None
 
-        indent = (l - len(line)) // 2
+        indent = (length - len(line)) // 2
 
         parts = line.split("\t")
         command = parts[0]

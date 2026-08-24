@@ -165,26 +165,26 @@ class StructFile:
         return self.read(self.read_varint())
 
     def read_string2(self):
-        l = self.read_ushort()
-        return self.read(l)
+        line = self.read_ushort()
+        return self.read(line)
 
     def read_string4(self):
-        l = self.read_int()
-        return self.read(l)
+        line = self.read_int()
+        return self.read(line)
 
     def get_string2(self, pos):
-        l = self.get_ushort(pos)
+        line = self.get_ushort(pos)
         base = pos + _SHORT_SIZE
-        return self.get(base, l), base + l
+        return self.get(base, line), base + line
 
     def get_string4(self, pos):
-        l = self.get_int(pos)
+        line = self.get_int(pos)
         base = pos + _INT_SIZE
-        return self.get(base, l), base + l
+        return self.get(base, line), base + line
 
     def skip_string(self):
-        l = self.read_varint()
-        self.seek(l, 1)
+        line = self.read_varint()
+        self.seek(line, 1)
 
     def write_varint(self, i):
         """Writes a variable-length unsigned integer to the wrapped file."""

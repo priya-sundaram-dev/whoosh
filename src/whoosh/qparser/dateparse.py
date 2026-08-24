@@ -697,10 +697,14 @@ class English(DateParser):
             ),
         )
 
-        midnight_l = lambda p, dt: adatetime(hour=0, minute=0, second=0, microsecond=0)
+        def midnight_l(p, dt):
+            return adatetime(hour=0, minute=0, second=0, microsecond=0)
+
         midnight = Regex("midnight", midnight_l)
 
-        noon_l = lambda p, dt: adatetime(hour=12, minute=0, second=0, microsecond=0)
+        def noon_l(p, dt):
+            return adatetime(hour=12, minute=0, second=0, microsecond=0)
+
         noon = Regex("noon", noon_l)
 
         now = Regex("now", lambda p, dt: dt)

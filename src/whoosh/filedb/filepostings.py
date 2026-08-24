@@ -218,7 +218,7 @@ class FilePostingWriter(PostingWriter):
             lens = [dfl_fn(id, fieldnum) for id in ids]
             minlength = min(lens)
             assert minlength > 0
-            maxwol = max(w / l for w, l in zip(weights, lens))
+            maxwol = max(w / l for w, l in zip(weights, lens))  # noqa: E741
 
         blockinfo_start = pf.tell()
         blockinfo = BlockInfo(

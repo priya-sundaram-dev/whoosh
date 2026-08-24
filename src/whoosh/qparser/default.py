@@ -229,7 +229,7 @@ class QueryParser:
                 try:
                     q = field.parse_query(fieldname, text, boost=boost)
                     return q
-                except:
+                except:  # noqa: E722
                     e = sys.exc_info()[1]
                     return query.error_query(e)
 

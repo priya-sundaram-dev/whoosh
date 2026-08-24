@@ -152,7 +152,7 @@ def test_lengths():
             ls1 = [dr.doc_field_length(i, "f1") for i in range(len(lengths))]
             assert ls1 == [0] * len(lengths)
             ls2 = [dr.doc_field_length(i, "f2") for i in range(len(lengths))]
-            assert ls2 == [byte_to_length(length_to_byte(l)) for l in lengths]
+            assert ls2 == [byte_to_length(length_to_byte(length)) for length in lengths]
 
 
 def test_many_lengths():

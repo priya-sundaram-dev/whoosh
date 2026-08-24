@@ -74,7 +74,8 @@ def test_wrapper():
 
 
 def test_filter():
-    lm = lambda: matching.ListMatcher(list(range(2, 10)))
+    def lm():
+        return matching.ListMatcher(list(range(2, 10)))
 
     fm = matching.FilterMatcher(lm(), frozenset([3, 9]))
     assert list(fm.all_ids()) == [3, 9]

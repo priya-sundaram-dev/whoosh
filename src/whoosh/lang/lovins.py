@@ -50,7 +50,7 @@ def H(base):
     return c2 == "t" or (c2 == "l" and c1 == "l")
 
 
-def I(base):
+def I(base):  # noqa: E743
     # I  Do not remove ending after o or e
     c = base[-1]
     return c != "o" and c != "e"
@@ -86,7 +86,7 @@ def N(base):
     return len(base) > 3 or (len(base) == 3 and base[-1] != "s")
 
 
-def O(base):
+def O(base):  # noqa: E743
     # O  Remove ending only after l or i
     c = base[-1]
     return c == "l" or c == "i"

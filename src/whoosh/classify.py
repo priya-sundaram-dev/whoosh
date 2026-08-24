@@ -239,7 +239,9 @@ def simhash(features, hashbits=32):
     if hashbits == 32:
         hashfn = hash
     else:
-        hashfn = lambda s: _hash(s, hashbits)
+
+        def hashfn(s):
+            return _hash(s, hashbits)
 
     vs = [0] * hashbits
     for feature, weight in features:

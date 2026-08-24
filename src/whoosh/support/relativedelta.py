@@ -458,7 +458,7 @@ class relativedelta:
         return self.__mul__(1 / float(other))
 
     def __repr__(self):
-        l = []
+        lst = []
         for attr in [
             "years",
             "months",
@@ -471,7 +471,7 @@ class relativedelta:
         ]:
             value = getattr(self, attr)
             if value:
-                l.append("%s=%+d" % (attr, value))
+                lst.append("%s=%+d" % (attr, value))
         for attr in [
             "year",
             "month",
@@ -484,8 +484,8 @@ class relativedelta:
         ]:
             value = getattr(self, attr)
             if value is not None:
-                l.append(f"{attr}={repr(value)}")
-        return f"{self.__class__.__name__}({', '.join(l)})"
+                lst.append(f"{attr}={repr(value)}")
+        return f"{self.__class__.__name__}({', '.join(lst)})"
 
 
 # vim:ts=4:sw=4:et

@@ -266,7 +266,10 @@ class And(CompoundQuery):
 
     def _matcher(self, subs, searcher, context):
         r = searcher.reader()
-        q_weight_fn = lambda q: 0 - q.estimate_size(r)
+
+        def q_weight_fn(q):
+            return 0 - q.estimate_size(r)
+
         return self._tree_matcher(
             subs, matching.IntersectionMatcher, searcher, context, q_weight_fn
         )
@@ -379,7 +382,10 @@ class DefaultOr(Or):
 
     def _matcher(self, subs, searcher, context):
         reader = searcher.reader()
-        q_weight_fn = lambda q: q.estimate_size(reader)
+
+        def q_weight_fn(q):
+            return q.estimate_size(reader)
+
         m = self._tree_matcher(
             subs, matching.UnionMatcher, searcher, context, q_weight_fn
         )
@@ -491,7 +497,10 @@ class DisjunctionMax(CompoundQuery):
 
     def _matcher(self, subs, searcher, context):
         r = searcher.reader()
-        q_weight_fn = lambda q: q.estimate_size(r)
+
+        def q_weight_fn(q):
+            return q.estimate_size(r)
+
         return self._tree_matcher(
             subs,
             matching.DisjunctionMaxMatcher,

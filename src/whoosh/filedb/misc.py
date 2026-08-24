@@ -40,13 +40,25 @@ def decode_termkey(key):
 
 _terminfo_struct = Struct("!III")  # frequency, offset, postcount
 _pack_terminfo = _terminfo_struct.pack
-encode_terminfo = lambda cf_offset_df: _pack_terminfo(*cf_offset_df)
+
+
+def encode_terminfo(cf_offset_df):
+    return _pack_terminfo(*cf_offset_df)
+
+
 decode_terminfo = _terminfo_struct.unpack
 
 encode_docnum = pack_uint
-decode_docnum = lambda x: unpack_uint(x)[0]
 
-enpickle = lambda data: dumps(data, -1)
+
+def decode_docnum(x):
+    return unpack_uint(x)[0]
+
+
+def enpickle(data):
+    return dumps(data, -1)
+
+
 depickle = loads
 
 enmarshal = mdumps

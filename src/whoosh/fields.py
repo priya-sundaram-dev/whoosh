@@ -1008,7 +1008,7 @@ class DATETIME(NUMERIC):
 
         try:
             at = self._parse_datestring(qstring)
-        except:
+        except:  # noqa: E722
             e = sys.exc_info()[1]
             return query.error_query(e)
 
@@ -1642,7 +1642,7 @@ class Schema:
         if type(fieldtype) is type:
             try:
                 fieldtype = fieldtype()
-            except:
+            except:  # noqa: E722
                 e = sys.exc_info()[1]
                 raise FieldConfigurationError(
                     f"Error: {e} instantiating field {name!r}: {fieldtype!r}"

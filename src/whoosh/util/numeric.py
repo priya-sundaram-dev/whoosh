@@ -202,7 +202,9 @@ def split_ranges(intsize, step, start, end):
     while True:
         diff = 1 << (shift + step)
         mask = ((1 << step) - 1) << shift
-        setbits = lambda x: x | ((1 << shift) - 1)
+
+        def setbits(x):
+            return x | ((1 << shift) - 1)
 
         haslower = (start & mask) != 0
         hasupper = (end & mask) != mask
