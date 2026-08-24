@@ -747,7 +747,7 @@ def test_add_reader_to_index():
     writer.add_reader(reader)
 
     # Assert that the reader was added to the index
-    assert writer._added
+    assert writer._added is True
 
 
 # If term not found, a TermNotFound exception should be raised

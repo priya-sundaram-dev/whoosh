@@ -788,8 +788,8 @@ def test_valid_fieldname_start_end():
     assert nr.fieldname == "number"
     assert nr.start == 10
     assert nr.end == 5925
-    assert not nr.startexcl
-    assert not nr.endexcl
+    assert nr.startexcl is False
+    assert nr.endexcl is False
     assert nr.boost == 1.0
     assert nr.constantscore
 
@@ -802,10 +802,10 @@ def test_valid_fieldname_start_end_startexcl_endexcl():
     assert nr.fieldname == "number"
     assert nr.start == 10
     assert nr.end == 5925
-    assert nr.startexcl
-    assert nr.endexcl
+    assert nr.startexcl is True
+    assert nr.endexcl is True
     assert nr.boost == 1.0
-    assert nr.constantscore
+    assert nr.constantscore is True
 
 
 # NumericRange with valid fieldname, start, end, boost=2.0, and constantscore=False
@@ -816,10 +816,10 @@ def test_valid_fieldname_start_end_boost_constantscore():
     assert nr.fieldname == "number"
     assert nr.start == 10
     assert nr.end == 5925
-    assert not nr.startexcl
-    assert not nr.endexcl
+    assert nr.startexcl is False
+    assert nr.endexcl is False
     assert nr.boost == 2.0
-    assert not nr.constantscore
+    assert nr.constantscore is False
 
 
 # NumericRange with valid fieldname, start=None, and end=None
@@ -830,10 +830,10 @@ def test_valid_fieldname_start_none_end_none():
     assert nr.fieldname == "number"
     assert nr.start == 0
     assert nr.end == 0
-    assert not nr.startexcl
-    assert not nr.endexcl
+    assert nr.startexcl is False
+    assert nr.endexcl is False
     assert nr.boost == 1.0
-    assert nr.constantscore
+    assert nr.constantscore is True
 
 
 # NumericRange with valid fieldname, start=0, and end=0
@@ -844,10 +844,10 @@ def test_valid_fieldname_start_zero_end_zero():
     assert nr.fieldname == "number"
     assert nr.start == 0
     assert nr.end == 0
-    assert not nr.startexcl
-    assert not nr.endexcl
+    assert nr.startexcl is False
+    assert nr.endexcl is False
     assert nr.boost == 1.0
-    assert nr.constantscore
+    assert nr.constantscore is True
 
 
 # NumericRange with valid fieldname, start=-1, and end=1
@@ -858,10 +858,10 @@ def test_valid_fieldname_start_minus_one_end_one():
     assert nr.fieldname == "number"
     assert nr.start == -1
     assert nr.end == 1
-    assert not nr.startexcl
-    assert not nr.endexcl
+    assert nr.startexcl is False
+    assert nr.endexcl is False
     assert nr.boost == 1.0
-    assert nr.constantscore
+    assert nr.constantscore is True
 
 
 # NumericRange with valid fieldname, start=1, and end=-1
@@ -872,10 +872,10 @@ def test_valid_fieldname_start_end_again():
     assert nr.fieldname == "fieldname"
     assert nr.start == 1
     assert nr.end == -1
-    assert not nr.startexcl
-    assert not nr.endexcl
+    assert nr.startexcl is False
+    assert nr.endexcl is False
     assert nr.boost == 1.0
-    assert nr.constantscore
+    assert nr.constantscore is True
 
 
 # NumericRange with valid fieldname, start=1.5, and end=2.5
@@ -886,10 +886,10 @@ def test_valid_fieldname_start_end_float():
     assert nr.fieldname == "fieldname"
     assert nr.start == 1.5
     assert nr.end == 2.5
-    assert not nr.startexcl
-    assert not nr.endexcl
+    assert nr.startexcl is False
+    assert nr.endexcl is False
     assert nr.boost == 1.0
-    assert nr.constantscore
+    assert nr.constantscore is True
 
 
 # NumericRange with valid fieldname, start=1.5, and end=2.5, startexcl=True, and endexcl=True
@@ -900,10 +900,10 @@ def test_valid_fieldname_start_end_excl():
     assert nr.fieldname == "fieldname"
     assert nr.start == 1.5
     assert nr.end == 2.5
-    assert nr.startexcl
-    assert nr.endexcl
+    assert nr.startexcl is True
+    assert nr.endexcl is True
     assert nr.boost == 1.0
-    assert nr.constantscore
+    assert nr.constantscore is True
 
 
 # NumericRange with valid fieldname, start=1.5, and end=2.5, boost=2.0, and constantscore=False
@@ -914,10 +914,10 @@ def test_valid_fieldname_start_end_boost_constantscore_again():
     assert nr.fieldname == "fieldname"
     assert nr.start == 1.5
     assert nr.end == 2.5
-    assert not nr.startexcl
-    assert not nr.endexcl
+    assert nr.startexcl is False
+    assert nr.endexcl is False
     assert nr.boost == 2.0
-    assert not nr.constantscore
+    assert nr.constantscore is False
 
 
 # NumericRange with invalid boost
@@ -943,10 +943,10 @@ def test_invalid_startexcl_valid_endexcl():
     assert nr.fieldname == "number"
     assert nr.start == 10
     assert nr.end == 5925
-    assert nr.startexcl
-    assert not nr.endexcl
+    assert nr.startexcl is True
+    assert nr.endexcl is False
     assert nr.boost == 1.0
-    assert nr.constantscore
+    assert nr.constantscore is True
 
 
 # NumericRange with invalid constantscore
@@ -964,8 +964,8 @@ def test_valid_startexcl_invalid_endexcl():
     from whoosh.query.ranges import NumericRange
 
     nr = NumericRange("number", 10, 5925, startexcl=True, endexcl=True)
-    assert nr.startexcl
-    assert nr.endexcl
+    assert nr.startexcl is True
+    assert nr.endexcl is True
 
 
 # NumbericRange with negative boost field
@@ -980,10 +980,10 @@ def test_numeric_range_with_negative_boost():
     assert nr.fieldname == "number"
     assert nr.start == 10
     assert nr.end == 5925
-    assert not nr.startexcl
-    assert not nr.endexcl
+    assert nr.startexcl is False
+    assert nr.endexcl is False
     assert nr.boost == -1.0
-    assert nr.constantscore
+    assert nr.constantscore is True
 
 
 def test_multiterm_boost_propagates_to_score():
