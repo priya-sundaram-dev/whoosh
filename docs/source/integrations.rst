@@ -321,7 +321,7 @@ Why bother? whoosh3 satisfies Haystack's runtime check
 (``whoosh.__version__ >= (2, 5, 0)``) and keeps every public API the backend
 uses (``whoosh.index``, ``whoosh.fields``, ``whoosh.analysis``,
 ``whoosh.filedb.filestore``, ``whoosh.highlight``, ``whoosh.qparser``), while
-adding tested support for **Python 3.9–3.14**. The legacy ``Whoosh==2.7.4`` has
+adding tested support for **Python 3.10–3.14**. The legacy ``Whoosh==2.7.4`` has
 latent breakage on newer interpreters — for example it calls ``cgi.escape`` in
 ``whoosh/compat.py``, and the ``cgi`` module was removed in Python 3.13 — so a
 Haystack project on a current Python is exactly the case whoosh3 is meant to

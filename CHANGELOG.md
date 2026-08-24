@@ -7,6 +7,11 @@ All notable changes to this project are documented here. This project follows
 ## [Unreleased]
 
 ### Internal / tooling
+- Swept residual `3.9` references left over from the Python 3.9 drop (#124):
+  the docs (`index.rst`, `integrations.rst`, `migrating.rst`, `MIGRATING.md`),
+  the roadmap, the demo/marketing pages (which advertised "Python 3.9–3.14"),
+  and `.sonarcloud.properties` (which still listed 3.8/3.9) now all state the
+  3.10–3.14 support range. Docs-only; thanks @cclauss for the catch.
 - **Consolidated packaging/tooling config into `pyproject.toml`** (#125). The
   active pytest config (`addopts`, `filterwarnings`, `norecursedirs`, …) moved
   from `setup.cfg`'s `[tool:pytest]` into `[tool.pytest.ini_options]`, and

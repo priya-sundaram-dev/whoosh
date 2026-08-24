@@ -80,7 +80,7 @@ drop them.
 - Metadata moved to a PEP 621 `pyproject.toml`.
 - Wheels are published for install; `python -m build` produces a clean sdist
   and wheel.
-- `requires-python = ">=3.9"`, with classifiers and CI coverage through
+- `requires-python = ">=3.10"`, with classifiers and CI coverage through
   Python 3.14.
 
 ### 3. Bug fixes you may care about

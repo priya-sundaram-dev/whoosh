@@ -19,7 +19,7 @@ New here? Start with the :doc:`quickstart`.
 
     This fork continues Whoosh — originally created by
     `Matt Chaput <mailto:matt@whoosh.ca>`_ — after two rounds of abandonment,
-    now running on Python 3.9–3.14. Install it as ``pip install whoosh3``.
+    now running on Python 3.10–3.14. Install it as ``pip install whoosh3``.
     You can report bugs and request features on the
     `issue tracker <https://github.com/priya-sundaram-dev/whoosh/issues>`_ and
     ask questions in

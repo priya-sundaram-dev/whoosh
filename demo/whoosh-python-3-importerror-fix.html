@@ -15,7 +15,7 @@
 <meta property="og:image" content="https://priya-sundaram-dev.github.io/whoosh/og-image.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
-<meta property="og:image:alt" content="Whoosh — fast, pure-Python full-text search. pip install whoosh3. Python 3.9–3.14." />
+<meta property="og:image:alt" content="Whoosh — fast, pure-Python full-text search. pip install whoosh3. Python 3.10–3.14." />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:image" content="https://priya-sundaram-dev.github.io/whoosh/og-image.png" />
 <meta name="twitter:title" content="Whoosh ImportError on modern Python — the fix" />
@@ -38,7 +38,7 @@
       "name": "Why does Whoosh raise ModuleNotFoundError: No module named 'imp'?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "The imp module was deprecated for years and removed in Python 3.12. Code paths in old Whoosh that touch it break on Python 3.12 and later. The maintained whoosh3 package no longer depends on imp and is tested on Python 3.9 through 3.14."
+        "text": "The imp module was deprecated for years and removed in Python 3.12. Code paths in old Whoosh that touch it break on Python 3.12 and later. The maintained whoosh3 package no longer depends on imp and is tested on Python 3.10 through 3.14."
       }
     },
     {
@@ -107,7 +107,7 @@
 pip install whoosh3</code></pre>
     Your <code>import whoosh</code> statements, your code, and your existing
     on-disk indexes all keep working &mdash; <code>whoosh3</code> keeps the same
-    import name and API and is tested on Python 3.9&ndash;3.14.
+    import name and API and is tested on Python 3.10&ndash;3.14.
   </div>
 
   <h2>The errors you are probably seeing</h2>
@@ -146,7 +146,7 @@ AttributeError: module 'inspect' has no attribute 'getargspec'</code></pre>
   <p>The maintained continuation of Whoosh is published on PyPI as
   <a href="https://pypi.org/project/whoosh3/"><code>whoosh3</code></a>. It fixes
   the imports (they now come from <code>collections.abc</code>), drops
-  <code>imp</code>, and is tested in CI on <strong>CPython 3.9 through 3.14</strong>
+  <code>imp</code>, and is tested in CI on <strong>CPython 3.10 through 3.14</strong>
   and on PyPy. Crucially, it <strong>keeps the import name <code>whoosh</code></strong>,
   so nothing in your source has to change.</p>
 
@@ -188,7 +188,7 @@ with ix.searcher() as s:
     <tbody>
       <tr><td><code>whoosh</code> (2.7.4)</td><td><code>whoosh</code></td><td>Original, last release 2016 — breaks on Python 3.10+</td></tr>
       <tr><td><code>whoosh-reloaded</code></td><td><code>whoosh</code></td><td>Community fork, now inactive</td></tr>
-      <tr><td><code>whoosh3</code></td><td><code>whoosh</code></td><td><strong>Actively maintained</strong>, Python 3.9–3.14</td></tr>
+      <tr><td><code>whoosh3</code></td><td><code>whoosh</code></td><td><strong>Actively maintained</strong>, Python 3.10–3.14</td></tr>
     </tbody>
   </table>
   <p>All three install under the <code>whoosh</code> import name, so only one can
