@@ -6,6 +6,8 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.45.0] - 2026-08-24
+
 ### Internal / tooling
 - Adopted the modern PEP 639 license declaration in `pyproject.toml` (#130):
   `license` is now the SPDX string `"BSD-2-Clause"` instead of the deprecated
