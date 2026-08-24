@@ -6,6 +6,18 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Internal / tooling
+- **Consolidated packaging/tooling config into `pyproject.toml`** (#125). The
+  active pytest config (`addopts`, `filterwarnings`, `norecursedirs`, …) moved
+  from `setup.cfg`'s `[tool:pytest]` into `[tool.pytest.ini_options]`, and
+  coverage config into `[tool.coverage.run]`. Removed the now-redundant
+  `setup.cfg`, `setup.py` shim (editable installs use PEP 660 via
+  `setuptools>=64`), `requirements.txt` (`.`), and `requirements-dev.txt` (its
+  contents were stale — `pytest` lives in the `dev` extra; `pythomata`/
+  `versioneer` were unused). Behaviour is unchanged; the project is just easier
+  to understand with one declarative config file. `docs/requirements.txt` is
+  kept as the conventional Sphinx/Read-the-Docs build input. Thanks @cclauss.
+
 ### Removed
 - **Dropped support for Python 3.9**, which reached end-of-life in October 2025.
   The minimum supported version is now Python 3.10. `pip` respects
