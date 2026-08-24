@@ -609,11 +609,9 @@ class PinpointFragmenter(Fragmenter):
         startchar = fragment.startchar
         endchar = fragment.endchar
 
-        firstspace = text.find(" ", startchar, endchar)
-        if firstspace > 0:
+        if (firstspace := text.find(" ", startchar, endchar)) > 0:
             startchar = firstspace + 1
-        lastspace = text.rfind(" ", startchar, endchar)
-        if lastspace > 0:
+        if (lastspace := text.rfind(" ", startchar, endchar)) > 0:
             endchar = lastspace
 
         if fragment.matches:

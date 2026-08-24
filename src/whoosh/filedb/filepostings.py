@@ -377,9 +377,8 @@ class FilePostingReader(Matcher):
 
     def _read_values(self, startoffset, endoffset, postcount):
         pf = self.postfile
-        posting_size = self.format.posting_size
 
-        if posting_size != 0:
+        if (posting_size := self.format.posting_size) != 0:
             valueoffset = startoffset
             if posting_size < 0:
                 # Read the array of lengths for the values

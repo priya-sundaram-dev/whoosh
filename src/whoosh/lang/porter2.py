@@ -26,8 +26,7 @@ def get_r1(word):
         return 6
 
     # normal form
-    match = r_exp.match(word)
-    if match:
+    if match := r_exp.match(word):
         return match.start(1)
     return len(word)
 

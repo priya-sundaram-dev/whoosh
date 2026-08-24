@@ -914,8 +914,7 @@ class SegmentReader(IndexReader):
         text = self._text_to_bytes(fieldname, text)
         format_ = self.schema[fieldname].format
         matcher = self._terms.matcher(fieldname, text, format_, scorer=scorer)
-        deleted = self.deleted_docs_set
-        if deleted:
+        if deleted := self.deleted_docs_set:
             matcher = FilterMatcher(matcher, deleted, exclude=True)
         return matcher
 

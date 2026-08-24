@@ -675,8 +675,7 @@ class TOC:
         stream = storage.open_file(tocfilename)
 
         def check_size(name, target):
-            sz = stream.read_varint()
-            if sz != target:
+            if (sz := stream.read_varint()) != target:
                 raise IndexError(
                     "Index was created on different architecture:"
                     " saved %s = %s, this computer = %s" % (name, sz, target)

@@ -57,8 +57,7 @@ class RegexTagger(Tagger):
         self.expr = rcompile(expr)
 
     def match(self, parser, text, pos):
-        match = self.expr.match(text, pos)
-        if match:
+        if match := self.expr.match(text, pos):
             node = self.create(parser, match)
             if node is not None:
                 node = node.set_range(match.start(), match.end())

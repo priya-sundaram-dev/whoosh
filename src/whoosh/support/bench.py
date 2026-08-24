@@ -184,8 +184,7 @@ class WhooshModule(Module):
             self._procdoc = self.bench.spec.process_document_whoosh
 
     def index_document(self, d):
-        _procdoc = self._procdoc
-        if _procdoc:
+        if _procdoc := self._procdoc:
             _procdoc(d)
         self.writer.add_document(**d)
 

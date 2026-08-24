@@ -242,8 +242,7 @@ class HashReader:
 
         dbfile.seek(startoffset)
         # Check format tag
-        filemagic = dbfile.read(4)
-        if filemagic != magic:
+        if (filemagic := dbfile.read(4)) != magic:
             raise FileFormatError(f"Unknown file header {filemagic!r}")
         # Read hash type
         self.hashtype = dbfile.read_byte()

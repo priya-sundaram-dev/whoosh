@@ -176,8 +176,7 @@ class MultiTerm(qcore.Query):
     def expanded_terms(
         self, ixreader: IndexReader, phrases: bool = False
     ) -> Iterator[tuple[str, bytes]]:
-        fieldname = self.field()
-        if fieldname:
+        if fieldname := self.field():
             for btext in self._btexts(ixreader):
                 yield (fieldname, btext)
 

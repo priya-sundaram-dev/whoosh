@@ -220,8 +220,7 @@ class HashReader:
 
         dbfile.seek(startoffset)
         # Check magic tag
-        magic = dbfile.read(4)
-        if magic != b"HASH":
+        if (magic := dbfile.read(4)) != b"HASH":
             raise ValueError(f"Unknown file header {magic}")
 
         self.hashtype = dbfile.read_byte()  # Hash function type
@@ -2051,8 +2050,7 @@ class OLD_NUMERIC(NUMERIC):
         return x
 
     def unprepare_number(self, x):
-        dc = self.decimal_places
-        if dc:
+        if dc := self.decimal_places:
             s = str(x)
             x = Decimal(s[:-dc] + "." + s[-dc:])
         return x

@@ -49,8 +49,7 @@ def from_base85(text):
 
 def b85encode(text, pad=False):
     l = len(text)
-    r = l % 4
-    if r:
+    if r := l % 4:
         text += "\0" * (4 - r)
     longs = len(text) >> 2
     out = []

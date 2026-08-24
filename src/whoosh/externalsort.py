@@ -176,8 +176,7 @@ class SortingPool:
         self.runs.append(filename)
 
     def save(self) -> None:
-        current = self.current
-        if current:
+        if current := self.current:
             current.sort()
             path, f = self._new_run()
             self._write_run(f, current)

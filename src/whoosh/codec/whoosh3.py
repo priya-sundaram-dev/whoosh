@@ -270,8 +270,7 @@ class W3PerDocWriter(base.PerDocWriterWithColumns):
         self.add_column_value(vecfield + "L", VECTOR_LEN_COLUMN, length)
 
     def finish_doc(self):
-        sf = self._storedfields
-        if sf:
+        if sf := self._storedfields:
             self.add_column_value("_stored", STORED_COLUMN, sf)
             sf.clear()
         self._indoc = False
@@ -452,8 +451,7 @@ class W3PerDocReader(base.PerDocumentReader):
         if reader is None:
             return default
 
-        lbyte = reader[docnum]
-        if lbyte:
+        if lbyte := reader[docnum]:
             return byte_to_length(lbyte)
 
     def doc_field_length_reader(self, fieldname, default=0):
@@ -470,8 +468,7 @@ class W3PerDocReader(base.PerDocumentReader):
             return lambda docnum, _default=default: _default
 
         def get(docnum, _reader=reader):
-            lbyte = _reader[docnum]
-            if lbyte:
+            if lbyte := _reader[docnum]:
                 return byte_to_length(lbyte)
             # Match doc_field_length(): when the stored length byte is absent
             # for a present column, it falls through to an implicit None.
@@ -514,8 +511,7 @@ class W3PerDocReader(base.PerDocumentReader):
 
         # Get the length from the length column, if it exists, otherwise return
         # -1 for the length (backwards compatibility with old dev versions)
-        lreader = self._cached_reader(vecfield + "L", VECTOR_COLUMN)
-        if lreader:
+        if lreader := self._cached_reader(vecfield + "L", VECTOR_COLUMN):
             length = lreader[docnum]
         else:
             length = -1
@@ -970,8 +966,7 @@ class W3LeafMatcher(LeafMatcher):
         postfile = self._postfile
 
         postfile.seek(self._startoffset)
-        magic = postfile.read(4)
-        if magic != WHOOSH3_HEADER_MAGIC:
+        if (magic := postfile.read(4)) != WHOOSH3_HEADER_MAGIC:
             raise CorruptIndexError(
                 f"Bad postings block tag {magic!r} at offset "
                 f"{self._startoffset} in "

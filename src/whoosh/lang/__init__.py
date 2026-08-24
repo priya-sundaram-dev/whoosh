@@ -162,8 +162,7 @@ def stemmer_for_language(lang):
 def stopwords_for_language(lang):
     from .stopwords import stoplists
 
-    tlc = two_letter_code(lang)
-    if tlc in stoplists:
+    if (tlc := two_letter_code(lang)) in stoplists:
         return stoplists[tlc]
 
     raise NoStopWords(f"No stop-word list available for {lang!r}")

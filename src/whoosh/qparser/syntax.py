@@ -139,13 +139,11 @@ class SyntaxNode:
             return self._parent()
 
     def next_sibling(self):
-        p = self.parent()
-        if p:
+        if p := self.parent():
             return p.node_after(self)
 
     def prev_sibling(self):
-        p = self.parent()
-        if p:
+        if p := self.parent():
             return p.node_before(self)
 
     def bake(self, parent):
@@ -376,8 +374,7 @@ class Wrapper(GroupNode):
         # an empty wrapper as producing no query instead of crashing.
         if not self.nodes:
             return None
-        q = self.nodes[0].query(parser)
-        if q:
+        if q := self.nodes[0].query(parser):
             return attach(self.qclass(q), self)
 
 

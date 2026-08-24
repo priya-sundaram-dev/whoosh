@@ -343,9 +343,8 @@ class IntListValues(SequenceValues):
 
     @staticmethod
     def read(dbfile):
-        length = dbfile.read_varint()
         result = []
-        if length > 0:
+        if (length := dbfile.read_varint()) > 0:
             base = 0
             for _ in range(length):
                 base += dbfile.read_varint()
@@ -1359,8 +1358,7 @@ class GraphReader(BaseGraphReader):
         dbfile.seek(address)
 
         # If records are fixed size, we can do a binary search
-        finfo = self._read_fixed_info()
-        if finfo:
+        if finfo := self._read_fixed_info():
             size, count = finfo
             address = dbfile.tell()
             if count > 2:

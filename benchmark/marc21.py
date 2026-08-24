@@ -225,8 +225,7 @@ def print_record(no, basedir, filename, pos):
     print("% 5d. %s" % (no + 1, title(record)))
     print("      ", author(record))
     print("      ", subjects(record))
-    isbn_num = isbn(record)
-    if isbn_num:
+    if isbn_num := isbn(record):
         print(" ISBN:", isbn_num)
     print()
 

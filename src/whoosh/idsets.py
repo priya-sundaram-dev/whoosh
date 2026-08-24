@@ -448,11 +448,10 @@ class BaseBitSet(DocIdSet):
 
     def before(self, i: int) -> int | None:
         _get_byte = self._get_byte
-        size = self.byte_count() * 8
 
         if i <= 0:
             return None
-        elif i >= size:
+        elif i >= (size := self.byte_count() * 8):
             i = size - 1
         else:
             i -= 1
@@ -601,8 +600,7 @@ class BitSet(BaseBitSet):
 
     def _zero_extra_bits(self, size: int) -> None:
         bits = self.bits
-        spill = size - ((len(bits) - 1) * 8)
-        if spill:
+        if spill := size - ((len(bits) - 1) * 8):
             mask = 2**spill - 1
             bits[-1] = bits[-1] & mask
 

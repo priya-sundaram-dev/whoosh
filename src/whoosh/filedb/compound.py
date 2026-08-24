@@ -345,6 +345,5 @@ class CompoundWriter:
 
         def close(self):
             bio = self._buffer
-            length = bio.tell()
-            if length:
+            if length := bio.tell():
                 self.blocks.append((bio, 0, length))

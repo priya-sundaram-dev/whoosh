@@ -968,8 +968,7 @@ class DateTagger(Tagger):
     def match(self, parser, text, pos):
         from whoosh.fields import DATETIME
 
-        match = self.expr.match(text, pos)
-        if match:
+        if match := self.expr.match(text, pos):
             fieldname = match.group(1)
             dtext = match.group(2)
 

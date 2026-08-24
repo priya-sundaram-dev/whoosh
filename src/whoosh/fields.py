@@ -817,8 +817,7 @@ class NUMERIC(FieldType):
         return x
 
     def unprepare_number(self, x: Any) -> Any:
-        dc = self.decimal_places
-        if dc:
+        if dc := self.decimal_places:
             s = str(x)
             x = Decimal(s[:-dc] + "." + s[-dc:])
         return x

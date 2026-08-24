@@ -191,8 +191,7 @@ class CompoundQuery(qcore.Query):
         return self.__class__(subqs, boost=self.boost)
 
     def simplify(self, ixreader):
-        subs = self.subqueries
-        if subs:
+        if subs := self.subqueries:
             q = self.__class__(
                 [subq.simplify(ixreader) for subq in subs], boost=self.boost
             ).normalize()

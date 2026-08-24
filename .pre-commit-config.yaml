@@ -31,8 +31,13 @@ repos:
       - id: sort-simple-yaml
       - id: trailing-whitespace
 
+  - repo: https://github.com/MarcoGorelli/auto-walrus
+    rev: 0.4.1
+    hooks:
+      - id: auto-walrus
+
   - repo: https://github.com/tox-dev/pyproject-fmt
-    rev: v2.28.0
+    rev: v2.28.1
     hooks:
       - id: pyproject-fmt
 

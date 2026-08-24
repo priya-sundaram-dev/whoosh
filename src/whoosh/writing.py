@@ -455,8 +455,7 @@ class IndexWriter:
             return default
 
     def _field_boost(self, fields, fieldname, default=1.0):
-        boostkw = f"_{fieldname}_boost"
-        if boostkw in fields:
+        if (boostkw := f"_{fieldname}_boost") in fields:
             return float(fields[boostkw])
         else:
             return default
@@ -524,8 +523,7 @@ class IndexWriter:
         """
 
         # Delete the set of documents matching the unique terms
-        unique_fields = self._unique_fields(fields)
-        if unique_fields:
+        if unique_fields := self._unique_fields(fields):
             with self.searcher() as s:
                 uniqueterms = [(name, fields[name]) for name in unique_fields]
                 docs = s._find_unique(uniqueterms)

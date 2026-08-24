@@ -32,8 +32,7 @@ class BaseVersion:
     @classmethod
     def parse(cls, text):
         obj = cls()
-        match = cls._version_exp.match(text)
-        if match:
+        if match := cls._version_exp.match(text):
             groupdict = match.groupdict()
             for groupname, typ in cls._parts:
                 v = groupdict.get(groupname)
