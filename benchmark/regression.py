@@ -42,7 +42,7 @@ import shutil
 import sys
 import tempfile
 import time
-from typing import Callable
+from collections.abc import Callable
 
 from whoosh import index
 from whoosh.analysis import StemmingAnalyzer

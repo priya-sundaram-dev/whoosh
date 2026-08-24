@@ -6,7 +6,7 @@ requires = [ "setuptools>=61" ]
 name = "whoosh3"
 description = """\
   Fast, pure-Python full-text indexing, search, and spell-checking library — the actively maintained Whoosh, running \
-  on Python 3.9-3.14.\
+  on Python 3.10-3.14.\
   """
 readme = "README.md"
 keywords = [ "bm25", "full-text", "index", "search", "spell", "text" ]
@@ -17,7 +17,7 @@ maintainers = [
 authors = [
   { name = "Matt Chaput", email = "matt@whoosh.ca" },
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 classifiers = [
   "Development Status :: 5 - Production/Stable",
   "Intended Audience :: Developers",
@@ -25,7 +25,6 @@ classifiers = [
   "Natural Language :: English",
   "Operating System :: OS Independent",
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
@@ -38,8 +37,8 @@ classifiers = [
 dynamic = [ "version" ]
 optional-dependencies.dev = [ "mypy", "pre-commit", "pytest>=7", "pytest-cov", "ruff" ]
 optional-dependencies.langchain = [ "langchain-core>=0.3" ]
-optional-dependencies.llamaindex = [ "llama-index-core>=0.10; python_version>'3.9'" ]
-optional-dependencies.mcp = [ "mcp>=2; python_version>'3.9'" ]
+optional-dependencies.llamaindex = [ "llama-index-core>=0.10" ]
+optional-dependencies.mcp = [ "mcp>=2" ]
 urls.Changelog = "https://github.com/priya-sundaram-dev/whoosh/blob/main/CHANGELOG.md"
 urls.Documentation = "https://priya-sundaram-dev.github.io/whoosh/"
 urls.Homepage = "https://github.com/priya-sundaram-dev/whoosh"
@@ -58,7 +57,7 @@ dynamic.version = { attr = "whoosh.__version_str__" }
 # Existing ruff / tooling config preserved below.
 # ==========================================================================
 [tool.ruff]
-target-version = "py39"
+target-version = "py310"
 lint.select = [
   "AIR",    # Airflow
   "ASYNC",  # flake8-async
@@ -138,8 +137,8 @@ lint.ignore = [
   "PLC0415", # `import` should be at the top-level of a file
   "PLR0915", # too-many-statements (only trips a large end-to-end typing test)
   # __enter__ returning the concrete class (IndexReader/IndexWriter) rather than
-  # Self is intentional and correct here; forcing `Self` would need a version-
-  # guarded import on the 3.9 floor for no practical benefit.
+  # Self is intentional and correct here; forcing `Self` would need `typing.Self`
+  # (3.11+) or a version-guarded import for no practical benefit.
   "PYI034",  # __enter__ should return `Self`
   # `re` and typing-only stdlib imports are used at runtime in several modules;
   # moving them into TYPE_CHECKING blocks trades real correctness risk for a
@@ -171,9 +170,8 @@ lint.pylint.max-statements = 256  # Default is 50
 files = [ "tests/typing_smoke.py" ]
 ignore_missing_imports = true
 follow_imports = "silent"
-# Type-check the public-API smoke fixture against a modern floor. Whoosh3 runs
-# on 3.9+, but this only sets mypy's *checking target*; 3.10 keeps CI robust as
-# newer mypy releases drop support for 3.9 as a target (gh#3).
+# Type-check the public-API smoke fixture against Whoosh3's minimum floor
+# (3.10). This sets mypy's *checking target* only.
 python_version = "3.10"
 warn_redundant_casts = true
 warn_unused_ignores = true

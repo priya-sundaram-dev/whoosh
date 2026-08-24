@@ -7,9 +7,9 @@ from __future__ import annotations
 import operator
 from array import array
 from bisect import bisect_left, bisect_right
-from collections.abc import Collection, Iterable, Iterator
+from collections.abc import Callable, Collection, Iterable, Iterator
 from itertools import zip_longest
-from typing import Any, Callable, Union
+from typing import Any, Union
 
 from whoosh.util.numeric import bytes_for_bits
 

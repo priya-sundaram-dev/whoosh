@@ -6,6 +6,15 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Removed
+- **Dropped support for Python 3.9**, which reached end-of-life in October 2025.
+  The minimum supported version is now Python 3.10. `pip` respects
+  `requires-python`, so environments still on 3.9 will continue to resolve the
+  last 3.9-compatible release (3.44.0) — nothing breaks for existing users, but
+  new releases target 3.10+. This lets the codebase adopt modern typing
+  constructs (e.g. `typing.TypeAlias`) without version guards. Thanks to
+  @cclauss for proposing this (#124).
+
 ## [3.44.0] - 2026-08-23
 
 ### Changed

@@ -30,8 +30,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from collections.abc import Collection, Iterator
-    from typing import Any, Callable
+    from collections.abc import Callable, Collection, Iterator
+    from typing import Any
 
     from whoosh.analysis.acore import Token
 

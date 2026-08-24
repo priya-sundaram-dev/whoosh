@@ -51,10 +51,11 @@ See :doc:`/highlight` for more information.
 from __future__ import annotations
 
 from collections import deque
+from collections.abc import Callable
 from heapq import nlargest
 from html import escape as htmlescape
 from itertools import groupby
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any
 
 from whoosh.analysis import Token
 
