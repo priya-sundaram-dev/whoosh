@@ -177,3 +177,6 @@ follow_imports = "silent"
 python_version = "3.10"
 warn_redundant_casts = true
 warn_unused_ignores = true
+
+[tool.ty]
+src.include = [ "tests/typing_smoke.py" ]

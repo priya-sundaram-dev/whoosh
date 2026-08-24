@@ -43,6 +43,11 @@ repos:
         args: [ --fix ]
       - id: ruff-format
 
+  - repo: https://github.com/astral-sh/ty-pre-commit
+    rev: v0.0.74
+    hooks:
+      - id: ty
+
   - repo: https://github.com/abravalheri/validate-pyproject
     rev: '0.26'
     hooks:
