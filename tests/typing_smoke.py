@@ -232,6 +232,52 @@ def run() -> list[str]:
             m: Matcher = term_query.matcher(searcher)
             assert m.is_active() in (True, False)
 
+        # The whoosh.matching.Matcher base class is annotated (gh#115). Drive a
+        # fresh matcher over the "search" posting and confirm each annotated
+        # method's return type flows into user code: ids are int, the term is
+        # an optional (str, bytes) tuple, quality/weight/score are float, and
+        # the iterator helpers yield int / (int, value) pairs.
+        sm: Matcher = term_q.matcher(searcher)
+        active: bool = sm.is_active()
+        assert active
+        posting_id: int = sm.id()
+        assert posting_id >= 0
+        # term() is annotated tuple[str, bytes] | None: a non-leaf (wrapping)
+        # matcher returns None, a term matcher returns the tuple.
+        sm_term: tuple[str, bytes] | None = sm.term()
+        assert sm_term is None or isinstance(sm_term, tuple)
+        sm_weight: float = sm.weight()
+        sm_score: float = sm.score()
+        assert sm_weight >= 0.0 and sm_score >= 0.0
+        assert sm.supports("positions") in (True, False)
+        if sm.supports("positions"):
+            for span in sm.spans():
+                assert span.start >= 1
+        sm_children: list[Matcher] = sm.children()
+        assert isinstance(sm_children, list)
+        leaf: bool = sm.is_leaf()
+        assert leaf == (len(sm_children) == 0)
+        tree_depth: int = sm.depth()
+        assert tree_depth >= 0
+        for doc_id in sm.all_ids():
+            assert isinstance(doc_id, int)
+        sm.reset()
+        for _raw_id, _raw_value in sm.all_items():
+            assert isinstance(_raw_id, int)
+        sm.reset()
+        for _dec_id, _dec_value in sm.items_as("frequency"):
+            assert isinstance(_dec_id, int)
+        sm.reset()
+        sm.skip_to(0)
+        assert sm.is_active()
+        for term_matcher in sm.term_matchers():
+            assert term_matcher.term() is not None
+        for _field, _text in sm.matching_terms():
+            assert isinstance(_field, str)
+        if sm.supports_block_quality():
+            block_q: float = sm.block_quality()
+            assert block_q >= 0.0
+
         # Compound query classes (whoosh.query.compound): the boolean
         # combinators most programs build directly. Their annotated
         # constructors accept a sequence of subqueries plus documented kwargs,
