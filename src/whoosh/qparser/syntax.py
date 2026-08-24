@@ -223,7 +223,6 @@ class GroupNode(SyntaxNode):
 
     def apply(self, fn):
         return self.__class__(
-            self.type,
             [fn(node) for node in self.nodes],
             boost=self.boost,
             **self.kwargs,

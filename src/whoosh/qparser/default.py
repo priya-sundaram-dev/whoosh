@@ -395,9 +395,6 @@ class QueryParser:
                 print_debug(debug, f"Normalized query: {q!r}")
         return q
 
-    def parse_(self, text: str, normalize: bool = True) -> query.Query:
-        pass
-
 
 # Premade parser configurations
 

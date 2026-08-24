@@ -188,7 +188,6 @@ warn_unused_ignores = true
 # parameter-already-assigned) are the smallest starting points.  Re-run
 # `ty check src/whoosh` with a rule flipped to "warn" to get a fresh count.
 rules.call-non-callable = "ignore"  # 20 instances
-rules.empty-body = "ignore"  # 1 instance
 rules.invalid-argument-type = "ignore"  # 30 instances
 rules.invalid-assignment = "ignore"  # 21 instances
 rules.invalid-ignore-comment = "ignore"  # 1 instance
@@ -199,7 +198,6 @@ rules.missing-argument = "ignore"  # 12 instances
 rules.no-matching-overload = "ignore"  # 2 instances
 rules.not-iterable = "ignore"  # 4 instances
 rules.not-subscriptable = "ignore"  # 15 instances
-rules.parameter-already-assigned = "ignore"  # 1 instance
 rules.too-many-positional-arguments = "ignore"  # 27 instances
 rules.unknown-argument = "ignore"  # 10 instances
 rules.unresolved-attribute = "ignore"  # 347 instances
