@@ -49,8 +49,16 @@ these optimizations, the matcher's :meth:`Matcher.supports_block_quality()`
 method will return ``True``.
 """
 
+from __future__ import annotations
+
 from abc import abstractmethod
 from itertools import repeat
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
+
+    from whoosh.query.spans import Span
 
 # Exceptions
 
@@ -75,7 +83,7 @@ class Matcher:
     """Base class for all matchers."""
 
     @abstractmethod
-    def is_active(self):
+    def is_active(self) -> bool:
         """Returns True if this matcher is still "active", that is, it has not
         yet reached the end of the posting list.
         """
@@ -83,7 +91,7 @@ class Matcher:
         raise NotImplementedError
 
     @abstractmethod
-    def reset(self):
+    def reset(self) -> None:
         """Returns to the start of the posting list.
 
         Note that reset() may not do what you expect after you call
@@ -93,14 +101,14 @@ class Matcher:
 
         raise NotImplementedError
 
-    def term(self):
+    def term(self) -> tuple[str, bytes] | None:
         """Returns a ``("fieldname", "termtext")`` tuple for the term this
         matcher matches, or None if this matcher is not a term matcher.
         """
 
         return None
 
-    def term_matchers(self):
+    def term_matchers(self) -> Iterator[Matcher]:
         """Returns an iterator of term matchers in this tree."""
 
         if self.term() is not None:
@@ -109,7 +117,7 @@ class Matcher:
             for cm in self.children():
                 yield from cm.term_matchers()
 
-    def matching_terms(self, id=None):
+    def matching_terms(self, id: int | None = None) -> Iterator[tuple[str, bytes]]:
         """Returns an iterator of ``("fieldname", "termtext")`` tuples for the
         **currently matching** term matchers in this tree.
         """
@@ -130,17 +138,17 @@ class Matcher:
         else:
             yield t
 
-    def is_leaf(self):
+    def is_leaf(self) -> bool:
         return not bool(self.children())
 
-    def children(self):
+    def children(self) -> list[Matcher]:
         """Returns an (possibly empty) list of the submatchers of this
         matcher.
         """
 
         return []
 
-    def replace(self, minquality=0):
+    def replace(self, minquality: float = 0) -> Matcher:
         """Returns a possibly-simplified version of this matcher. For example,
         if one of the children of a UnionMatcher is no longer active, calling
         this method on the UnionMatcher will return the other child.
@@ -149,26 +157,26 @@ class Matcher:
         return self
 
     @abstractmethod
-    def copy(self):
+    def copy(self) -> Matcher:
         """Returns a copy of this matcher."""
 
         raise NotImplementedError
 
-    def depth(self):
+    def depth(self) -> int:
         """Returns the depth of the tree under this matcher, or 0 if this
         matcher does not have any children.
         """
 
         return 0
 
-    def supports_block_quality(self):
+    def supports_block_quality(self) -> bool:
         """Returns True if this matcher supports the use of ``quality`` and
         ``block_quality``.
         """
 
         return False
 
-    def max_quality(self):
+    def max_quality(self) -> float:
         """Returns the maximum possible quality measurement for this matcher,
         according to the current weighting algorithm. Raises
         ``NoQualityAvailable`` if the matcher or weighting do not support
@@ -177,7 +185,7 @@ class Matcher:
 
         raise NoQualityAvailable(self.__class__)
 
-    def block_quality(self):
+    def block_quality(self) -> float:
         """Returns a quality measurement of the current block of postings,
         according to the current weighting algorithm. Raises
         ``NoQualityAvailable`` if the matcher or weighting do not support
@@ -187,12 +195,12 @@ class Matcher:
         raise NoQualityAvailable(self.__class__)
 
     @abstractmethod
-    def id(self):
+    def id(self) -> int:
         """Returns the ID of the current posting."""
 
         raise NotImplementedError
 
-    def all_ids(self):
+    def all_ids(self) -> Iterator[int]:
         """Returns a generator of all IDs in the matcher.
 
         What this method returns for a matcher that has already read some
@@ -211,7 +219,7 @@ class Matcher:
                 m = m.replace()
                 i = 0
 
-    def all_items(self):
+    def all_items(self) -> Iterator[tuple[int, Any]]:
         """Returns a generator of all (ID, encoded value) pairs in the matcher.
 
         What this method returns for a matcher that has already read some
@@ -230,7 +238,7 @@ class Matcher:
                 m = m.replace()
                 i = 0
 
-    def items_as(self, astype):
+    def items_as(self, astype: str) -> Iterator[tuple[int, Any]]:
         """Returns a generator of all (ID, decoded value) pairs in the matcher.
 
         What this method returns for a matcher that has already read some
@@ -244,13 +252,13 @@ class Matcher:
             self.next()
 
     @abstractmethod
-    def value(self):
+    def value(self) -> Any:
         """Returns the encoded value of the current posting."""
 
         raise NotImplementedError
 
     @abstractmethod
-    def supports(self, astype):
+    def supports(self, astype: str) -> bool:
         """Returns True if the field's format supports the named data type,
         for example 'frequency' or 'characters'.
         """
@@ -258,12 +266,12 @@ class Matcher:
         raise NotImplementedError(f"supports not implemented in {self.__class__}")
 
     @abstractmethod
-    def value_as(self, astype):
+    def value_as(self, astype: str) -> Any:
         """Returns the value(s) of the current posting as the given type."""
 
         raise NotImplementedError(f"value_as not implemented in {self.__class__}")
 
-    def spans(self):
+    def spans(self) -> list[Span]:
         """Returns a list of :class:`~whoosh.query.spans.Span` objects for the
         matches in this document. Raises an exception if the field being
         searched does not store positions.
@@ -281,7 +289,7 @@ class Matcher:
         else:
             raise Exception("Field does not support spans")
 
-    def skip_to(self, id):
+    def skip_to(self, id: int) -> None:
         """Moves this matcher to the first posting with an ID equal to or
         greater than the given ID.
         """
@@ -289,7 +297,7 @@ class Matcher:
         while self.is_active() and self.id() < id:
             self.next()
 
-    def skip_to_quality(self, minquality):
+    def skip_to_quality(self, minquality: float) -> None:
         """Moves this matcher to the next block with greater than the given
         minimum quality value.
         """
@@ -297,38 +305,38 @@ class Matcher:
         raise NotImplementedError(self.__class__.__name__)
 
     @abstractmethod
-    def next(self):
+    def next(self) -> None:
         """Moves this matcher to the next posting."""
 
         raise NotImplementedError(self.__class__.__name__)
 
-    def weight(self):
+    def weight(self) -> float:
         """Returns the weight of the current posting."""
 
         return self.value_as("weight")
 
     @abstractmethod
-    def score(self):
+    def score(self) -> float:
         """Returns the score of the current posting."""
 
         raise NotImplementedError(self.__class__.__name__)
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         return self.__class__ is type(other)
 
-    def __lt__(self, other):
+    def __lt__(self, other: object) -> bool:
         return type(other) is self.__class__
 
-    def __ne__(self, other):
+    def __ne__(self, other: object) -> bool:
         return not self.__eq__(other)
 
-    def __gt__(self, other):
+    def __gt__(self, other: object) -> bool:
         return not (self.__lt__(other) or self.__eq__(other))
 
-    def __le__(self, other):
+    def __le__(self, other: object) -> bool:
         return self.__eq__(other) or self.__lt__(other)
 
-    def __ge__(self, other):
+    def __ge__(self, other: object) -> bool:
         return self.__eq__(other) or self.__gt__(other)
 
 
