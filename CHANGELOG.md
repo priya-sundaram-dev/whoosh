@@ -7,6 +7,15 @@ All notable changes to this project are documented here. This project follows
 ## [Unreleased]
 
 ### Internal / tooling
+- Adopted the modern PEP 639 license declaration in `pyproject.toml` (#130):
+  `license` is now the SPDX string `"BSD-2-Clause"` instead of the deprecated
+  `{ text = ... }` table, and the redundant `License :: OSI Approved :: BSD
+  License` classifier was dropped (a SPDX license expression cannot coexist
+  with license classifiers). The build now requires `setuptools>=77`, which
+  understands SPDX expressions and emits `License-Expression` metadata. This
+  silences the `SetuptoolsDeprecationWarning` seen in the Pages build and keeps
+  builds working past setuptools' 2027-02-18 removal deadline. Thanks @cclauss
+  for the report.
 - Swept residual `3.9` references left over from the Python 3.9 drop (#124):
   the docs (`index.rst`, `integrations.rst`, `migrating.rst`, `MIGRATING.md`),
   the roadmap, the demo/marketing pages (which advertised "Python 3.9–3.14"),

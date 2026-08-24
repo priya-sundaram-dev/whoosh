@@ -1,6 +1,6 @@
 [build-system]
 build-backend = "setuptools.build_meta"
-requires = [ "setuptools>=64" ]
+requires = [ "setuptools>=77" ]
 
 [project]
 name = "whoosh3"
@@ -10,7 +10,7 @@ description = """\
   """
 readme = "README.md"
 keywords = [ "bm25", "full-text", "index", "search", "spell", "text" ]
-license = { text = "BSD-2-Clause" }
+license = "BSD-2-Clause"
 maintainers = [
   { name = "Priya Sundaram" },
 ]
@@ -21,7 +21,6 @@ requires-python = ">=3.10"
 classifiers = [
   "Development Status :: 5 - Production/Stable",
   "Intended Audience :: Developers",
-  "License :: OSI Approved :: BSD License",
   "Natural Language :: English",
   "Operating System :: OS Independent",
   "Programming Language :: Python :: 3 :: Only",
