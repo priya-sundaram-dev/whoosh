@@ -6,6 +6,19 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Added
+- `whoosh.mcp` now works across **every current MCP SDK** — the official MCP
+  Python SDK 2.x (`mcp.server.MCPServer`) *and* 1.x
+  (`mcp.server.fastmcp.FastMCP`), plus the standalone
+  [FastMCP](https://github.com/jlowin/fastmcp) 2.x package (`fastmcp.FastMCP`).
+  `build_mcp_server()` resolves the server class from whichever is installed;
+  all three expose the identical `Server("name")` / `@server.tool()` /
+  `server.run()` surface Whoosh uses, so no configuration is needed. The `mcp`
+  extra is unpinned back to `mcp>=1` (both majors are supported), and a new
+  `fastmcp` extra installs the standalone package: `pip install
+  "whoosh3[fastmcp]"`. The "no SDK installed" error now points at both options.
+  Builds on @mayuriphad's 2.x rename fix (#112) by keeping 1.x installs working.
+
 ## [3.45.0] - 2026-08-24
 
 ### Internal / tooling

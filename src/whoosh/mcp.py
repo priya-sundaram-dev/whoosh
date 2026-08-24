@@ -194,20 +194,59 @@ class SearchCore:
             return {"id": hit["id"], "title": hit["title"], "text": hit["body"]}
 
 
-def build_mcp_server(core: SearchCore | None = None) -> MCPServer:
-    """Wrap a :class:`SearchCore` in an MCPServer exposing ``search`` + ``fetch``.
+def _load_mcp_server_class() -> type:
+    """Return an MCP server class from whichever MCP SDK is installed.
 
-    Requires the official MCP SDK (``pip install "whoosh3[mcp]"``). If ``core``
-    is ``None``, a corpus directory named in ``WHOOSH_MCP_CORPUS`` is indexed,
-    otherwise the built-in sample documents are used.
+    ``whoosh.mcp`` only uses the small, stable ``Server("name")`` /
+    ``@server.tool()`` / ``server.run()`` surface, which is identical across
+    every current MCP SDK. This loader tries them in order so a single codebase
+    works no matter which one the user has installed:
+
+    * **official MCP Python SDK 2.x** -- ``mcp.server.MCPServer`` (the class
+      formerly known as ``FastMCP``; ``pip install "whoosh3[mcp]"``);
+    * **official MCP Python SDK 1.x** -- ``mcp.server.fastmcp.FastMCP`` (the
+      pre-rename name; same ``@server.tool()`` / ``server.run()`` API); and
+    * **standalone FastMCP 2.x** -- ``fastmcp.FastMCP``
+      (``pip install "whoosh3[fastmcp]"``), the independently maintained package.
+
+    Thanks to @mayuriphad (#112) for identifying the 1.x -> 2.x rename.
     """
     try:
+        # Official MCP SDK 2.x renamed FastMCP -> MCPServer (same tool API).
         from mcp.server import MCPServer  # noqa: PLC0415
+
+        return MCPServer
+    except (ModuleNotFoundError, ImportError):
+        pass
+    try:
+        from mcp.server.fastmcp import FastMCP  # noqa: PLC0415
+
+        return FastMCP
+    except ModuleNotFoundError:
+        pass
+    try:
+        from fastmcp import FastMCP  # noqa: PLC0415
+
+        return FastMCP
     except ModuleNotFoundError as exc:  # pragma: no cover - depends on optional dep
         raise ModuleNotFoundError(
-            "The MCP server requires the 'mcp' package. "
-            'Install it with:  pip install "whoosh3[mcp]"'
+            "The MCP server requires an MCP SDK. Install one of:\n"
+            '  pip install "whoosh3[mcp]"       # official modelcontextprotocol SDK\n'
+            '  pip install "whoosh3[fastmcp]"   # standalone FastMCP 2.x'
         ) from exc
+
+
+def build_mcp_server(core: SearchCore | None = None) -> MCPServer:
+    """Wrap a :class:`SearchCore` in an MCP server exposing ``search`` + ``fetch``.
+
+    Requires an MCP SDK -- either the official ``mcp`` package
+    (``pip install "whoosh3[mcp]"``, SDK 1.x or 2.x) or the standalone
+    ``fastmcp`` 2.x package (``pip install "whoosh3[fastmcp]"``); see
+    :func:`_load_mcp_server_class`. If ``core`` is ``None``, a corpus directory
+    named in ``WHOOSH_MCP_CORPUS`` is indexed, otherwise the built-in sample
+    documents are used.
+    """
+    MCPServer = _load_mcp_server_class()
 
     if core is None:
         corpus = os.environ.get("WHOOSH_MCP_CORPUS")

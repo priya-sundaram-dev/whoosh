@@ -35,9 +35,12 @@ classifiers = [
 ]
 dynamic = [ "version" ]
 optional-dependencies.dev = [ "mypy", "pre-commit", "pytest>=7", "pytest-cov", "ruff" ]
+optional-dependencies.fastmcp = [ "fastmcp>=2" ]
 optional-dependencies.langchain = [ "langchain-core>=0.3" ]
 optional-dependencies.llamaindex = [ "llama-index-core>=0.10" ]
-optional-dependencies.mcp = [ "mcp>=2" ]
+# whoosh.mcp supports both official SDK majors (1.x FastMCP and 2.x MCPServer),
+# so no upper bound is needed. For the standalone package use the `fastmcp` extra.
+optional-dependencies.mcp = [ "mcp>=1" ]
 urls.Changelog = "https://github.com/priya-sundaram-dev/whoosh/blob/main/CHANGELOG.md"
 urls.Documentation = "https://priya-sundaram-dev.github.io/whoosh/"
 urls.Homepage = "https://github.com/priya-sundaram-dev/whoosh"

@@ -86,17 +86,39 @@ def test_sample_docs_have_required_fields():
         assert {"id", "title", "body"} <= set(d)
 
 
+def _block_mcp_sdks(monkeypatch):
+    """Make every MCP SDK (`mcp` *and* standalone `fastmcp`) unimportable."""
+    real_import = builtins.__import__
+
+    def fake_import(name, *args, **kwargs):
+        if name == "mcp" or name.startswith(("mcp.", "fastmcp")):
+            raise ModuleNotFoundError(f"No module named {name!r}")
+        return real_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", fake_import)
+
+
 def test_build_mcp_server_without_sdk_raises_helpful_error(monkeypatch):
+    _block_mcp_sdks(monkeypatch)
+    with pytest.raises(ModuleNotFoundError, match=r"whoosh3\[mcp\]"):
+        build_mcp_server(SearchCore.build())
+
+
+def test_build_mcp_server_falls_back_to_standalone_fastmcp(monkeypatch):
+    # With the official `mcp` SDK absent but standalone `fastmcp` present,
+    # build_mcp_server transparently uses fastmcp.FastMCP. Skipped where the
+    # standalone package isn't installed.
+    pytest.importorskip("fastmcp")
     real_import = builtins.__import__
 
     def fake_import(name, *args, **kwargs):
         if name == "mcp" or name.startswith("mcp."):
-            raise ModuleNotFoundError("No module named 'mcp'")
+            raise ModuleNotFoundError(f"No module named {name!r}")
         return real_import(name, *args, **kwargs)
 
     monkeypatch.setattr(builtins, "__import__", fake_import)
-    with pytest.raises(ModuleNotFoundError, match=r"whoosh3\[mcp\]"):
-        build_mcp_server(SearchCore.build())
+    server = build_mcp_server(SearchCore.build())
+    assert server.name == "whoosh-search"
 
 
 def test_main_missing_corpus_files_returns_error(tmp_path, capsys):
@@ -106,16 +128,9 @@ def test_main_missing_corpus_files_returns_error(tmp_path, capsys):
 
 
 def test_main_without_sdk_prints_clean_message_and_exits_1(monkeypatch, capsys):
-    # When the optional 'mcp' SDK is absent, `whoosh-mcp` should print a single
+    # When no MCP SDK is installed, `whoosh-mcp` should print a single
     # actionable line (no chained traceback) and exit 1.
-    real_import = builtins.__import__
-
-    def fake_import(name, *args, **kwargs):
-        if name == "mcp" or name.startswith("mcp."):
-            raise ModuleNotFoundError("No module named 'mcp'")
-        return real_import(name, *args, **kwargs)
-
-    monkeypatch.setattr(builtins, "__import__", fake_import)
+    _block_mcp_sdks(monkeypatch)
     rc = main([])
     assert rc == 1
     err = capsys.readouterr().err
