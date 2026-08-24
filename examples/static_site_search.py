@@ -62,11 +62,7 @@ def build_index(directory, indexdir="site_index"):
     with ix.writer() as writer:
         for root, dirs, files in os.walk(directory):
             for file in files:
-                if (
-                    file.endswith(".md")
-                    or file.endswith(".rst")
-                    or file.endswith(".txt")
-                ):
+                if file.endswith((".md", ".rst", ".txt")):
                     filepath = os.path.join(root, file)
                     with open(filepath, encoding="utf-8", errors="ignore") as f:
                         content = f.read()

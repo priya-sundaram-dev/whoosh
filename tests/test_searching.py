@@ -883,7 +883,7 @@ def test_finalweighting():
         q = qparser.QueryParser("summary", None).parse("alfa OR bravo")
         r = s.search(q)
         ids = [fs["id"] for fs in r]
-        assert ["2", "4", "1", "3"] == ids
+        assert ids == ["2", "4", "1", "3"]
 
 
 def test_outofdate():

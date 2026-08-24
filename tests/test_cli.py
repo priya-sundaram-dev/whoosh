@@ -885,7 +885,7 @@ def test_search_files_with_matches_prints_paths(corpus, capsys):
     lines = out.splitlines()
     assert len(lines) == 2
     for line in lines:
-        assert line.endswith(".txt") or line.endswith(".md") or line.endswith(".rst")
+        assert line.endswith((".txt", ".md", ".rst"))
     assert "alpha.txt" in out
     assert "beta.md" in out
 

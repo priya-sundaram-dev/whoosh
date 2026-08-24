@@ -95,7 +95,7 @@ class NgramTokenizer(Tokenizer):
 
         if mode == "query":
             size = min(self.max, inlen)
-            for start in range(0, inlen - size + 1):
+            for start in range(inlen - size + 1):
                 end = start + size
                 if end > inlen:
                     continue
@@ -111,7 +111,7 @@ class NgramTokenizer(Tokenizer):
                 yield t
                 pos += 1
         else:
-            for start in range(0, inlen - self.min + 1):
+            for start in range(inlen - self.min + 1):
                 for size in range(self.min, self.max + 1):
                     end = start + size
                     if end > inlen:
@@ -201,7 +201,7 @@ class NgramFilter(Filter):
                         t.startchar = t.endchar - size
                     yield t
                 else:
-                    for start in range(0, len(text) - size + 1):
+                    for start in range(len(text) - size + 1):
                         t.text = text[start : start + size]
                         if chars:
                             t.startchar = startchar + start
@@ -226,7 +226,7 @@ class NgramFilter(Filter):
                             t.startchar = original_startchar + i
                         yield t
                 else:
-                    for start in range(0, len(text) - self.min + 1):
+                    for start in range(len(text) - self.min + 1):
                         for size in range(self.min, self.max + 1):
                             end = start + size
                             if end > len(text):

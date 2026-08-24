@@ -20,7 +20,7 @@ s1b_exp = re.compile(r"[aeiouy]")
 
 def get_r1(word):
     # exceptional forms
-    if word.startswith("gener") or word.startswith("arsen"):
+    if word.startswith(("gener", "arsen")):
         return 5
     if word.startswith("commun"):
         return 6
@@ -79,12 +79,12 @@ def step_0(word):
 def step_1a(word):
     if word.endswith("sses"):
         return word[:-4] + "ss"
-    if word.endswith("ied") or word.endswith("ies"):
+    if word.endswith(("ied", "ies")):
         if len(word) > 4:
             return word[:-3] + "i"
         else:
             return word[:-3] + "ie"
-    if word.endswith("us") or word.endswith("ss"):
+    if word.endswith(("us", "ss")):
         return word
     if word.endswith("s"):
         preceding = word[:-1]
@@ -105,7 +105,7 @@ def ends_with_double(word):
 
 
 def step_1b_helper(word):
-    if word.endswith("at") or word.endswith("bl") or word.endswith("iz"):
+    if word.endswith(("at", "bl", "iz")):
         return word + "e"
     if ends_with_double(word):
         return word[:-1]
@@ -254,7 +254,7 @@ def step_4(word, r2):
                 return word[: -len(end)]
             return word
 
-    if word.endswith("sion") or word.endswith("tion"):
+    if word.endswith(("sion", "tion")):
         if len(word) - 3 >= r2:
             return word[:-3]
 

@@ -265,7 +265,7 @@ def test_numeric_ranges():
         # Note that range() is always inclusive-exclusive
         check("[10 to 390]", list(range(10, 390 + 1)))
         check("[100 to]", list(range(100, 400)))
-        check("[to 350]", list(range(0, 350 + 1)))
+        check("[to 350]", list(range(350 + 1)))
         check("[16 to 255]", list(range(16, 255 + 1)))
         check("{10 to 390]", list(range(11, 390 + 1)))
         check("[10 to 390}", list(range(10, 390)))

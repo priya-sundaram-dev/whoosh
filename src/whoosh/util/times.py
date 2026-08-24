@@ -143,7 +143,7 @@ class adatetime:
             self.microsecond = microsecond
 
     def __eq__(self, other):
-        if not other.__class__ is self.__class__:
+        if other.__class__ is not self.__class__:
             if not is_ambiguous(self) and isinstance(other, datetime):
                 return fix(self) == other
             else:
@@ -325,7 +325,7 @@ class timespan:
         self.end = copy.copy(end)
 
     def __eq__(self, other):
-        if not other.__class__ is self.__class__:
+        if other.__class__ is not self.__class__:
             return False
         return self.start == other.start and self.end == other.end
 

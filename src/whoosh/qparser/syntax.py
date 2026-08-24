@@ -414,8 +414,7 @@ class OrGroup(GroupNode):
     def factory(cls, scale=1.0):
         class ScaledOrGroup(OrGroup):
             def __init__(self, nodes=None, **kwargs):
-                if "scale" in kwargs:
-                    del kwargs["scale"]
+                kwargs.pop("scale", None)
                 super().__init__(nodes=nodes, scale=scale, **kwargs)
 
         return ScaledOrGroup

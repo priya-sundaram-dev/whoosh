@@ -162,7 +162,7 @@ class HashWriter:
         directory = self.directory = []
 
         pos = dbfile.tell()
-        for i in range(0, 256):
+        for i in range(256):
             entries = hashes[i]
             numslots = 2 * len(entries)
             directory.append((pos, numslots))
@@ -2139,7 +2139,7 @@ class OLD_DATETIME(OLD_NUMERIC):
             if isinstance(x, datetime):
                 x = datetime_to_long(x)
             elif not isinstance(x, int):
-                raise TypeError()
+                raise TypeError
         except ValueError:
             raise ValueError(f"DATETIME.to_text can't convert from {x!r}")
 

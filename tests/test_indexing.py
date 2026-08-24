@@ -149,9 +149,9 @@ def test_lengths():
         w.commit()
 
         with ix.reader() as dr:
-            ls1 = [dr.doc_field_length(i, "f1") for i in range(0, len(lengths))]
+            ls1 = [dr.doc_field_length(i, "f1") for i in range(len(lengths))]
             assert ls1 == [0] * len(lengths)
-            ls2 = [dr.doc_field_length(i, "f2") for i in range(0, len(lengths))]
+            ls2 = [dr.doc_field_length(i, "f2") for i in range(len(lengths))]
             assert ls2 == [byte_to_length(length_to_byte(l)) for l in lengths]
 
 

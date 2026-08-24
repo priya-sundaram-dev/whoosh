@@ -1097,7 +1097,7 @@ rules = (
 
 _partition_size = 20
 _partitions = []
-for p in range(0, len(rules) // _partition_size + 1):
+for p in range(len(rules) // _partition_size + 1):
     start = p * _partition_size
     end = (p + 1) * _partition_size
     pattern = "|".join(f"(?P<_g{i}>{r[0]})$" for i, r in enumerate(rules[start:end]))

@@ -78,13 +78,18 @@ lint.select = [
   "INT",    # flake8-gettext
   "LOG",    # flake8-logging
   "NPY",    # NumPy-specific rules
+  "PD",     # pandas-vet
   "PERF",   # Perflint
+  "PGH",    # pygrep-hooks
+  "PIE",    # flake8-pie
   "PLC",    # Pylint conventions
   "PLE",    # Pylint errors
   "PLR091", # Pylint Refactor just for max-args, max-branches, etc.
   "PYI",    # flake8-pyi
   "Q",      # flake8-quotes
+  "RSE",    # flake8-raise
   "SLOT",   # flake8-slots
+  "T10",    # flake8-debugger
   "TCH",    # flake8-type-checking
   "TID",    # flake8-tidy-imports
   "UP",     # pyupgrade
@@ -106,19 +111,14 @@ lint.select = [
   # "INP",  # flake8-no-pep420
   # "ISC",  # flake8-implicit-str-concat
   # "N",    # pep8-naming
-  # "PD",   # pandas-vet
-  # "PGH",  # pygrep-hooks
-  # "PIE",  # flake8-pie
   # "PL",   # Pylint
   # "PT",   # flake8-pytest-style
   # "PTH",  # flake8-use-pathlib
   # "RET",  # flake8-return
-  # "RSE",  # flake8-raise
   # "RUF",  # Ruff-specific rules
   # "S",    # flake8-bandit
   # "SIM",  # flake8-simplify
   # "SLF",  # flake8-self
-  # "T10",  # flake8-debugger
   # "T20",  # flake8-print
   # "TD",   # flake8-todos
   # "TRY",  # tryceratops
@@ -132,6 +132,7 @@ lint.ignore = [
   "F401",    # unused imports are often used for type-checking or optional features
   "FLY002",
   "PERF203",
+  "PIE790",  # Unnecessary `pass` statement
   # Whoosh deliberately uses function-local (lazy) imports throughout to avoid
   # circular imports between tightly-coupled modules and to defer loading of
   # optional/heavy dependencies until they are actually needed. These are an
@@ -148,9 +149,9 @@ lint.ignore = [
   "TC003",   # move std-library import into a type-checking block
   "UP031",
 ]
-lint.per-file-ignores."src/whoosh/compat.py" = [ "F821" ]
+lint.per-file-ignores."benchmark/enron.py" = [ "PGH003" ]
 lint.per-file-ignores."src/whoosh/filedb/filestore.py" = [ "UP024" ]
-lint.per-file-ignores."src/whoosh/util/__init__.py" = [ "F821" ]
+lint.per-file-ignores."src/whoosh/support/bench.py" = [ "PGH003" ]
 lint.mccabe.max-complexity = 45  # Default is 10
 lint.pylint.max-args = 22  # Default is 5
 lint.pylint.max-branches = 79  # Default is 12

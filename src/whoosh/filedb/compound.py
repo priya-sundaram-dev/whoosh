@@ -176,7 +176,7 @@ class CompoundStorage(FileStorage):
 
         # Copy the files into the compound file
         for name in names:
-            if name.endswith(".toc") or name.endswith(".seg"):
+            if name.endswith((".toc", ".seg")):
                 raise Exception(name)
 
         for name in names:

@@ -105,9 +105,7 @@ class TempIndex(TempStorage):
 def is_abstract_method(attr):
     """Returns True if the given object has __isabstractmethod__ == True."""
 
-    return hasattr(attr, "__isabstractmethod__") and getattr(
-        attr, "__isabstractmethod__"
-    )
+    return hasattr(attr, "__isabstractmethod__") and attr.__isabstractmethod__
 
 
 def check_abstract_methods(base, subclass):

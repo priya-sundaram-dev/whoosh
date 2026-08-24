@@ -206,7 +206,7 @@ class SegmentWriter(SegmentDeletionMixin, IndexWriter):
         name2num = schema.name_to_number
 
         # Sort the keys by their order in the schema
-        fieldnames = [name for name in fields.keys() if not name.startswith("_")]
+        fieldnames = [name for name in fields if not name.startswith("_")]
         fieldnames.sort(key=name2num)
 
         # Check if the caller gave us a bogus field

@@ -174,7 +174,7 @@ def a(base):
 
 def b(base):
     # b  Minimum stem length = 3 and do not remove ending after met or ryst
-    return len(base) > 2 and not (base.endswith("met") or base.endswith("ryst"))
+    return len(base) > 2 and not base.endswith(("met", "ryst"))
 
 
 def c(base):

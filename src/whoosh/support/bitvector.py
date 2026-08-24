@@ -334,13 +334,13 @@ class BitVector:
 
     def __iter__(self):
         get = self.__getitem__
-        for i in range(0, self.size):
+        for i in range(self.size):
             if get(i):
                 yield i
 
     def __str__(self):
         get = self.__getitem__
-        return "".join("1" if get(i) else "0" for i in range(0, self.size))
+        return "".join("1" if get(i) else "0" for i in range(self.size))
 
     def __nonzero__(self):
         return self.count() > 0
