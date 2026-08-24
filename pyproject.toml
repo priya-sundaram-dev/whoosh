@@ -200,23 +200,23 @@ rules.unresolved-import = "ignore"  # 63 instances
 rules.unsupported-operator = "ignore"  # 32 instances
 rules.unused-type-ignore-comment = "ignore"  # 41 instances
 
+[tool.pytest]
 # ==========================================================================
 # pytest: migrated from setup.cfg's [tool:pytest] (see #125). pytest reads
 # [tool.pytest.ini_options] here as the authoritative config.
 # ==========================================================================
-[tool.pytest.ini_options]
-minversion = "3.0"
-addopts = "-rs --tb=short"
-python_files = [ "test_*.py" ]
-norecursedirs = [ ".hg", ".tox", "_build", "tmp*", "env*", "benchmark", "stress" ]
+ini_options.minversion = "3.0"
+ini_options.norecursedirs = [ ".hg", ".tox", "_build", "benchmark", "env*", "stress", "tmp*" ]
+ini_options.python_files = [ "test_*.py" ]
+ini_options.addopts = "-rs --tb=short"
 # CPython 3.12+ raises a DeprecationWarning when fork() is used from a
 # multi-threaded process. MpWriter uses the interpreter-default start method
 # (fork on POSIX) unless the caller passes start_method="spawn"/"forkserver".
 # That default-fork path is intentional and explicitly tested, so silence the
 # advisory here rather than let it drown out actionable warnings. See #113.
-filterwarnings = [
+ini_options.filterwarnings = [
   'ignore:This process .* is multi-threaded, use of fork\(\):DeprecationWarning',
 ]
 
-[tool.coverage.run]
-source = [ "src/whoosh" ]
+[tool.coverage]
+run.source = [ "src/whoosh" ]
