@@ -218,9 +218,9 @@ class Phrase(qcore.Query):
         return True
 
     def terms(self, phrases: bool = False) -> Iterator[tuple[str, str]]:
-        if phrases and self.field():
+        if phrases and (field := self.field()):
             for word in self.words:
-                yield (self.field(), word)
+                yield (field, word)
 
     def tokens(self, boost: float = 1.0) -> Iterator[Token]:
         char_ranges = self.char_ranges

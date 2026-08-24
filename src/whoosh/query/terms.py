@@ -111,8 +111,8 @@ class Term(qcore.Query):
         )
 
     def terms(self, phrases: bool = False) -> Iterator[tuple[str, Any]]:
-        if self.field():
-            yield (self.field(), self.text)
+        if field := self.field():
+            yield (field, self.text)
 
     def replace(self, fieldname: str, oldtext: Any, newtext: Any) -> qcore.Query:
         q = copy.copy(self)
@@ -472,8 +472,8 @@ class ExpandingTerm(MultiTerm):
         return True
 
     def terms(self, phrases: bool = False) -> Iterator[tuple[str, Any]]:
-        if self.field():
-            yield (self.field(), self.text)
+        if field := self.field():
+            yield (field, self.text)
 
 
 class FuzzyTerm(ExpandingTerm):

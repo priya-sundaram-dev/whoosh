@@ -191,7 +191,6 @@ rules.invalid-method-override = "ignore"  # 132 instances
 rules.invalid-raise = "ignore"  # 3 instances
 rules.invalid-return-type = "ignore"  # 28 instances
 rules.invalid-type-form = "ignore"  # 2 instances
-rules.invalid-yield = "ignore"  # 3 instances
 rules.missing-argument = "ignore"  # 12 instances
 rules.no-matching-overload = "ignore"  # 2 instances
 rules.not-iterable = "ignore"  # 7 instances
