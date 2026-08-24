@@ -54,7 +54,7 @@ jobs:
           # Keep the real wheel filename: micropip validates it against PEP 440,
           # so a "latest" pseudo-version is rejected as an invalid wheel name.
           # The real filename is injected into the demo HTML in the next step.
-          cp dist/whoosh3-*-py2.py3-none-any.whl demo/
+          cp dist/whoosh3-*-none-any.whl demo/
 
       - name: Assemble site (demo at root, docs under /docs)
         run: |
@@ -66,7 +66,7 @@ jobs:
           VERSION="$(python -c 'import whoosh; print(whoosh.__version_str__)')"
           sed -i -E "s#(\"softwareVersion\": \")[^\"]*(\")#\1${VERSION}\2#" _site/index.html
           # Inject the real wheel filename so micropip can install it (PEP 440).
-          WHEEL="$(cd dist && ls whoosh3-*-py2.py3-none-any.whl | head -1)"
+          WHEEL="$(cd dist && ls whoosh3-*-none-any.whl | head -1)"
           echo "Demo wheel: ${WHEEL}"
           sed -i "s#__WHEEL_FILENAME__#${WHEEL}#g" _site/index.html
           # Fail loudly if the placeholder was not replaced (guards the live demo).
