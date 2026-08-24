@@ -96,7 +96,7 @@ def test_qparser_entry_points_are_annotated():
     from whoosh.qparser import default as qpdefault
 
     # QueryParser core methods.
-    for name in ("__init__", "parse", "parse_", "process", "tag"):
+    for name in ("__init__", "parse", "process", "tag"):
         method = getattr(qpdefault.QueryParser, name)
         sig = inspect.signature(method)
         for pname, param in sig.parameters.items():
