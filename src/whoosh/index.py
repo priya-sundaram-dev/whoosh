@@ -91,7 +91,7 @@ class EmptyIndexError(IndexError):
 # Convenience functions
 
 
-def create_in(dirname: str, schema: Schema, indexname: str | None = None) -> Index:
+def create_in(dirname: str, schema: Schema, indexname: str | None = None) -> FileIndex:
     """Convenience function to create an index in a directory. Takes care of
     creating a FileStorage object for you.
 
@@ -118,7 +118,7 @@ def open_dir(
     indexname: str | None = None,
     readonly: bool = False,
     schema: Schema | None = None,
-) -> Index:
+) -> FileIndex:
     """Convenience function for opening an index in a directory. Takes care of
     creating a FileStorage object for you. dirname is the filename of the
     directory in containing the index. indexname is the name of the index to
