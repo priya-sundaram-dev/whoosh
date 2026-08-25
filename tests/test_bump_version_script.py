@@ -36,7 +36,9 @@ def test_check_passes_for_current_state():
     assert bump.check() == 0
 
 
-@pytest.mark.thread_unsafe(reason="mutates the real package/site files on disk during the bump")
+@pytest.mark.thread_unsafe(
+    reason="mutates the real package/site files on disk during the bump"
+)
 def test_round_trip_bump_restores_files(tmp_path):
     bump = _load()
     originals = {

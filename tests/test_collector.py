@@ -131,7 +131,9 @@ def test_timelimit():
 
 
 @pytest.mark.skipif("not hasattr(__import__('signal'), 'SIGALRM')")
-@pytest.mark.thread_unsafe(reason="forces the SIGALRM path, which only works on the main thread")
+@pytest.mark.thread_unsafe(
+    reason="forces the SIGALRM path, which only works on the main thread"
+)
 def test_timelimit_alarm():
     import time
 
