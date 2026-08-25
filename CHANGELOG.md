@@ -6,6 +6,18 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Added
+- Property-based tests for `whoosh.support.base85` covering the invariants the
+  module exists for: the alphabet being in ASCII order, fixed-width output, and
+  encoded values sorting in the same order as the integers they encode -- the
+  last asserted both directly and through `whoosh2`'s `sortable_int_to_text`
+  and `sortable_long_to_text` (#139). Thanks @chmm195.
+
+### Changed
+- `whoosh.support.base85`'s module docstring now explains why the alphabet is
+  in ASCII order and why it must not be replaced with `base64.b85encode`, whose
+  alphabet is unordered (#139). Thanks @chmm195.
+
 ## [3.47.0] - 2026-08-25
 
 ### Fixed

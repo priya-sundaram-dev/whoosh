@@ -1,7 +1,18 @@
 """
-This module contains generic base85 encoding and decoding functions. The
-whoosh.util.numeric module contains faster variants for encoding and
-decoding integers.
+This module contains base85 encoding and decoding functions for integers.
+The whoosh.util.numeric module contains faster variants.
+
+Unlike the standard ascii85/base85 alphabets, the character set here is in
+ASCII order, so encoded strings sort in the same order as the integers they
+encode. whoosh.codec.whoosh2's sortable_int_to_text/sortable_long_to_text
+rely on that property, so the alphabet must not be swapped for the one in
+the stdlib base64 module -- base64.b85encode's alphabet is not ordered, and
+substituting it would silently break sorted-order lookups on existing
+indexes.
+
+Encoded values are also fixed width (5 characters, or 10 with islong=True),
+which is the other half of what makes them sortable: a shorter string must
+never compare less than a longer one just for being shorter.
 
 Modified from:
 http://paste.lisp.org/display/72815
