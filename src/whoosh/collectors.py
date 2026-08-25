@@ -1081,7 +1081,16 @@ class TimeLimitCollector(WrappingCollector):
         if use_alarm:
             import signal
 
-            self.use_alarm = use_alarm and hasattr(signal, "SIGALRM")
+            # signal.signal() only works in the main thread of the main
+            # interpreter, so only arm the SIGALRM handler when we are there.
+            # In worker threads (e.g. a threaded web server) we fall back to
+            # the threading.Timer below, which is enough to flip ``timedout``
+            # and stop the collect loop.
+            self.use_alarm = (
+                use_alarm
+                and hasattr(signal, "SIGALRM")
+                and threading.current_thread() is threading.main_thread()
+            )
         else:
             self.use_alarm = False
 

@@ -6,6 +6,14 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Fixed
+- `TimeLimitCollector` no longer crashes with `ValueError: signal only works
+  in the main thread of the main interpreter` when a search is run from a
+  worker thread (e.g. a threaded web server). The `SIGALRM` handler is now
+  only armed on the main thread; off the main thread the collector falls back
+  to its `threading.Timer`, which still enforces the time limit. Surfaced while
+  auditing thread-safety under `pytest-run-parallel` (#146).
+
 ### Added
 - Property-based tests for `whoosh.support.base85` covering the invariants the
   module exists for: the alphabet being in ASCII order, fixed-width output, and

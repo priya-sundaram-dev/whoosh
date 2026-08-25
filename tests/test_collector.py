@@ -173,6 +173,58 @@ def test_timelimit_alarm():
         assert time.time() - t < 0.5, f"Actual time interval: {time.time() - t}"
 
 
+def test_timelimit_worker_thread():
+    # A TimeLimitCollector must not crash when created and run outside the
+    # main thread: signal.signal() only works in the main thread, so the
+    # collector should silently fall back to its threading.Timer and still
+    # enforce the time limit. Regression test for issue #146.
+    import threading
+    import time
+
+    from whoosh import collectors, matching
+
+    schema = fields.Schema(text=fields.TEXT)
+    ix = RamStorage().create_index(schema)
+    w = ix.writer()
+    for _ in range(50):
+        w.add_document(text="alfa")
+    w.commit()
+
+    class SlowMatcher(matching.WrappingMatcher):
+        def next(self):
+            time.sleep(0.02)
+            self.child.next()
+
+    class SlowQuery(query.WrappingQuery):
+        def matcher(self, searcher, context=None):
+            return SlowMatcher(self.child.matcher(searcher, context))
+
+    result = {}
+
+    def run():
+        try:
+            with ix.searcher() as s:
+                sq = SlowQuery(query.Term("text", "alfa"))
+                col = collectors.TimeLimitCollector(
+                    s.collector(limit=None), timelimit=0.1
+                )
+                # use_alarm should have been auto-disabled off the main thread
+                assert col.use_alarm is False
+                try:
+                    s.search_with_collector(sq, col)
+                    result["timed_out"] = False
+                except searching.TimeLimit:
+                    result["timed_out"] = True
+        except Exception as e:  # noqa: BLE001
+            result["error"] = e
+
+    t = threading.Thread(target=run)
+    t.start()
+    t.join(timeout=10)
+    assert "error" not in result, result.get("error")
+    assert result.get("timed_out") is True
+
+
 def test_reverse_collapse():
     from whoosh import sorting
 
