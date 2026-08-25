@@ -732,6 +732,7 @@ def test_ramstorage_multisegment_spill():
         assert len(s.search(q, limit=None)) == 20000
 
 
+@pytest.mark.thread_unsafe(reason="monkeypatches SegmentWriter._commit_toc (shared class attr)")
 def test_commit_failure_releases_writelock():
     """gh: a disk/TOC error during commit() must not leave the WRITELOCK
     held. Previously, if commit() raised after acquiring the lock (e.g. while
@@ -771,6 +772,7 @@ def test_commit_failure_releases_writelock():
             assert s.doc_count() == 1
 
 
+@pytest.mark.thread_unsafe(reason="monkeypatches SegmentWriter._close_segment (shared class attr)")
 def test_cancel_failure_releases_writelock():
     """A failure during cancel() must also release the write lock rather than
     leaving the index locked."""

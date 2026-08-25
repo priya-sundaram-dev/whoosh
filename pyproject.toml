@@ -214,6 +214,14 @@ ini_options.minversion = "3.0"
 ini_options.norecursedirs = [ ".hg", ".tox", "_build", "benchmark", "env*", "stress", "tmp*" ]
 ini_options.python_files = [ "test_*.py" ]
 ini_options.addopts = "-rs --tb=short"
+# Registered so the marker resolves (and doesn't warn) even when
+# pytest-run-parallel isn't installed -- e.g. serial dev runs. The plugin
+# auto-detects thread-unsafe *fixtures* (capsys, monkeypatch, ...); this marker
+# is for the handful of tests that mutate module/class globals or on-disk files
+# *directly*, which auto-detection can't see. See the free-threading CI job.
+ini_options.markers = [
+  "thread_unsafe: test mutates shared global/on-disk state and must run serially under pytest-run-parallel",
+]
 # CPython 3.12+ raises a DeprecationWarning when fork() is used from a
 # multi-threaded process. MpWriter uses the interpreter-default start method
 # (fork on POSIX) unless the caller passes start_method="spawn"/"forkserver".

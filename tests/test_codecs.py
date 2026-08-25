@@ -830,6 +830,7 @@ def test_whoosh2_legacy_codec_importable():
     assert issubclass(w2.NoGraphError, Exception)
 
 
+@pytest.mark.thread_unsafe(reason="swaps the module-global whoosh3.zlib to a tripwire")
 def test_tiny_blocks_stored_uncompressed_round_trip(tmp_path):
     # Single-posting terms produce postings blocks below
     # COMPRESSION_MIN_SIZE, which are stored uncompressed because zlib

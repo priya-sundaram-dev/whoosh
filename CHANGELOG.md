@@ -15,6 +15,15 @@ All notable changes to this project are documented here. This project follows
   auditing thread-safety under `pytest-run-parallel` (#146).
 
 ### Added
+- CI now runs the pure-Python core under [`pytest-run-parallel`] on the
+  free-threaded `3.14t` (and, as early-warning signal, `3.15t`) builds, executing
+  every test across many worker threads to catch data races the GIL used to hide.
+  Tests that mutate module/class globals or on-disk files directly are marked
+  `@pytest.mark.thread_unsafe` and run serially; fixture-based thread-unsafety
+  (`capsys`, `monkeypatch`, ...) is auto-detected by the plugin. Thanks @cclauss
+  for the push toward free-threading readiness (#146).
+
+  [`pytest-run-parallel`]: https://github.com/Quansight-Labs/pytest-run-parallel
 - Property-based tests for `whoosh.support.base85` covering the invariants the
   module exists for: the alphabet being in ASCII order, fixed-width output, and
   encoded values sorting in the same order as the integers they encode -- the
