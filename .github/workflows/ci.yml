@@ -55,11 +55,11 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           allow-prereleases: true
+      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
       - name: Install
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install -e "${{ matrix.extras }}"
-          python -m pip install pytest
+          uv pip install --system -e "${{ matrix.extras }}"
+          uv pip install --system pytest
       - name: Run tests
         run: python -m pytest tests/ -q
 
@@ -84,11 +84,11 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           allow-prereleases: true
+      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
       - name: Install
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install -e .
-          python -m pip install pytest pytest-run-parallel
+          uv pip install --system -e .
+          uv pip install --system pytest pytest-run-parallel
       - name: Run tests under the thread-race detector
         # Runs the pure-Python core across many worker threads to surface
         # data races the GIL used to hide. Tests that mutate shared global or
@@ -115,11 +115,11 @@ jobs:
         with:
           python-version: "3.x"
           allow-prereleases: true
+      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
       - name: Install
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install -e ".[langchain,llamaindex]"
-          python -m pip install pytest
+          uv pip install --system -e ".[langchain,llamaindex]"
+          uv pip install --system pytest
       - name: Run tests with DeprecationWarning promoted to error
         # Guards the "runs clean on modern Python" promise: if a future
         # CPython deprecates something Whoosh relies on, this job fails
@@ -156,11 +156,11 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.x"
+      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
       - name: Install
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install -e .
-          python -m pip install mypy
+          uv pip install --system -e .
+          uv pip install --system mypy
       - name: mypy type-check the public-API smoke fixture
         # Type-checks tests/typing_smoke.py (a realistic downstream-usage
         # snippet) against Whoosh's shipped annotations. Guards that the

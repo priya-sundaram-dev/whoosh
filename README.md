@@ -56,6 +56,12 @@ shines when you want good search *inside* a Python process without extra infra.
 pip install whoosh3
 ```
 
+Or with [uv](https://docs.astral.sh/uv/):
+
+```bash
+uv pip install whoosh3
+```
+
 ```python
 import whoosh
 print(whoosh.versionstring())

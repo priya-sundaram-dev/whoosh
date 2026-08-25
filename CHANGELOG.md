@@ -31,6 +31,12 @@ All notable changes to this project are documented here. This project follows
   and `sortable_long_to_text` (#139). Thanks @chmm195.
 
 ### Changed
+- CI now installs dependencies with [`uv`](https://docs.astral.sh/uv/) (via
+  `astral-sh/setup-uv`) across the test, docs, and publish workflows for faster,
+  more reproducible installs. `actions/setup-python` still provisions the
+  interpreters so the prerelease (3.15 RC) and free-threaded (`3.14t`/`3.15t`)
+  matrix rows are preserved. Thanks @cclauss (#149).
+- README now shows a `uv pip install whoosh3` quickstart alongside `pip` (#149).
 - `whoosh.support.base85`'s module docstring now explains why the alphabet is
   in ASCII order and why it must not be replaced with `base64.b85encode`, whose
   alphabet is unordered (#139). Thanks @chmm195.
