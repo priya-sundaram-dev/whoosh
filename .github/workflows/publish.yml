@@ -23,6 +23,11 @@ jobs:
         with:
           python-version: "3.12"
       - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          # This is a release-publishing workflow; disable uv's cache so a
+          # poisoned cache entry can't influence the artifacts we build and
+          # upload to PyPI (flagged by zizmor's cache-poisoning audit).
+          enable-cache: false
       - name: Build sdist and wheel
         run: |
           uv pip install --system build
