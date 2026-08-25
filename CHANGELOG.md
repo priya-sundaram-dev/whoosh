@@ -39,6 +39,11 @@ All notable changes to this project are documented here. This project follows
 - Un-ignored the `empty-body` and `parameter-already-assigned` `ty` rules
   after removing a dead `parse_` stub and fixing the `GroupNode.apply` bug
   above (#140). Thanks @SantiagoDaleffe.
+- Removed the dead Python-2-era byte codec `b85encode`/`b85decode` from
+  `whoosh.support.base85`; both raised `TypeError` on Python 3 (float division
+  used as a string multiplier/index) and were never imported or tested. The
+  integer codec `to_base85`/`from_base85` used by the numeric fields is
+  unchanged (#139).
 
 ## [3.46.0] - 2026-08-24
 
