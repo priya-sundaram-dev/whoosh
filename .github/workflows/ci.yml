@@ -95,7 +95,14 @@ jobs:
         # on-disk state directly are marked @pytest.mark.thread_unsafe and run
         # serially; fixture-based thread-unsafety (capsys/monkeypatch/...) is
         # auto-detected by the plugin. See gh#146.
-        run: python -m pytest tests/ -q --parallel-threads=auto --iterations=10
+        #
+        # We run one concurrent pass (no --iterations): each test executes across
+        # many worker threads at once, which is where races surface. --iterations
+        # would additionally *re-run* each test in place, which a few
+        # legitimately non-idempotent integration tests (e.g. the CLI
+        # incremental-index detector, which asserts "1 added" the first time)
+        # can't satisfy -- that's a fixture-reuse property, not a data race.
+        run: python -m pytest tests/ -q --parallel-threads=auto
 
   future-proof:
     name: Future-proof (warnings as errors)

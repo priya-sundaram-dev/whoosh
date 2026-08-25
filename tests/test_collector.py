@@ -84,6 +84,9 @@ def test_filter_honored_inside_timelimit():
         assert ids_restrict == sorted(set(range(20)) - even)
 
 
+@pytest.mark.thread_unsafe(
+    reason="timing-sensitive: the 0.1-0.5s limits are disrupted by CPU contention when run concurrently"
+)
 def test_timelimit():
     schema = fields.Schema(text=fields.TEXT)
     ix = RamStorage().create_index(schema)
