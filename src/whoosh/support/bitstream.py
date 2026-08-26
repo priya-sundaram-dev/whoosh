@@ -33,7 +33,7 @@ class BitStreamReader:
         position = self._position
 
         if position < 0 or position + numbits > self._totalbits:
-            raise (IndexError, "Invalid bitarray._position/numbits")
+            raise IndexError("Invalid bitarray._position/numbits")
 
         longaddress, bitoffset = divmod(position, _bitsperlong)
 

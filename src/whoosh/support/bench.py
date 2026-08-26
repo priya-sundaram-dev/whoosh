@@ -225,7 +225,7 @@ class XappyModule(Module):
         if hasattr(self.bench, "process_document_xappy"):
             self.bench.process_document_xappy(d)
         doc = xappy.UnprocessedDocument()
-        for key, values in d:
+        for key, values in (d or []):
             if not isinstance(values, list):
                 values = [values]
             for value in values:
@@ -247,7 +247,7 @@ class XappyModule(Module):
 
     def findterms(self, conn=None, terms=None):
         limit = int(self.options.limit)
-        for term in terms:
+        for term in (terms or []):
             q = conn.query_field(self.bench.spec.main_field, term)
             yield conn.search(q, 0, limit)
 

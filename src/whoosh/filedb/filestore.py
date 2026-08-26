@@ -483,12 +483,11 @@ class FileStorage(Storage):
         try:
             # Try to remove the directory
             os.rmdir(self.folder)
-        except OSError:
-            e = sys.exc_info()[1]
+        except OSError as e:
             if e.errno == errno.ENOENT:
                 pass
             else:
-                raise e
+                raise
 
     def create_file(self, name, excl=False, mode="wb", **kwargs):
         """Creates a file with the given name in this storage.

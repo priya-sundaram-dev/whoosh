@@ -596,10 +596,9 @@ class FileIndex(Index):
                 # deleted one of the files just as we were trying to open it,
                 # and so retry a few times before actually raising the
                 # exception
-                e = sys.exc_info()[1]
                 retries -= 1
                 if retries <= 0:
-                    raise e
+                    raise
                 sleep(0.05)
 
 
