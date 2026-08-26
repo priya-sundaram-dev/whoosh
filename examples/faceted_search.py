@@ -88,6 +88,7 @@ def show(searcher, query, heading):
 
     print("Facets you could filter by:")
     for name, buckets in facet_counts(searcher, query).items():
+        assert isinstance(buckets, dict)
         pretty = ", ".join(f"{b} ({c})" for b, c in sorted(buckets.items(), key=str))
         print(f"  {name:6}: {pretty}")
 

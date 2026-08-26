@@ -600,7 +600,7 @@ def test_every_matcher():
 
         def score(self):
             # Iterate through the sub-matchers
-            for child in self.children:
+            for child in self.children():
                 # If the matcher is on the current document, do something
                 # with its score
                 if child.is_active() and child.id() == self.id():

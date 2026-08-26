@@ -191,7 +191,7 @@ class Searcher:
         )
 
     def _offset_for_subsearcher(self, subsearcher):
-        for ss, offset in (self.subsearchers or []):
+        for ss, offset in self.subsearchers or []:
             if ss is subsearcher:
                 return offset
 
@@ -324,7 +324,7 @@ class Searcher:
             matchers = []
             docoffsets = []
             term = (fieldname, text)
-            for subsearcher, offset in (self.subsearchers or []):
+            for subsearcher, offset in self.subsearchers or []:
                 r = subsearcher.reader()
                 if term in r:
                     # Make a segment-specific scorer; the scorer should call

@@ -542,7 +542,7 @@ def test_function_plugin():
             return hash(tuple(self.children)) ^ hash(self.args)
 
         def __str__(self):
-            qs = "|".join(str(q) for q in self.children)
+            qs = "|".join(str(q) for q in self.children())
             args = ",".join(self.args)
             kwargs = ",".join(sorted("%s:%s" % item for item in self.kwargs.items()))
             return f"<{qs} {args} {kwargs}>"
