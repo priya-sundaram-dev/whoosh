@@ -701,9 +701,11 @@ def test_filter_by_result():
 def test_hit_get_dict_interface():
     # gh#153: Hit should support the standard dict-like .get() accessor
     # (Whoosh 2.7.4 compatibility). Missing before whoosh3.
-    schema = fields.Schema(id=fields.ID(stored=True),
-                           source_path=fields.ID(stored=True),
-                           content=fields.TEXT(stored=True))
+    schema = fields.Schema(
+        id=fields.ID(stored=True),
+        source_path=fields.ID(stored=True),
+        content=fields.TEXT(stored=True),
+    )
     with TempIndex(schema, "hitget") as ix:
         with ix.writer() as w:
             w.add_document(id="1", source_path="a/b.txt", content="alfa bravo")

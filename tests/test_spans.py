@@ -526,8 +526,9 @@ def test_spannot_search_when_excluded_span_missing():
     # gh#153: searching with SpanNot where the excluded span does not match
     # in a document raised IndexError ("tuple index out of range") because
     # SpanNot._get_spans() called id() on an exhausted matcher.
-    schema = fields.Schema(path=fields.ID(stored=True),
-                           text=fields.TEXT(stored=True, phrase=True))
+    schema = fields.Schema(
+        path=fields.ID(stored=True), text=fields.TEXT(stored=True, phrase=True)
+    )
     st = RamStorage()
     ix = st.create_index(schema)
     with ix.writer() as w:
@@ -537,10 +538,18 @@ def test_spannot_search_when_excluded_span_missing():
         w.add_document(path="p2", text="seeking musical amount of joy")
 
     with ix.searcher() as s:
-        a = spans.SpanNear2([Term("text", "seeking"), Term("text", "musical")],
-                            slop=16, ordered=True, mindist=1)
-        b = spans.SpanNear2([Term("text", "seeking"), Term("text", "amount")],
-                            slop=3, ordered=True, mindist=1)
+        a = spans.SpanNear2(
+            [Term("text", "seeking"), Term("text", "musical")],
+            slop=16,
+            ordered=True,
+            mindist=1,
+        )
+        b = spans.SpanNear2(
+            [Term("text", "seeking"), Term("text", "amount")],
+            slop=3,
+            ordered=True,
+            mindist=1,
+        )
         q = spans.SpanNot(a, b)
         results = s.search(q, limit=None)
         paths = sorted(hit["path"] for hit in results)
