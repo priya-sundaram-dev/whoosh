@@ -581,6 +581,8 @@ def test_every_matcher():
             return MyMatcher(children, searcher.doc_count_all(), searcher.is_deleted)
 
     class MyMatcher(matching.UnionMatcher):
+        children: list
+
         def __init__(self, children, doccount, is_deleted):
             self.children = children
             self._id = 0
@@ -600,7 +602,7 @@ def test_every_matcher():
 
         def score(self):
             # Iterate through the sub-matchers
-            for child in self.children():
+            for child in self.children:
                 # If the matcher is on the current document, do something
                 # with its score
                 if child.is_active() and child.id() == self.id():

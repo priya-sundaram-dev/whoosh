@@ -532,6 +532,8 @@ def test_fuzzy_prefix():
 
 def test_function_plugin():
     class FakeQuery(query.Query):
+        children: list
+
         def __init__(self, children, *args, **kwargs):
             self.children = children
             self.args = args
@@ -542,7 +544,7 @@ def test_function_plugin():
             return hash(tuple(self.children)) ^ hash(self.args)
 
         def __str__(self):
-            qs = "|".join(str(q) for q in self.children())
+            qs = "|".join(str(q) for q in self.children)
             args = ",".join(self.args)
             kwargs = ",".join(sorted("%s:%s" % item for item in self.kwargs.items()))
             return f"<{qs} {args} {kwargs}>"
