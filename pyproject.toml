@@ -194,7 +194,6 @@ rules.invalid-ignore-comment = "ignore"  # 1 instance
 rules.invalid-method-override = "ignore"  # 131 instances
 rules.invalid-return-type = "ignore"  # 28 instances
 rules.missing-argument = "ignore"  # 12 instances
-rules.no-matching-overload = "ignore"  # 2 instances
 rules.not-subscriptable = "ignore"  # 15 instances
 rules.too-many-positional-arguments = "ignore"  # 27 instances
 rules.unknown-argument = "ignore"  # 10 instances

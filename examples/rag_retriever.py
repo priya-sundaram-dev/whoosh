@@ -152,7 +152,7 @@ def reciprocal_rank_fusion(rankings, k=60):
     for ranking in rankings:
         for rank, doc_id in enumerate(ranking):
             scores[doc_id] = scores.get(doc_id, 0.0) + 1.0 / (k + rank + 1)
-    return sorted(scores, key=scores.get, reverse=True)
+    return sorted(scores, key=lambda k: scores[k], reverse=True)
 
 
 def hybrid_search(ix, query, k=10):
