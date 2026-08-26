@@ -1647,6 +1647,17 @@ class Hit:
     def __contains__(self, key):
         return key in self.fields() or self.reader.has_column(key)
 
+    def get(self, key, default=None):
+        """Returns the value of the stored field ``key`` for this hit, or
+        ``default`` (``None`` if not given) if the field is not present. This
+        mirrors the standard ``dict.get`` interface.
+        """
+
+        try:
+            return self[key]
+        except KeyError:
+            return default
+
     def items(self) -> list[tuple[str, Any]]:
         return list(self.fields().items())
 

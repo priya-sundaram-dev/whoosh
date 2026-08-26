@@ -507,3 +507,41 @@ def test_span_eq_ne_consistency():
     diff_end = Span(1, 3, startchar=10, endchar=20)
     assert a != diff_end
     assert not (a == diff_end)
+
+
+def test_spannot_str_does_not_raise():
+    # gh#153: str() on a span query previously raised NotImplementedError
+    # from the base Query.__str__. It should now return a usable string
+    # (falling back to repr) rather than blowing up.
+    q = spans.SpanNot(
+        spans.SpanNear2([Term("text", "a"), Term("text", "b")], slop=2),
+        Term("text", "c"),
+    )
+    s = str(q)
+    assert "SpanNot" in s
+    assert s == repr(q)
+
+
+def test_spannot_search_when_excluded_span_missing():
+    # gh#153: searching with SpanNot where the excluded span does not match
+    # in a document raised IndexError ("tuple index out of range") because
+    # SpanNot._get_spans() called id() on an exhausted matcher.
+    schema = fields.Schema(path=fields.ID(stored=True),
+                           text=fields.TEXT(stored=True, phrase=True))
+    st = RamStorage()
+    ix = st.create_index(schema)
+    with ix.writer() as w:
+        # "seeking musical" present, excluded "seeking ... amount" absent
+        w.add_document(path="p1", text="seeking musical delight in the morning")
+        # excluded span present -> must be filtered out
+        w.add_document(path="p2", text="seeking musical amount of joy")
+
+    with ix.searcher() as s:
+        a = spans.SpanNear2([Term("text", "seeking"), Term("text", "musical")],
+                            slop=16, ordered=True, mindist=1)
+        b = spans.SpanNear2([Term("text", "seeking"), Term("text", "amount")],
+                            slop=3, ordered=True, mindist=1)
+        q = spans.SpanNot(a, b)
+        results = s.search(q, limit=None)
+        paths = sorted(hit["path"] for hit in results)
+        assert paths == ["p1"]

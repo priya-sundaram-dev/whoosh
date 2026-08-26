@@ -7,6 +7,20 @@ All notable changes to this project are documented here. This project follows
 ## [Unreleased]
 
 ### Fixed
+- Whoosh 2.7.4 → whoosh3 migration regressions in span queries and hits,
+  reported by @BenitoKme (#153):
+  - Searching with `SpanNot` raised `IndexError: tuple index out of range`
+    whenever the excluded (second) span did not match in a candidate
+    document. `SpanNot._get_spans()` called `id()` on the exhausted "maybe"
+    matcher; it now checks `is_active()` first (nothing to exclude → all
+    spans from the first query pass through).
+  - `str()` on any span query (`SpanNot`, `SpanNear`, `SpanOr`, ...) raised
+    `NotImplementedError` from the base `Query.__str__`. Span queries have no
+    dedicated query-language syntax, so `SpanQuery.__str__` now falls back to
+    the well-defined `repr`.
+  - `Hit.get(key[, default])` was missing, breaking dict-style
+    `hit.get("field", fallback)` access that worked in Whoosh 2.7.4. The
+    standard `dict.get` accessor is restored.
 - `whoosh.support.bitstream.BitStreamReader.read` raised a tuple
   (`raise (IndexError, ...)`) instead of an exception on an out-of-range
   read, so callers got an unrelated `TypeError` rather than the intended

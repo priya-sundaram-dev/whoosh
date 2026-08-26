@@ -304,6 +304,12 @@ class SpanQuery(Query):
     def __repr__(self):
         return f"{self.__class__.__name__}({self.q!r})"
 
+    def __str__(self):
+        # Span queries have no dedicated query-language syntax, so fall back to
+        # the (recursive, well-defined) repr instead of raising
+        # NotImplementedError from the base Query.__str__ (gh#153).
+        return repr(self)
+
     def __eq__(self, other):
         return other and self.__class__ is other.__class__ and self.q == other.q
 
@@ -828,7 +834,12 @@ class SpanNot(SpanBiQuery):
             super().__init__(amm)
 
         def _get_spans(self):
-            if self.a.id() == self.b.id():
+            # ``b`` is the excluded ("maybe") side of the underlying
+            # AndMaybeMatcher, so it can be exhausted / positioned on a
+            # different document than ``a``. Guard against calling ``id()`` on
+            # an inactive matcher, which raised ``IndexError`` (gh#153). When
+            # ``b`` has nothing for this document there is nothing to exclude.
+            if self.b.is_active() and self.a.id() == self.b.id():
                 spans = []
                 bspans = self.b.spans()
                 for aspan in self.a.spans():
