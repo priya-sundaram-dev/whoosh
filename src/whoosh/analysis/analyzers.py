@@ -64,11 +64,7 @@ class Analyzer(Composable):
         return f"{self.__class__.__name__}()"
 
     def __eq__(self, other: object) -> bool:
-        return (
-            other
-            and self.__class__ is other.__class__
-            and self.__dict__ == other.__dict__
-        )
+        return type(self) is type(other) and self.__dict__ == other.__dict__
 
     def __call__(self, value: str, **kwargs: Any) -> Iterator[Token]:
         raise NotImplementedError
@@ -122,7 +118,7 @@ class CompositeAnalyzer(Analyzer):
         return len(self.items)
 
     def __eq__(self, other: object) -> bool:
-        return other and self.__class__ is other.__class__ and self.items == other.items
+        return type(self) is type(other) and self.items == other.items
 
     def clean(self) -> None:
         for item in self.items:
@@ -136,7 +132,7 @@ class CompositeAnalyzer(Analyzer):
 # Functions that return composed analyzers
 
 
-def IDAnalyzer(lowercase: bool = False) -> Analyzer:
+def IDAnalyzer(lowercase: bool = False) -> Composable:
     """Deprecated, just use an IDTokenizer directly, with a LowercaseFilter if
     desired.
     """
@@ -147,7 +143,7 @@ def IDAnalyzer(lowercase: bool = False) -> Analyzer:
     return tokenizer
 
 
-def KeywordAnalyzer(lowercase: bool = False, commas: bool = False) -> Analyzer:
+def KeywordAnalyzer(lowercase: bool = False, commas: bool = False) -> Composable:
     """Parses whitespace- or comma-separated tokens.
 
     >>> ana = KeywordAnalyzer()
@@ -168,7 +164,7 @@ def KeywordAnalyzer(lowercase: bool = False, commas: bool = False) -> Analyzer:
     return tokenizer
 
 
-def RegexAnalyzer(expression: str = r"\w+(\.?\w+)*", gaps: bool = False) -> Analyzer:
+def RegexAnalyzer(expression: str = r"\w+(\.?\w+)*", gaps: bool = False) -> Composable:
     """Deprecated, just use a RegexTokenizer directly."""
 
     return RegexTokenizer(expression=expression, gaps=gaps)

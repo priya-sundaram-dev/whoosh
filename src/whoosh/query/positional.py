@@ -75,8 +75,7 @@ class Sequence(compound.CompoundQuery):
 
     def __eq__(self, other: object) -> bool:
         return (
-            other
-            and type(self) is type(other)
+            type(self) is type(other)
             and self.subqueries == other.subqueries
             and self.boost == other.boost
         )
@@ -194,8 +193,7 @@ class Phrase(qcore.Query):
 
     def __eq__(self, other: object) -> bool:
         return (
-            other
-            and self.__class__ is other.__class__
+            type(self) is type(other)
             and self.fieldname == other.fieldname
             and self.words == other.words
             and self.slop == other.slop

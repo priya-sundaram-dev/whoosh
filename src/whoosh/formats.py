@@ -76,11 +76,7 @@ class Format:
         self.options = options
 
     def __eq__(self, other: object) -> bool:
-        return (
-            other
-            and self.__class__ is other.__class__
-            and self.__dict__ == other.__dict__
-        )
+        return type(self) is type(other) and self.__dict__ == other.__dict__
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(boost={self.field_boost})"

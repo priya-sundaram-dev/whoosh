@@ -67,8 +67,7 @@ class Term(qcore.Query):
 
     def __eq__(self, other: object) -> bool:
         return (
-            other
-            and self.__class__ is other.__class__
+            type(self) is type(other)
             and self.fieldname == other.fieldname
             and self.text == other.text
             and self.boost == other.boost
@@ -290,8 +289,7 @@ class PatternQuery(MultiTerm):
 
     def __eq__(self, other: object) -> bool:
         return (
-            other
-            and self.__class__ is other.__class__
+            type(self) is type(other)
             and self.fieldname == other.fieldname
             and self.text == other.text
             and self.boost == other.boost
@@ -516,8 +514,7 @@ class FuzzyTerm(ExpandingTerm):
 
     def __eq__(self, other: object) -> bool:
         return (
-            other
-            and self.__class__ is other.__class__
+            type(self) is type(other)
             and self.fieldname == other.fieldname
             and self.text == other.text
             and self.maxdist == other.maxdist
@@ -555,7 +552,7 @@ class FuzzyTerm(ExpandingTerm):
             ^ hash(self.constantscore)
         )
 
-    def _btexts(self, ixreader: IndexReader) -> Iterable[bytes]:
+    def _btexts(self, ixreader: IndexReader) -> Iterable[Any]:
         return ixreader.terms_within(
             self.fieldname, self.text, self.maxdist, prefix=self.prefixlength
         )
@@ -586,8 +583,7 @@ class Variations(ExpandingTerm):
 
     def __eq__(self, other: object) -> bool:
         return (
-            other
-            and self.__class__ is other.__class__
+            type(self) is type(other)
             and self.fieldname == other.fieldname
             and self.text == other.text
             and self.boost == other.boost

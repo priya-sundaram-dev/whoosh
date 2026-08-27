@@ -28,7 +28,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from whoosh.query import compound, qcore, terms, wrappers
 from whoosh.util.times import datetime_to_long
@@ -52,8 +52,7 @@ class RangeMixin:
 
     def __eq__(self, other: object) -> bool:
         return (
-            other
-            and self.__class__ is other.__class__
+            type(self) is type(other)
             and self.fieldname == other.fieldname
             and self.start == other.start
             and self.end == other.end
@@ -137,14 +136,17 @@ class RangeMixin:
         boost = max(self.boost, other.boost)
         constantscore = self.constantscore or other.constantscore
 
-        return self.__class__(
-            self.fieldname,
-            startval,
-            endval,
-            startexcl,
-            endexcl,
-            boost=boost,
-            constantscore=constantscore,
+        return cast(
+            "qcore.Query",
+            self.__class__(
+                self.fieldname,
+                startval,
+                endval,
+                startexcl,
+                endexcl,
+                boost=boost,
+                constantscore=constantscore,
+            ),
         )
 
 

@@ -115,11 +115,7 @@ class Filter(Composable):
     """
 
     def __eq__(self, other: object) -> bool:
-        return (
-            other
-            and self.__class__ is other.__class__
-            and self.__dict__ == other.__dict__
-        )
+        return type(self) is type(other) and self.__dict__ == other.__dict__
 
     def __ne__(self, other: object) -> bool:
         return not self == other
@@ -180,11 +176,7 @@ class MultiFilter(Filter):
         self.filters = kwargs
 
     def __eq__(self, other: object) -> bool:
-        return (
-            other
-            and self.__class__ is other.__class__
-            and self.filters == other.filters
-        )
+        return type(self) is type(other) and self.filters == other.filters
 
     def __call__(self, tokens: Iterator[Token]) -> Iterable[Token]:
         # Only selects on the first token. If there are no tokens to filter
@@ -346,8 +338,7 @@ class StopFilter(Filter):
 
     def __eq__(self, other: object) -> bool:
         return (
-            other
-            and self.__class__ is other.__class__
+            type(self) is type(other)
             and self.stops == other.stops
             and self.min == other.min
             and self.renumber == other.renumber
@@ -425,8 +416,8 @@ class CharsetFilter(Filter):
 
     def __eq__(self, other: object) -> bool:
         return (
-            other
-            and self.__class__ is other.__class__
+            type(self) is type(other)
+            and self.__class__ == other.__class__
             and self.charmap == other.charmap
         )
 
@@ -483,8 +474,7 @@ class DelimitedAttributeFilter(Filter):
 
     def __eq__(self, other: object) -> bool:
         return (
-            other
-            and self.__class__ is other.__class__
+            type(self) is type(other)
             and self.delim == other.delim
             and self.attr == other.attr
             and self.default == other.default
@@ -541,8 +531,7 @@ class SubstitutionFilter(Filter):
 
     def __eq__(self, other: object) -> bool:
         return (
-            other
-            and self.__class__ is other.__class__
+            type(self) is type(other)
             and self.pattern == other.pattern
             and self.replacement == other.replacement
         )

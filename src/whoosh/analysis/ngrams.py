@@ -167,8 +167,7 @@ class NgramFilter(Filter):
 
     def __eq__(self, other: object) -> bool:
         return (
-            other
-            and self.__class__ is other.__class__
+            type(self) is type(other)
             and self.min == other.min
             and self.max == other.max
         )

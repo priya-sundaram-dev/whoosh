@@ -334,7 +334,7 @@ class FieldType:
         startexcl: bool,
         endexcl: bool,
         boost: float = 1.0,
-    ) -> Query:
+    ) -> Query | None:
         """
         When ``self_parsing()`` returns True, the query parser will call
         this method to parse range query text. If this method returns None

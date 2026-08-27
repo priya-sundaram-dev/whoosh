@@ -104,7 +104,7 @@ class Not(qcore.Query):
         self.boost = boost
 
     def __eq__(self, other: object) -> bool:
-        return other and self.__class__ is other.__class__ and self.query == other.query
+        return type(self) is type(other) and self.query == other.query
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({repr(self.query)})"
@@ -163,8 +163,7 @@ class ConstantScoreQuery(WrappingQuery):
 
     def __eq__(self, other: object) -> bool:
         return (
-            other
-            and self.__class__ is other.__class__
+            type(self) is type(other)
             and self.child == other.child
             and self.score == other.score
         )

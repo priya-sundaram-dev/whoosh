@@ -72,7 +72,9 @@ class FacetType:
 
         raise NotImplementedError
 
-    def map(self, default: type[FacetMap] | FacetMap | None = None) -> FacetMap:
+    def map(
+        self, default: type[FacetMap] | FacetMap | None = None
+    ) -> type[FacetMap] | FacetMap:
         t = self.maptype
         if t is None:
             t = default

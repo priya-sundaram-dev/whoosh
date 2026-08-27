@@ -65,8 +65,7 @@ class CompoundQuery(qcore.Query):
 
     def __eq__(self, other: object) -> bool:
         return (
-            other
-            and self.__class__ is other.__class__
+            type(self) is type(other)
             and self.subqueries == other.subqueries
             and self.boost == other.boost
         )
@@ -529,12 +528,7 @@ class BinaryQuery(CompoundQuery):
         self.subqueries = (a, b)
 
     def __eq__(self, other: object) -> bool:
-        return (
-            other
-            and self.__class__ is other.__class__
-            and self.a == other.a
-            and self.b == other.b
-        )
+        return type(self) is type(other) and self.a == other.a and self.b == other.b
 
     def __hash__(self) -> int:
         return hash(self.__class__.__name__) ^ hash(self.a) ^ hash(self.b)
