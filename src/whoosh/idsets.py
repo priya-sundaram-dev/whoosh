@@ -9,9 +9,12 @@ from array import array
 from bisect import bisect_left, bisect_right
 from collections.abc import Callable, Collection, Iterable, Iterator
 from itertools import zip_longest
-from typing import Any, Union
+from typing import TYPE_CHECKING, Union
 
 from whoosh.util.numeric import bytes_for_bits
+
+if TYPE_CHECKING:
+    from whoosh.filedb.structfile import StructFile
 
 # Anything that can stand in for "another set of doc ids" in the combining and
 # comparison methods below: either a :class:`DocIdSet`, or any built-in
@@ -513,7 +516,7 @@ class OnDiskBitSet(BaseBitSet):
     [1, 2, 7, 10, 15]
     """
 
-    def __init__(self, dbfile: Any, basepos: int, bytecount: int) -> None:
+    def __init__(self, dbfile: StructFile, basepos: int, bytecount: int) -> None:
         """
         :param dbfile: a :class:`~whoosh.filedb.structfile.StructFile` object
             to read from.
@@ -620,7 +623,7 @@ class BitSet(BaseBitSet):
         obj._trim()
         return obj
 
-    def to_disk(self, dbfile: Any) -> int:
+    def to_disk(self, dbfile: StructFile) -> int:
         dbfile.write_array(self.bits)
         return len(self.bits)
 
@@ -631,7 +634,7 @@ class BitSet(BaseBitSet):
         return b
 
     @classmethod
-    def from_disk(cls, dbfile: Any, bytecount: int) -> BitSet:
+    def from_disk(cls, dbfile: StructFile, bytecount: int) -> BitSet:
         return cls.from_bytes(dbfile.read_array("B", bytecount))
 
     def copy(self) -> BitSet:

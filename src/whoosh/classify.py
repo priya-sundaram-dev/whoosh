@@ -39,6 +39,8 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
+    from whoosh.reading import IndexReader
+
 
 # Expansion models
 
@@ -117,7 +119,7 @@ class Expander:
 
     def __init__(
         self,
-        ixreader: Any,
+        ixreader: IndexReader,
         fieldname: str,
         model: type[ExpansionModel] | ExpansionModel = Bo1Model,
     ) -> None:

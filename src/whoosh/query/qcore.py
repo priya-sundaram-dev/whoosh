@@ -42,7 +42,7 @@ if TYPE_CHECKING:
     from whoosh.analysis.acore import Token
     from whoosh.matching import Matcher
     from whoosh.reading import IndexReader
-    from whoosh.searching import Searcher
+    from whoosh.searching import SearchContext, Searcher
 
 # Exceptions
 
@@ -546,7 +546,9 @@ class Query:
 
         return self.estimate_size(ixreader)
 
-    def matcher(self, searcher: Searcher, context: Any = None) -> Matcher:
+    def matcher(
+        self, searcher: Searcher, context: SearchContext | None = None
+    ) -> Matcher:
         """Returns a :class:`~whoosh.matching.Matcher` object you can use to
         retrieve documents and scores matching this query.
 
