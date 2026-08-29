@@ -6,6 +6,8 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.49.1] - 2026-08-29
+
 ### Fixed
 - `adatetime.date()` raised `TypeError: function takes at most 3 arguments
   (4 given)` on every call — it passed `tzinfo=timezone.utc` to
