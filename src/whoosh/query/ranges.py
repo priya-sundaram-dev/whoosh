@@ -144,8 +144,8 @@ class RangeMixin:
                 endval,
                 startexcl,
                 endexcl,
-                boost=boost,
-                constantscore=constantscore,
+                boost=boost,  # ty: ignore[unknown-argument] - mixin class instantiation
+                constantscore=constantscore,  # ty: ignore[unknown-argument] - mixin class instantiation
             ),
         )
 

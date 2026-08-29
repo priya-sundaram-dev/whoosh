@@ -533,11 +533,11 @@ class IndexWriter:
         # Add the given fields
         self.add_document(**fields)
 
-    def commit(self) -> None:
+    def commit(self, **kwargs: Any) -> None:
         """Finishes writing and unlocks the index."""
         pass
 
-    def cancel(self) -> None:
+    def cancel(self, **kwargs: Any) -> None:
         """Cancels any documents/deletions added by this object
         and unlocks the index.
         """

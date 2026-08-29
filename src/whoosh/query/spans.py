@@ -328,7 +328,7 @@ class WrappingSpan(SpanQuery):
         return False
 
     def apply(self, fn):
-        return self.__class__(fn(self.q), limit=self.limit)
+        return self.__class__(fn(self.q), limit=self.limit)  # ty: ignore[unknown-argument] - mixin class instantiation
 
     def field(self):
         return self.q.field()

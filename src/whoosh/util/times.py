@@ -169,7 +169,7 @@ class adatetime:
         )
 
     def date(self):
-        return date(self.year, self.month, self.day, tzinfo=timezone.utc)
+        return date(self.year, self.month, self.day)
 
     def copy(self):
         return adatetime(

@@ -486,7 +486,7 @@ class IndexReader:
                 m.next()
 
     @abstractmethod
-    def postings(self, fieldname: str, text: str | bytes) -> Matcher:
+    def postings(self, fieldname: str, text: str | bytes, **kwargs: Any) -> Matcher:
         """Returns a :class:`~whoosh.matching.Matcher` for the postings of the
         given term.
 

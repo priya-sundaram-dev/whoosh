@@ -28,7 +28,7 @@
 from __future__ import annotations
 
 import sys
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from whoosh import query
 from whoosh.qparser import syntax
@@ -93,7 +93,7 @@ class QueryParser:
         self.fieldname = fieldname
         self.schema = schema
         self.termclass = termclass
-        self.phraseclass = phraseclass
+        self.phraseclass: Any = phraseclass
         self.group = group
         self.plugins = []
 

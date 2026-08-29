@@ -680,7 +680,9 @@ class PhrasePlugin(Plugin):
     wordexpr = rcompile(r"\S+")
 
     class PhraseNode(syntax.TextNode):
-        def __init__(self, text, textstartchar, slop=1, degrade=False):
+        def __init__(
+            self, text, textstartchar, slop=1, degrade=False, boost: float = 1.0
+        ):
             syntax.TextNode.__init__(self, text)
             self.textstartchar = textstartchar
             self.slop = slop
