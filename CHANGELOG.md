@@ -22,6 +22,18 @@ All notable changes to this project are documented here. This project follows
   targeted `# ty: ignore[unknown-argument]` on mixin `self.__class__(...)`
   re-instantiations where the concrete constructor can't be known statically.
   Thanks to @SantiagoDaleffe.
+- Replaced a few opaque `Any` parameter annotations with the concrete types the
+  code and docstrings already document, so editors and type checkers can help
+  callers: `Query.matcher(context=...)` is now `SearchContext | None`,
+  `FieldType.sortable_terms(ixreader=...)` and `Expander(ixreader=...)` take an
+  `IndexReader`, and `BitSet`/`OnDiskBitSet`'s on-disk methods take a
+  `StructFile`. The concrete `ixreader` type also surfaced that the base
+  `FieldType.sortable_terms` returns an `Iterable[bytes]` (from
+  `reader.lexicon()`), not an `Iterator[bytes]`; the annotation is corrected.
+  Genuinely polymorphic boundaries — term text and stored field values, which
+  legitimately accept `str`, numbers, `bytes`, … — keep `Any`, since a narrower
+  type there would be wrong. Thanks to @cclauss for the review that prompted
+  this analysis.
 
 ## [3.49.0] - 2026-08-28
 

@@ -50,6 +50,7 @@ if TYPE_CHECKING:
     from whoosh.analysis import Analyzer, Token
     from whoosh.formats import Format
     from whoosh.query import Query
+    from whoosh.reading import IndexReader
 
 from whoosh import analysis, columns, formats
 from whoosh.system import emptybytes, pack_byte
@@ -290,7 +291,7 @@ class FieldType:
         else:
             self.column_type = None
 
-    def sortable_terms(self, ixreader: Any, fieldname: str) -> Iterator[bytes]:
+    def sortable_terms(self, ixreader: IndexReader, fieldname: str) -> Iterable[bytes]:
         """
         Returns an iterator of the "sortable" tokens in the given reader and
         field. These values can be used for sorting. The default implementation
@@ -900,7 +901,7 @@ class NUMERIC(FieldType):
             fieldname, start, end, startexcl, endexcl, boost=boost
         )
 
-    def sortable_terms(self, ixreader: Any, fieldname: str) -> Iterator[bytes]:
+    def sortable_terms(self, ixreader: IndexReader, fieldname: str) -> Iterator[bytes]:
         zero = b"\x00"
         for token in ixreader.lexicon(fieldname):
             if token[0:1] != zero:
