@@ -6,7 +6,7 @@ from urllib.request import urlretrieve
 from zlib import compress, decompress
 
 try:
-    import xappy  # type: ignore
+    import xappy
 except ImportError:
     pass
 
@@ -164,7 +164,7 @@ class Enron(Spec):
         return conn
 
     def zcatalog_setup(self, cat):
-        from zcatalog import indexes  # type: ignore
+        from zcatalog import indexes
 
         for name in ("date", "frm"):
             cat[name] = indexes.FieldIndex(field_name=name)

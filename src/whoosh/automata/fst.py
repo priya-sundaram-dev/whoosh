@@ -41,7 +41,7 @@ use in (at least) spell checking.
 import copy
 import sys
 from array import array
-from hashlib import sha1  # type: ignore @UnresolvedImport
+from hashlib import sha1
 from io import BytesIO
 
 from whoosh.filedb.structfile import StructFile

@@ -34,20 +34,20 @@ from whoosh import index, qparser, query, scoring
 from whoosh.util import find_object, now
 
 try:
-    import xappy  # type: ignore
+    import xappy
 except ImportError:
     pass
 try:
-    import xapian  # type: ignore
+    import xapian
 except ImportError:
     pass
 try:
-    import pysolr  # type: ignore
+    import pysolr
 except ImportError:
     pass
 
 try:
-    from persistent import Persistent  # type: ignore
+    from persistent import Persistent
 
     class ZDoc(Persistent):
         def __init__(self, d):
@@ -343,11 +343,11 @@ class SolrModule(Module):
 
 class ZcatalogModule(Module):
     def indexer(self, **kwargs):
-        import transaction  # type: ignore # type: ignore @UnresolvedImport
-        from zcatalog import catalog  # type: ignore # type: ignore @UnresolvedImport
-        from ZODB.DB import DB  # type: ignore # type: ignore @UnresolvedImport
+        import transaction
+        from zcatalog import catalog
+        from ZODB.DB import DB
         from ZODB.FileStorage import (
-            FileStorage,  # type: ignore # type: ignore @UnresolvedImport
+            FileStorage,
         )
 
         directory = os.path.join(self.options.dir, f"{self.options.indexname}_zcatalog")
@@ -373,21 +373,21 @@ class ZcatalogModule(Module):
         self.cat.index_doc(doc)
         self.zcatalog_count += 1
         if self.zcatalog_count >= 100:
-            import transaction  # type: ignore # type: ignore @UnresolvedImport
+            import transaction
 
             transaction.commit()
             self.zcatalog_count = 0
 
     def finish(self, **kwargs):
-        import transaction  # type: ignore # type: ignore @UnresolvedImport
+        import transaction
 
         transaction.commit()
         del self.zcatalog_count
 
     def searcher(self):
-        from ZODB.DB import DB  # type: ignore # type: ignore @UnresolvedImport
+        from ZODB.DB import DB
         from ZODB.FileStorage import (
-            FileStorage,  # type: ignore # type: ignore @UnresolvedImport
+            FileStorage,
         )
 
         path = os.path.join(
@@ -421,7 +421,7 @@ class NucularModule(Module):
     def indexer(self, create=True):
         import shutil
 
-        from nucular import Nucular  # type: ignore # type: ignore @UnresolvedImport
+        from nucular import Nucular
 
         directory = os.path.join(self.options.dir, f"{self.options.indexname}_nucular")
         if create:
@@ -452,7 +452,7 @@ class NucularModule(Module):
         self.archive.cleanUp()
 
     def searcher(self):
-        from nucular import Nucular  # type: ignore # type: ignore @UnresolvedImport
+        from nucular import Nucular
 
         directory = os.path.join(
             self.options.directory, f"{self.options.indexname}_nucular"

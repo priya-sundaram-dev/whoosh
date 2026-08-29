@@ -90,7 +90,7 @@ class FcntlLock(LockBase):
     """File lock based on UNIX-only fcntl module."""
 
     def acquire(self, blocking=False):
-        import fcntl  # type: ignore @UnresolvedImport
+        import fcntl
 
         flags = os.O_CREAT | os.O_WRONLY
         self.fd = os.open(self.filename, flags)
@@ -115,7 +115,7 @@ class FcntlLock(LockBase):
         if self.fd is None:
             raise Exception("Lock was not acquired")
 
-        import fcntl  # type: ignore @UnresolvedImport
+        import fcntl
 
         fcntl.flock(self.fd, fcntl.LOCK_UN)
         os.close(self.fd)
@@ -126,7 +126,7 @@ class MsvcrtLock(LockBase):
     """File lock based on Windows-only msvcrt module."""
 
     def acquire(self, blocking=False):
-        import msvcrt  # type: ignore @UnresolvedImport
+        import msvcrt
 
         flags = os.O_CREAT | os.O_WRONLY
         mode = msvcrt.LK_NBLCK
@@ -146,7 +146,7 @@ class MsvcrtLock(LockBase):
             return False
 
     def release(self):
-        import msvcrt  # type: ignore @UnresolvedImport
+        import msvcrt
 
         if self.fd is None:
             raise Exception("Lock was not acquired")

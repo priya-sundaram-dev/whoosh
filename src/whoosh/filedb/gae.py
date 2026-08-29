@@ -20,8 +20,8 @@ To open an existing index::
 import time
 from io import BytesIO
 
-from google.appengine.api import memcache  # type: ignore @UnresolvedImport
-from google.appengine.ext import db  # type: ignore @UnresolvedImport
+from google.appengine.api import memcache
+from google.appengine.ext import db
 
 from whoosh.filedb.filestore import ReadOnlyError, Storage
 from whoosh.filedb.structfile import StructFile

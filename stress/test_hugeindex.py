@@ -1,6 +1,6 @@
 import struct
 
-from nose.tools import assert_equal  # type: ignore @UnresolvedImport
+from nose.tools import assert_equal
 
 from whoosh import formats
 from whoosh.filedb.filepostings import FilePostingReader, FilePostingWriter

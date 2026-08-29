@@ -31,7 +31,7 @@ from array import array
 from binascii import crc32
 from collections import defaultdict
 from decimal import Decimal
-from hashlib import md5  # type: ignore @UnresolvedImport
+from hashlib import md5
 from pickle import dumps, loads
 from struct import Struct
 

@@ -33,7 +33,7 @@ D. J. Bernstein's CDB format (http://cr.yp.to/cdb.html).
 import os
 import struct
 from binascii import crc32
-from hashlib import md5  # type: ignore @UnresolvedImport
+from hashlib import md5
 
 from whoosh.system import _INT_SIZE, emptybytes
 from whoosh.util.numlists import GrowableArray

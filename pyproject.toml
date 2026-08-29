@@ -199,7 +199,6 @@ rules.unknown-argument = "ignore"  # 10 instances
 rules.unresolved-attribute = "ignore"  # 347 instances
 rules.unresolved-import = "ignore"  # 29 instances
 rules.unsupported-operator = "ignore"  # 27 instances
-rules.unused-type-ignore-comment = "ignore"  # 19 instances
 
 [tool.pytest]
 # ==========================================================================
