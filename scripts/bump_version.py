@@ -35,6 +35,12 @@ ROOT = os.path.abspath(os.path.join(HERE, os.pardir))
 INIT = os.path.join(ROOT, "src", "whoosh", "__init__.py")
 INDEX_HTML = os.path.join(ROOT, "demo", "index.html")
 MAINTAINED_HTML = os.path.join(ROOT, "demo", "is-whoosh-still-maintained.html")
+CHANGELOG = os.path.join(ROOT, "CHANGELOG.md")
+
+# Every file whose contents must move together in the single release commit.
+# Keeping the version bump and the site pages in one commit is what stops the
+# release commit's CI from going red before a follow-up docs fix.
+RELEASE_FILES = [INIT, INDEX_HTML, MAINTAINED_HTML, CHANGELOG]
 
 SEMVER_RE = re.compile(r"^\d+\.\d+\.\d+$")
 
@@ -132,10 +138,57 @@ def check(expected: str | None = None) -> int:
     return 0
 
 
+def changelog_has_section(version: str) -> bool:
+    """True if CHANGELOG.md has a released heading for ``version``.
+
+    Accepts either ``## [X.Y.Z] - DATE`` or ``## X.Y.Z`` styles so the guard
+    does not fight a maintainer's exact heading formatting.
+    """
+    text = _read(CHANGELOG)
+    esc = re.escape(version)
+    return bool(re.search(r"^##\s+\[?%s\]?" % esc, text, re.MULTILINE))
+
+
+def commit_release(version: str) -> int:
+    """Stage the version + site + changelog files and make one release commit.
+
+    Refuses to run unless everything is in sync and the CHANGELOG already has a
+    heading for this version, so a release can never land the site pages in a
+    separate commit (which would turn the release commit's CI red).
+    """
+    import subprocess
+
+    if check(version) != 0:
+        print("Refusing to commit: package/site are out of sync.")
+        return 1
+    if not changelog_has_section(version):
+        print(
+            "Refusing to commit: CHANGELOG.md has no '## %s' section yet.\n"
+            "Add the release notes for %s first, then re-run with --commit."
+            % (version, version)
+        )
+        return 1
+    subprocess.run(["git", "add", "--"] + RELEASE_FILES, cwd=ROOT, check=True)
+    subprocess.run(
+        ["git", "commit", "-m", "release: %s" % version], cwd=ROOT, check=True
+    )
+    print(
+        "Committed 'release: %s'. Now tag it: git tag v%s && git push --tags"
+        % (version, version)
+    )
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("version", nargs="?", help="new X.Y.Z version")
     ap.add_argument("--check", action="store_true", help="verify sync, do not edit")
+    ap.add_argument(
+        "--commit",
+        action="store_true",
+        help="stage the version+site+CHANGELOG files and make one 'release: X.Y.Z' "
+        "commit (requires CHANGELOG section to already exist)",
+    )
     args = ap.parse_args()
 
     if args.check and not args.version:
@@ -148,11 +201,15 @@ def main() -> int:
     if args.check:
         return check(args.version)
 
+    if args.commit:
+        return commit_release(args.version)
+
     set_version(args.version)
     print("Bumped package + site to %s" % args.version)
     print(
-        "Now: update CHANGELOG.md, review `git diff`, commit, and tag v%s"
-        % args.version
+        "Now: update CHANGELOG.md, review `git diff`, then either commit by hand or\n"
+        "re-run `python scripts/bump_version.py %s --commit` for one atomic commit; "
+        "finally tag v%s" % (args.version, args.version)
     )
     return check(args.version)
 

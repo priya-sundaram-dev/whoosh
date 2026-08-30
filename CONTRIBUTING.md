@@ -71,9 +71,22 @@ changelog by hand:
 3. `demo/index.html` — the JSON-LD `"softwareVersion"` field. *(script)*
 4. `demo/is-whoosh-still-maintained.html` — the advertised `whoosh3 X.Y.Z`. *(script)*
 
-Commit all of that together, then tag `vX.Y.Z`; CI publishes to PyPI and
+Then let the same script make the release commit for you, so the version bump
+and the site pages can never land in separate commits:
+
+```bash
+python scripts/bump_version.py 3.29.0 --commit   # stages items 1-4, commits "release: 3.29.0"
+```
+
+`--commit` refuses to run unless everything is in sync *and* `CHANGELOG.md`
+already has a `## 3.29.0` heading, so a release can't go out with a stale site
+or missing notes. After it commits, tag `vX.Y.Z`; CI publishes to PyPI and
 deploys the site. Because the version bump and the site update land in the
 **same** commit, the release commit's CI is green — no red run between the
 release and a follow-up docs fix.
+
+> Always cut releases through `bump_version.py`. Hand-editing only
+> `__init__.py` is what left the 3.49.1 release commit red until a follow-up
+> sync commit — exactly the failure mode this tooling exists to prevent.
 
 Thank you for helping keep Whoosh healthy!
