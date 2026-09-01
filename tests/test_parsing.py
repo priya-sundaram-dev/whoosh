@@ -39,6 +39,35 @@ def test_range():
     assert repr(p.process("[to]")) == "<AndGroup <None:[None None]>>"
 
 
+def test_range_to_separator_word_boundary():
+    # Regression: the "TO" range separator must be recognized only as a
+    # whole word, never inside an adjacent token. Previously the tagger's
+    # bare ``[Tt][Oo]`` matched the "to" that starts "today"/"total"/etc.,
+    # so ``[TO today]`` misparsed as start="TO", end="day" and
+    # ``[total 5]`` became a garbage empty-start range with end="tal 5".
+    # Surfaced by stumpylog/whoosh-compat's differential suite (entry 56).
+    p = default.QueryParser(
+        "t", None, [plugins.WhitespacePlugin(), plugins.RangePlugin()]
+    )
+
+    # A bound-less start whose end value merely *begins* with "to":
+    # a proper open-start range, not "TO"+"day".
+    assert repr(p.process("[TO today]")) == "<AndGroup <None:[None 'today']>>"
+
+    # No genuine "TO" separator at all -> not a range. "total" contains
+    # "to" but not at a word boundary, so nothing is tagged as a range.
+    ns = p.process("[total 5]")
+    assert "None:[" not in repr(ns)
+
+    # A start value that itself contains "to" as a substring ("into")
+    # followed by a real "TO" separator still parses as a range.
+    assert repr(p.process("[into TO 5]")) == "<AndGroup <None:['into' '5']>>"
+
+    # Ordinary ranges are unaffected.
+    assert repr(p.process("[a TO b]")) == "<AndGroup <None:['a' 'b']>>"
+    assert repr(p.process("[TO b]")) == "<AndGroup <None:[None 'b']>>"
+
+
 def test_sq_range():
     p = default.QueryParser(
         "t",

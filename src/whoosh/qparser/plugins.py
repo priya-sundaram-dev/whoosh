@@ -871,9 +871,9 @@ class RangePlugin(Plugin):
     (?P<start>
         ('[^']*?'\s+)             # single-quoted
         |                         # or
-        ([^\]}]+?(?=[Tt][Oo]))    # everything until "to"
+        ([^\]}]+?(?=\b[Tt][Oo]\b))  # everything until word "to"
     )?
-    [Tt][Oo]                      # "to"
+    \b[Tt][Oo]\b                  # "to" as a whole word
     (?P<end>
         (\s+'[^']*?')             # single-quoted
         |                         # or

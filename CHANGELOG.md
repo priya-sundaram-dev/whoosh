@@ -6,6 +6,21 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Fixed
+- `RangePlugin` now recognizes the `TO` range separator only as a whole word,
+  never inside an adjacent token. The tagger's regex matched a bare `[Tt][Oo]`
+  with no word-boundary requirement, so the "to" that *starts* an end value
+  was mistaken for the separator: `[TO today]` misparsed as start=`"TO"`/
+  end=`"day"` (instead of an open-start range up to `today`), and
+  `[total 5]` — which contains no real separator at all — became a garbage
+  empty-start range with end `"tal 5"` (on a DATE field the captured `"TO"`
+  even raised `"'TO' is not a parseable date"`). The separator is now matched
+  as `\b[Tt][Oo]\b`, so genuine ranges (`[a TO b]`, `[TO b]`, `[into TO 5]`,
+  quoted and exclusive bounds) parse unchanged while these mid-word
+  lookalikes no longer tag as ranges. Surfaced by the differential test suite
+  of [`stumpylog/whoosh-compat`](https://github.com/stumpylog/whoosh-compat)
+  (`DIVERGENCES.md`, entry 56) — thanks for the careful cross-checking.
+
 ## [3.49.2] - 2026-09-01
 
 ### Fixed
