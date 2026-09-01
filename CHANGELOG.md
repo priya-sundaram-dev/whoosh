@@ -6,6 +6,28 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.49.4] - 2026-09-01
+
+### Fixed
+- A truncated date value with a dangling separator no longer silently widens
+  into a whole month or year. Two independent code paths shared the defect.
+  In the `DateParserPlugin` grammar, the progressive numeric sequence advanced
+  its reported end position past a separator *before* the element after it was
+  tried, and still reported having consumed that separator when the element
+  failed — so `2005-01-` parsed as all of January 2005 and `2005-01-01T` as
+  that whole day, with the leftover fragment ANDed onto the query as stray
+  terms. A non-whitespace separator is now consumed only provisionally, so a
+  dangling `-`/`.`/`:`/`/`/`T` makes `ToEnd` reject the fragment instead.
+  Separately, `DATETIME._parse_datestring` stripped `-`, `.` and spaces
+  unconditionally, so `date:2005-01-` collapsed to `200501` and matched all of
+  January 2005 even with no date plugin installed; a leading or trailing
+  separator is now rejected as an unparseable date. Well-formed values —
+  including natural truncations without a dangling separator (`2005-01`,
+  `2005`) and the bare-digit form (`20050101`) — are unaffected. Surfaced by
+  the differential test suite of
+  [`stumpylog/whoosh-compat`](https://github.com/stumpylog/whoosh-compat)
+  (`DIVERGENCES.md`, entry 54).
+
 ## [3.49.3] - 2026-09-01
 
 ### Fixed

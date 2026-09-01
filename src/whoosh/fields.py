@@ -981,6 +981,14 @@ class DATETIME(NUMERIC):
         # YYYY[MM[DD[hh[mm[ss[uuuuuu]]]]]]
         from whoosh.util.times import adatetime, fix, is_void
 
+        # A leading or trailing separator means the value is truncated or
+        # malformed (e.g. "2005-01-"). Stripping separators unconditionally
+        # would make "2005-01-" collapse to "200501" and silently widen into
+        # all of January 2005, with no error — a wrong, non-empty result for
+        # input the user clearly didn't finish typing. Reject it instead.
+        if qstring and (qstring[0] in " -." or qstring[-1] in " -."):
+            raise Exception(f"{qstring!r} is not a parseable date")
+
         qstring = qstring.replace(" ", "").replace("-", "").replace(".", "")
         year = month = day = hour = minute = second = microsecond = None
         if len(qstring) >= 4:
