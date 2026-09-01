@@ -417,6 +417,32 @@ def test_datetime():
         assert q.end == times.datetime_to_long(enddt)
 
 
+def test_datetime_dangling_separator_not_widened():
+    # DATETIME._parse_datestring stripped separators unconditionally, so a
+    # truncated value with a dangling separator collapsed onto a shorter,
+    # whole one: "2010-05-" became all of May 2010, "2010-" all of 2010 --
+    # a wrong, non-empty result for input the user clearly didn't finish.
+    # It now rejects such values instead (whoosh bug surfaced by
+    # stumpylog/whoosh-compat, DIVERGENCES entry 54).
+    dtf = fields.DATETIME()
+
+    for bad in ("2010-05-", "2010-", "2010.05.", "-2010", " 2010", "2010 "):
+        with pytest.raises(Exception):
+            dtf._parse_datestring(bad)
+
+    # Well-formed values (including natural truncations without a dangling
+    # separator, and the bare-digit canonical form) still parse.
+    for good in ("2010-05-23", "2010-05", "2010", "20100523", "2010.05.23"):
+        assert dtf._parse_datestring(good) is not None
+
+    # Through the query parser, a dangling-separator value yields an error
+    # query (matching nothing) rather than a silently-widened range.
+    schema = fields.Schema(id=fields.ID(stored=True), date=dtf)
+    qp = qparser.QueryParser("id", schema)
+    assert not isinstance(qp.parse("date:2010-05-"), query.NumericRange)
+    assert qp.parse("date:2010-05").__class__ is query.NumericRange
+
+
 def test_boolean():
     schema = fields.Schema(id=fields.ID(stored=True), done=fields.BOOLEAN(stored=True))
     ix = RamStorage().create_index(schema)

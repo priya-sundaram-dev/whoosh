@@ -146,10 +146,17 @@ class Sequence(MultiBase):
         )
         for e in self.elements:
             print_debug(debug, "Seq %s text=%r", self.name, text[pos:])
+            # Position before this iteration's separator, and whether that
+            # separator was non-whitespace. Used to avoid reporting a dangling
+            # separator as consumed when the element after it fails to match.
+            presep_pos = pos
+            sep_was_nonspace = False
             if self.sep_expr and not first:
                 print_debug(debug, "Seq %s looking for sep", self.name)
                 m = self.sep_expr.match(text, pos)
                 if m:
+                    if m.group().strip():
+                        sep_was_nonspace = True
                     pos = m.end()
                 else:
                     print_debug(debug, "Seq %s didn't find sep", self.name)
@@ -165,6 +172,14 @@ class Sequence(MultiBase):
 
             print_debug(debug, "Seq %s result=%r", self.name, at)
             if not at:
+                # The element after the separator didn't match. A non-whitespace
+                # separator (e.g. the trailing "-" in "2005-01-") must not be
+                # reported as part of this sequence's match, or a truncated value
+                # silently widens into a whole month/year. Roll the reported
+                # position back to before that separator so ToEnd rejects the
+                # dangling fragment and the value diagnoses a bad date.
+                if sep_was_nonspace:
+                    pos = presep_pos
                 break
             pos = newpos
 

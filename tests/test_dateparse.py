@@ -648,3 +648,37 @@ def test_161_range_semantics_unchanged_for_base_parser():
     # start floored to the day, end ceiled to the day
     assert q.startdate == datetime(2020, 6, 15, 0, 0, 0, 0, tzinfo=timezone.utc)
     assert q.enddate == datetime(2020, 7, 15, 23, 59, 59, 999999, tzinfo=timezone.utc)
+
+
+def test_dangling_separator_does_not_widen():
+    # A truncated value with a dangling (non-whitespace) separator must not
+    # silently widen into a whole month/year. The progressive "simple" grammar
+    # used to report the trailing separator as consumed, so "2005-05-" parsed
+    # as all of May 2005 and "2005-05-10T" as that whole day. ToEnd now rejects
+    # the dangling fragment (whoosh bug surfaced by stumpylog/whoosh-compat,
+    # DIVERGENCES entry 54).
+    assert english.date_from("2005-05-", basedate) is None
+    assert english.date_from("2005-", basedate) is None
+    assert english.date_from("2005-05-10T", basedate) is None
+    assert english.date_from("2005-05-10.", basedate) is None
+
+    # Genuinely truncated-but-well-formed values (no dangling separator) still
+    # parse to their natural span, and full values are unaffected.
+    assert_unamb_span(
+        english.date_from("2005-05-10", basedate),
+        dict(year=2005, month=5, day=10),
+        dict(year=2005, month=5, day=10),
+    )
+    assert_unamb_span(
+        english.date_from("2005-05", basedate),
+        dict(year=2005, month=5),
+        dict(year=2005, month=5),
+    )
+    assert_unamb_span(
+        english.date_from("2005", basedate),
+        dict(year=2005),
+        dict(year=2005),
+    )
+    # A clean word boundary after a complete date still leaves the trailing
+    # token alone rather than being swallowed.
+    assert english.date_from("2005-05-10 xyzzy", basedate) is None
