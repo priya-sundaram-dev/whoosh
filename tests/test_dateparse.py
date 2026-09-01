@@ -666,18 +666,18 @@ def test_dangling_separator_does_not_widen():
     # parse to their natural span, and full values are unaffected.
     assert_unamb_span(
         english.date_from("2005-05-10", basedate),
-        dict(year=2005, month=5, day=10),
-        dict(year=2005, month=5, day=10),
+        {"year": 2005, "month": 5, "day": 10},
+        {"year": 2005, "month": 5, "day": 10},
     )
     assert_unamb_span(
         english.date_from("2005-05", basedate),
-        dict(year=2005, month=5),
-        dict(year=2005, month=5),
+        {"year": 2005, "month": 5},
+        {"year": 2005, "month": 5},
     )
     assert_unamb_span(
         english.date_from("2005", basedate),
-        dict(year=2005),
-        dict(year=2005),
+        {"year": 2005},
+        {"year": 2005},
     )
     # A clean word boundary after a complete date still leaves the trailing
     # token alone rather than being swallowed.
