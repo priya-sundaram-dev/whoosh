@@ -898,9 +898,7 @@ class DateParserPlugin(plugins.Plugin):
             supports_seam = False
 
         if supports_seam:
-            return date_from(
-                text, self.basedate, toend=False, disambiguate=False
-            )
+            return date_from(text, self.basedate, toend=False, disambiguate=False)
         return self.dateparser.get_parser().date_from(text, self.basedate)
 
     def range_to_dt(self, node):

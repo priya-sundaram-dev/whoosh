@@ -628,9 +628,7 @@ def test_161_legacy_override_falls_back_without_error():
     class LegacyParser(English):
         def date_from(self, text, basedate=None, pos=0, debug=-9999, toend=True):
             calls.append(text)
-            return super().date_from(
-                text, basedate, pos=pos, debug=debug, toend=toend
-            )
+            return super().date_from(text, basedate, pos=pos, debug=debug, toend=toend)
 
     qp = _make_qp(LegacyParser())
 
@@ -649,6 +647,4 @@ def test_161_range_semantics_unchanged_for_base_parser():
     q = qp.parse("added:[2020-06-15 to 2020-07-15]")
     # start floored to the day, end ceiled to the day
     assert q.startdate == datetime(2020, 6, 15, 0, 0, 0, 0, tzinfo=timezone.utc)
-    assert q.enddate == datetime(
-        2020, 7, 15, 23, 59, 59, 999999, tzinfo=timezone.utc
-    )
+    assert q.enddate == datetime(2020, 7, 15, 23, 59, 59, 999999, tzinfo=timezone.utc)
