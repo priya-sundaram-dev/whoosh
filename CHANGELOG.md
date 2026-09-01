@@ -6,6 +6,8 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.49.3] - 2026-09-01
+
 ### Fixed
 - `FieldsPlugin` no longer drops text when a query contains two or more
   consecutive `word:` runs that don't name a real field. `do_fieldnames`
