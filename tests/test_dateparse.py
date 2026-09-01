@@ -577,3 +577,78 @@ def test_disambiguated_default_basedate():
         adatetime(year=1970, month=10), adatetime(month=12, day=8)
     ).disambiguated(bd)
     assert d2.end.year == 2020
+
+
+#
+# Regression tests for issue #161: DateParser.date_from overrides must apply
+# to bracketed range bounds, not just single/keyword values.
+#
+
+
+def _make_qp(dateparser):
+    from whoosh.fields import DATETIME, ID, Schema
+    from whoosh.qparser import QueryParser
+    from whoosh.qparser.dateparse import DateParserPlugin
+
+    schema = Schema(id=ID(stored=True), added=DATETIME)
+    qp = QueryParser("id", schema)
+    qp.add_plugin(
+        DateParserPlugin(
+            basedate=datetime(2020, 1, 1, tzinfo=timezone.utc),
+            dateparser=dateparser,
+        )
+    )
+    return qp
+
+
+def test_161_seam_override_runs_for_range_bounds():
+    """An override that adopts the disambiguate seam runs for both bounds."""
+    calls = []
+
+    class SeamParser(English):
+        def date_from(self, text, basedate=None, **kwargs):
+            calls.append(text)
+            return super().date_from(text, basedate, **kwargs)
+
+    qp = _make_qp(SeamParser())
+
+    calls.clear()
+    qp.parse("added:2020-06-15")
+    assert calls == ["2020-06-15"]
+
+    calls.clear()
+    qp.parse("added:[2020-06-15 to 2020-07-15]")
+    assert calls == ["2020-06-15", "2020-07-15"]
+
+
+def test_161_legacy_override_falls_back_without_error():
+    """A pre-seam fixed-signature override must not raise on range bounds."""
+    calls = []
+
+    class LegacyParser(English):
+        def date_from(self, text, basedate=None, pos=0, debug=-9999, toend=True):
+            calls.append(text)
+            return super().date_from(
+                text, basedate, pos=pos, debug=debug, toend=toend
+            )
+
+    qp = _make_qp(LegacyParser())
+
+    calls.clear()
+    # Must parse without TypeError; legacy overrides keep pre-#161 behavior
+    # (invoked for single values, bypassed for bounds via the raw-grammar
+    # fallback), but crucially they do not break.
+    q = qp.parse("added:[2020-06-15 to 2020-07-15]")
+    assert q is not None
+    assert calls == []
+
+
+def test_161_range_semantics_unchanged_for_base_parser():
+    """The base DateParser produces the same span as before the seam."""
+    qp = _make_qp(English())
+    q = qp.parse("added:[2020-06-15 to 2020-07-15]")
+    # start floored to the day, end ceiled to the day
+    assert q.startdate == datetime(2020, 6, 15, 0, 0, 0, 0, tzinfo=timezone.utc)
+    assert q.enddate == datetime(
+        2020, 7, 15, 23, 59, 59, 999999, tzinfo=timezone.utc
+    )

@@ -6,6 +6,22 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Fixed
+- `DateParser.date_from` overrides are now honored for bracketed range bounds,
+  not just single/keyword values (#161). Previously `DateParserPlugin.range_to_dt`
+  reached past the configured parser to the bare grammar object, so any
+  customization a `DateParser` subclass added in its own `date_from` (timezone
+  normalization, clamping, logging, …) applied to `added:2020-06-15` but was
+  silently skipped for both bounds of `added:[2020-06-15 TO 2020-07-15]`.
+  Bound parsing now routes through `DateParser.date_from` via a new
+  `disambiguate=False` seam that preserves the "parse each bound raw,
+  disambiguate the whole span together" contract `range_to_dt` depends on.
+  Overrides predating the seam (a fixed signature without `disambiguate`/
+  `**kwargs`) fall back to the previous raw-grammar path, so they keep working
+  unchanged rather than raising. Surfaced by the differential test suite of
+  [`stumpylog/whoosh-compat`](https://github.com/stumpylog/whoosh-compat)
+  (`DIVERGENCES.md`, entry 12) — thanks for the careful cross-checking.
+
 ## [3.49.1] - 2026-08-29
 
 ### Fixed

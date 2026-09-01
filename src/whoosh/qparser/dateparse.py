@@ -25,6 +25,7 @@
 # those of the authors and should not be interpreted as representing official
 # policies, either expressed or implied, of Matt Chaput.
 
+import inspect
 import re
 import sys
 from datetime import datetime, timedelta, timezone
@@ -652,7 +653,20 @@ class DateParser:
 
         return (d, newpos)
 
-    def date_from(self, text, basedate=None, pos=0, debug=-9999, toend=True):
+    def date_from(
+        self, text, basedate=None, pos=0, debug=-9999, toend=True, disambiguate=True
+    ):
+        """Parse ``text`` into an ``adatetime``/``timespan``/``datetime``.
+
+        :param toend: wrap the grammar in :class:`ToEnd` so the whole string
+            must be consumed (the default for single values).
+        :param disambiguate: when true (default) resolve the parsed result
+            against ``basedate`` before returning. Range-bound parsing passes
+            ``disambiguate=False`` so the raw bounds can be disambiguated
+            together as a span (see ``DateParserPlugin.range_to_dt``);
+            subclasses that override ``date_from`` should forward this flag so
+            their customization applies to range bounds too (issue #161).
+        """
         if basedate is None:
             basedate = datetime.now(tz=timezone.utc)
 
@@ -661,7 +675,7 @@ class DateParser:
             parser = ToEnd(parser)
 
         d = parser.date_from(text, basedate, pos=pos, debug=debug)
-        if isinstance(d, (adatetime, timespan)):
+        if disambiguate and isinstance(d, (adatetime, timespan)):
             d = d.disambiguated(basedate)
         return d
 
@@ -859,16 +873,45 @@ class DateParserPlugin(plugins.Plugin):
         n.endchar = node.endchar
         return n
 
+    def _bound_from(self, text):
+        """Parse a single range bound.
+
+        Routes through the configured ``DateParser.date_from`` (rather than the
+        bare grammar) so that subclass overrides — tz normalization, clamping,
+        logging, … — apply to range bounds as well as single values (issue
+        #161). The ``disambiguate=False``/``toend=False`` seam preserves the
+        "parse each bound raw, disambiguate the whole span later" contract that
+        :meth:`range_to_dt` relies on.
+
+        Overrides that predate this seam (a fixed signature without
+        ``disambiguate``/``**kwargs``) can't accept the flag; for those we fall
+        back to the pre-#161 raw-grammar path so they keep working unchanged
+        rather than raising ``TypeError``.
+        """
+        date_from = self.dateparser.date_from
+        try:
+            params = inspect.signature(date_from).parameters
+            supports_seam = "disambiguate" in params or any(
+                p.kind == inspect.Parameter.VAR_KEYWORD for p in params.values()
+            )
+        except (TypeError, ValueError):
+            supports_seam = False
+
+        if supports_seam:
+            return date_from(
+                text, self.basedate, toend=False, disambiguate=False
+            )
+        return self.dateparser.get_parser().date_from(text, self.basedate)
+
     def range_to_dt(self, node):
         start = end = None
-        dp = self.dateparser.get_parser()
 
         if node.start:
-            start = dp.date_from(node.start, self.basedate)
+            start = self._bound_from(node.start)
             if start is None:
                 return self.errorize(node.start, node)
         if node.end:
-            end = dp.date_from(node.end, self.basedate)
+            end = self._bound_from(node.end)
             if end is None:
                 return self.errorize(node.end, node)
 
