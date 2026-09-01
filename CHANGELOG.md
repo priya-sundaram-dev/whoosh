@@ -6,6 +6,8 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.49.2] - 2026-09-01
+
 ### Fixed
 - `DateParser.date_from` overrides are now honored for bracketed range bounds,
   not just single/keyword values (#161). Previously `DateParserPlugin.range_to_dt`
