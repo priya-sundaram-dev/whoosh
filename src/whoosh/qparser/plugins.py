@@ -384,6 +384,21 @@ class FieldsPlugin(TaggingPlugin):
     def filters(self, parser):
         return [(self.do_fieldnames, 100)]
 
+    @staticmethod
+    def _merge_field_nodes(field_nodes):
+        """Convert a run of one or more rejected ``FieldnameNode``\\ s into a
+        single word node carrying all of their literal text, with a span that
+        covers the whole run (first candidate's start to last candidate's
+        end).
+        """
+        word = syntax.to_word(field_nodes[0])
+        if len(field_nodes) > 1:
+            word.text = "".join(fn.original for fn in field_nodes)
+            last = field_nodes[-1]
+            if getattr(last, "endchar", None) is not None:
+                word.endchar = last.endchar
+        return word
+
     def do_fieldnames(self, parser, group):
         """This filter finds FieldnameNodes in the tree and applies their
         fieldname to the next node.
@@ -396,24 +411,40 @@ class FieldsPlugin(TaggingPlugin):
             # to text
             schema = parser.schema
             newgroup = group.empty_copy()
-            prev_field_node = None
+            # Collect *all* consecutive field nodes that don't name a real
+            # field, not just the most recent one. A single reference here
+            # used to be overwritten by each new rejected candidate, so in a
+            # run like "aa:bb:cc" (neither ``aa`` nor ``bb`` a field) the
+            # earlier candidate's text was silently dropped instead of folded
+            # back in with the rest.
+            prev_field_nodes = []
 
             for node in group:
                 if isinstance(node, fnclass) and node.fieldname not in schema:
-                    prev_field_node = node
+                    prev_field_nodes.append(node)
                     continue
-                elif prev_field_node:
-                    # If prev_field_node is not None, it contains a field node
-                    # that appeared before this node but isn't in the schema,
-                    # so we'll convert it to text here
+                elif prev_field_nodes:
+                    # prev_field_nodes holds one or more field nodes that
+                    # appeared before this node but aren't in the schema, so
+                    # we convert them back to their literal text here.
+                    original = "".join(fn.original for fn in prev_field_nodes)
                     if node.has_text:
-                        node.text = prev_field_node.original + node.text
+                        node.text = original + node.text
+                        # Widen the surviving node's span back to the first
+                        # folded candidate's start so endchar - startchar
+                        # keeps matching len(text).
+                        first = prev_field_nodes[0]
+                        if (
+                            getattr(first, "startchar", None) is not None
+                            and getattr(node, "startchar", None) is not None
+                        ):
+                            node.startchar = first.startchar
                     else:
-                        newgroup.append(syntax.to_word(prev_field_node))
-                    prev_field_node = None
+                        newgroup.append(self._merge_field_nodes(prev_field_nodes))
+                    prev_field_nodes = []
                 newgroup.append(node)
-            if prev_field_node:
-                newgroup.append(syntax.to_word(prev_field_node))
+            if prev_field_nodes:
+                newgroup.append(self._merge_field_nodes(prev_field_nodes))
             group = newgroup
 
         newgroup = group.empty_copy()

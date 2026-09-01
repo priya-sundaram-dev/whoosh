@@ -7,6 +7,20 @@ All notable changes to this project are documented here. This project follows
 ## [Unreleased]
 
 ### Fixed
+- `FieldsPlugin` no longer drops text when a query contains two or more
+  consecutive `word:` runs that don't name a real field. `do_fieldnames`
+  tracked only the most recently seen rejected candidate, so in a run like
+  `aa:bb:cc` (neither `aa` nor `bb` a field) the first candidate's text was
+  silently discarded and the query collapsed to `bb:cc`, with the user's
+  `aa:` gone without a trace. All consecutive rejected candidates are now
+  accumulated in order before being folded back onto the following term.
+  The same change fixes a companion span bug: after a demoted candidate was
+  merged into the surviving node's text, that node's `startchar` still
+  pointed at its own original position, so `endchar - startchar` no longer
+  matched `len(text)`; the span is now widened to cover the whole merged
+  run. Surfaced by the differential test suite of
+  [`stumpylog/whoosh-compat`](https://github.com/stumpylog/whoosh-compat)
+  (`DIVERGENCES.md`, entry 57).
 - `RangePlugin` now recognizes the `TO` range separator only as a whole word,
   never inside an adjacent token. The tagger's regex matched a bare `[Tt][Oo]`
   with no word-boundary requirement, so the "to" that *starts* an end value
