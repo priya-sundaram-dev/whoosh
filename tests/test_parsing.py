@@ -1000,6 +1000,39 @@ def test_fieldname_fieldname():
     assert q == query.Term("a", "b:")
 
 
+def test_consecutive_unknown_fieldnames():
+    # Regression: a run of two or more consecutive "word:" candidates that
+    # don't name a real field must keep *all* of their text. The demotion
+    # filter used to track only the most recent candidate, so in "aa:bb:cc"
+    # the first ("aa:") was silently dropped and the query became just
+    # bb:cc. Surfaced by stumpylog/whoosh-compat's differential suite
+    # (entry 57).
+    schema = fields.Schema(title=fields.TEXT, content=fields.TEXT)
+    qp = default.QueryParser("content", schema)
+
+    q = qp.parse("aa:bb:cc")
+    assert q == query.And(
+        [
+            query.Term("content", "aa"),
+            query.Term("content", "bb"),
+            query.Term("content", "cc"),
+        ]
+    )
+
+    # A recognized field name in the run stops it on both sides.
+    assert qp.parse("zzz:title:cd") == query.And(
+        [query.Term("content", "zzz"), query.Term("title", "cd")]
+    )
+
+    # Companion span bug: the surviving node's span must cover exactly its
+    # own (merged) text.
+    p = default.QueryParser("content", schema)
+    ns = p.process("aa:bb:cc")
+    word = ns[0]
+    assert word.text == "aa:bb:cc"
+    assert word.endchar - word.startchar == len(word.text)
+
+
 def test_paren_fieldname():
     schema = fields.Schema(kind=fields.ID, content=fields.TEXT)
 
