@@ -1206,9 +1206,7 @@ def test_quoted_value_on_self_parsing_fields():
     # BOOLEAN value crashed ("field has no analyzer") and a quoted NUMERIC
     # value silently produced a raw-string term that could never match.
     # (whoosh-compat DIVERGENCES entry 38.)
-    schema = fields.Schema(
-        text=fields.TEXT, flag=fields.BOOLEAN, num=fields.NUMERIC
-    )
+    schema = fields.Schema(text=fields.TEXT, flag=fields.BOOLEAN, num=fields.NUMERIC)
     qp = default.QueryParser("text", schema)
 
     # BOOLEAN: quoted value no longer raises and coerces to a boolean term,
