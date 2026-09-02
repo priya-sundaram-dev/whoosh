@@ -392,9 +392,16 @@ class Wildcard(PatternQuery):
         if "*" not in text and "?" not in text:
             # If no wildcard chars, convert to a normal term.
             return Term(self.fieldname, self.text, boost=self.boost)
-        elif "?" not in text and text.endswith("*") and text.find("*") == len(text) - 1:
+        elif (
+            "?" not in text
+            and "[" not in text
+            and text.endswith("*")
+            and text.find("*") == len(text) - 1
+        ):
             # If the only wildcard char is an asterisk at the end, convert to a
-            # Prefix query.
+            # Prefix query. A "[" would begin a character class (it is in
+            # SPECIAL_CHARS), so a pattern like "202[0-3]*" must stay a Wildcard
+            # rather than fold to the literal prefix "202[0-3]".
             return Prefix(self.fieldname, self.text[:-1], boost=self.boost)
         else:
             return self

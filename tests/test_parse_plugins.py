@@ -271,6 +271,30 @@ def test_prefix_plugin():
         assert len(r) == 1
 
 
+def test_wildcard_plugin_keeps_bracket_class_before_trailing_star():
+    # gh: WildcardPlugin.do_wildcards folded any trailing-star pattern to a
+    # PrefixNode after only checking for "?" -- so "202[0-3]*" collapsed to the
+    # literal prefix "202[0-3]", destroying the character class. It must stay a
+    # Wildcard so the class matches.
+    schema = fields.Schema(title=fields.ID(stored=True))
+    ix = RamStorage().create_index(schema)
+    w = ix.writer()
+    for t in ("2019x", "2020x", "2021x", "2023x", "2025x", "202z"):
+        w.add_document(title=t)
+    w.commit()
+
+    with ix.searcher() as s:
+        qp = qparser.QueryParser("title", schema)
+        q = qp.parse("202[0-3]*")
+        assert q.__class__ is query.Wildcard
+        assert q.text == "202[0-3]*"
+        hits = sorted(h["title"] for h in s.search(q, limit=None))
+        assert hits == ["2020x", "2021x", "2023x"]
+
+        # A plain trailing star still folds to a Prefix.
+        assert qp.parse("202*").__class__ is query.Prefix
+
+
 def test_custom_tokens():
     qp = qparser.QueryParser("text", None)
     qp.remove_plugin_class(plugins.OperatorsPlugin)
