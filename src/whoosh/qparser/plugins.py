@@ -705,6 +705,24 @@ class FunctionPlugin(TaggingPlugin):
         return newgroup
 
 
+def _is_atomic_self_parsing(field) -> bool:
+    """Return True for self-parsing fields whose value is a single atomic
+    token (BOOLEAN, NUMERIC, DATETIME, ...), for which a double-quoted value
+    should be handed to ``parse_query`` rather than tokenized as a phrase.
+
+    N-gram fields are self-parsing but genuinely split their input into
+    tokens, so they are excluded: the distinguishing signal is that atomic
+    fields have no analyzer, or an identity (``IDTokenizer``) analyzer that
+    yields the whole string back unchanged.
+    """
+    from whoosh.analysis.tokenizers import IDTokenizer
+
+    if not field.self_parsing():
+        return False
+    analyzer = getattr(field, "analyzer", None)
+    return analyzer is None or isinstance(analyzer, IDTokenizer)
+
+
 class PhrasePlugin(Plugin):
     """Adds the ability to specify phrase queries inside double quotes."""
 
@@ -746,6 +764,21 @@ class PhrasePlugin(Plugin):
             sc = self.textstartchar
             if parser.schema and fieldname in parser.schema:
                 field = parser.schema[fieldname]
+                if _is_atomic_self_parsing(field):
+                    # Atomic self-parsing fields (BOOLEAN, NUMERIC, DATETIME,
+                    # ...) treat the whole value as one token and interpret it
+                    # themselves rather than splitting it into free-text words.
+                    # A double-quoted value is not a meaningful phrase for such
+                    # a field, so route it through ``parse_query`` exactly like
+                    # the unquoted/single-quoted form. Without this, a quoted
+                    # value either crashed (BOOLEAN has no analyzer) or silently
+                    # produced a wrong query (e.g. NUMERIC ``n:"42"`` yielded the
+                    # raw string ``"42"`` instead of the encoded numeric term).
+                    # N-gram fields are self-parsing too but genuinely tokenize
+                    # their input, so they keep the phrase path below.
+                    return attach(
+                        field.parse_query(fieldname, text, boost=self.boost), self
+                    )
                 if field.analyzer:
                     # We have a field with an analyzer, so use it to parse
                     # the phrase into tokens

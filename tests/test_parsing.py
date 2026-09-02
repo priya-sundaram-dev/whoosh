@@ -1197,3 +1197,45 @@ def test_multitoken_with_factory():
 
     querystring = "get my name/address"
     _ = qp.parse(querystring)
+
+
+def test_quoted_value_on_self_parsing_fields():
+    # A double-quoted value on a self-parsing "atomic" field (BOOLEAN,
+    # NUMERIC, DATETIME) must be handed to the field's own parse_query,
+    # exactly like the unquoted/single-quoted form. Before this fix a quoted
+    # BOOLEAN value crashed ("field has no analyzer") and a quoted NUMERIC
+    # value silently produced a raw-string term that could never match.
+    # (whoosh-compat DIVERGENCES entry 38.)
+    schema = fields.Schema(
+        text=fields.TEXT, flag=fields.BOOLEAN, num=fields.NUMERIC
+    )
+    qp = default.QueryParser("text", schema)
+
+    # BOOLEAN: quoted value no longer raises and coerces to a boolean term,
+    # matching the unquoted form.
+    for qs in ('flag:""', 'flag:"true"', 'flag:"false"', 'flag:"t*"'):
+        q = qp.parse(qs)
+        assert q.__class__ == query.Term
+        assert q.fieldname == "flag"
+        assert isinstance(q.text, bool)
+    assert qp.parse('flag:"true"').text is True
+    assert qp.parse('flag:"false"').text is False
+
+    # NUMERIC: a quoted value encodes to the same term as the unquoted and
+    # single-quoted forms, instead of the raw string "42".
+    quoted = qp.parse('num:"42"')
+    unquoted = qp.parse("num:42")
+    single = qp.parse("num:'42'")
+    assert quoted.__class__ == query.Term
+    assert quoted.text == unquoted.text == single.text
+    assert quoted.text != "42"
+
+
+def test_quoted_value_on_ngram_fields_still_phrases():
+    # N-gram fields are self-parsing too, but genuinely tokenize their input,
+    # so a double-quoted value must keep producing a Phrase (not be routed to
+    # parse_query). Guards against over-broadening the fix above.
+    schema = fields.Schema(g=fields.NGRAM, gw=fields.NGRAMWORDS)
+    qp = default.QueryParser("g", schema)
+    assert qp.parse('g:"web3d"').__class__ == query.Phrase
+    assert qp.parse('gw:"web 3d"').__class__ == query.Phrase

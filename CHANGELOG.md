@@ -6,6 +6,23 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.49.6] - 2026-09-02
+
+### Fixed
+- A double-quoted value on a self-parsing "atomic" field (`BOOLEAN`,
+  `NUMERIC`, `DATETIME`, …) is now handed to the field's own `parse_query`,
+  exactly like the unquoted and single-quoted forms, instead of being
+  tokenized as free text. Previously `PhrasePlugin` sent the quoted text
+  through the field's analyzer: a `BOOLEAN` field has none, so `flag:"true"`
+  raised a bare `Exception: … field has no analyzer`, and a `NUMERIC` field's
+  identity analyzer produced the raw string term `num:"42"` → `Term("num",
+  "42")` that could never match the encoded numeric value (`num:42` and
+  `num:'42'` both worked). N-gram fields (`NGRAM`/`NGRAMWORDS`) are
+  self-parsing too but genuinely tokenize their input, so they keep producing
+  `Phrase` queries. Mirrors
+  [`stumpylog/whoosh-compat`](https://github.com/stumpylog/whoosh-compat)
+  (`DIVERGENCES.md`, entry 38).
+
 ## [3.49.5] - 2026-09-02
 
 ### Fixed
