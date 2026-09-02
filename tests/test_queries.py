@@ -237,6 +237,16 @@ def test_merge_ranges():
     assert q.normalize() == Every("f1")
 
 
+def test_wildcard_trailing_star_bracket_class_not_folded():
+    # gh: a trailing-star wildcard whose prefix contains a "[" character class
+    # must NOT fold to a Prefix query -- doing so silently drops the class body.
+    # "[" is one of Wildcard.SPECIAL_CHARS, so "202[0-3]*" stays a Wildcard.
+    q = Wildcard("title", "202[0-3]*")
+    assert q.normalize() == q
+    # A plain trailing star (no class) still folds to a Prefix.
+    assert Wildcard("title", "abc*").normalize() == Prefix("title", "abc")
+
+
 def test_normalize_compound():
     def oq():
         return Or([Term("a", "a"), Term("a", "b")])

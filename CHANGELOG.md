@@ -6,6 +6,24 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.49.5] - 2026-09-02
+
+### Fixed
+- A trailing-star wildcard whose prefix contains a `[` character class no
+  longer folds to a `Prefix` query, which silently dropped the class body.
+  `[` is one of `Wildcard.SPECIAL_CHARS` (`"*?["`), but both fold sites —
+  `Wildcard.normalize()` (`whoosh/query/terms.py`) and
+  `WildcardPlugin.do_wildcards` (`whoosh/qparser/plugins.py`) — only tested
+  for `*`/`?` before rewriting `text*` to `Prefix(text)`. A pattern like
+  `202[0-3]*` therefore collapsed to the literal prefix `202[0-3]`, matching
+  nothing instead of `2020`–`2023`. Both sites now keep such a pattern a
+  `Wildcard`; a plain trailing star with no class (`abc*`) still folds to a
+  `Prefix` as before. Mirrors paperless-ngx issue
+  [#13568](https://github.com/paperless-ngx/paperless-ngx/issues/13568) and
+  the differential test suite of
+  [`stumpylog/whoosh-compat`](https://github.com/stumpylog/whoosh-compat)
+  (`DIVERGENCES.md`, entry 13).
+
 ## [3.49.4] - 2026-09-01
 
 ### Fixed

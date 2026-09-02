@@ -173,7 +173,11 @@ class WildcardPlugin(TaggingPlugin):
             node = group[i]
             if isinstance(node, self.WildcardNode):
                 text = node.text
-                if len(text) > 1 and not any(qm in text for qm in self.qmarks):
+                if (
+                    len(text) > 1
+                    and "[" not in text
+                    and not any(qm in text for qm in self.qmarks)
+                ):
                     if text.find("*") == len(text) - 1:
                         newnode = PrefixPlugin.PrefixNode(text[:-1])
                         newnode.startchar = node.startchar
