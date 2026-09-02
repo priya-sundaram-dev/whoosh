@@ -1,3 +1,4 @@
+import threading
 from itertools import permutations
 
 from whoosh import analysis, fields, formats
@@ -7,25 +8,37 @@ from whoosh.util.testing import TempIndex
 
 domain = ("alfa", "bravo", "bravo", "charlie", "delta", "echo")
 _ix = None
+_ix_lock = threading.Lock()
 
 
 def get_index():
+    # The shared index is built lazily and cached. Guard the build with a lock
+    # so that, under free-threaded/parallel test runners, concurrent callers do
+    # not both enter the builder (which previously raced on the segment TOC,
+    # e.g. "File '_MAIN_1.toc' exists") or observe a half-committed index.
     global _ix
 
     if _ix is not None:
         return _ix
 
-    charfield = fields.FieldType(
-        formats.Characters(), analysis.SimpleAnalyzer(), scorable=True, stored=True
-    )
-    schema = fields.Schema(text=charfield)
-    st = RamStorage()
-    _ix = st.create_index(schema)
+    with _ix_lock:
+        if _ix is not None:
+            return _ix
 
-    w = _ix.writer()
-    for ls in permutations(domain, 4):
-        w.add_document(text=" ".join(ls), _stored_text=ls)
-    w.commit()
+        charfield = fields.FieldType(
+            formats.Characters(), analysis.SimpleAnalyzer(), scorable=True, stored=True
+        )
+        schema = fields.Schema(text=charfield)
+        st = RamStorage()
+        ix = st.create_index(schema)
+
+        w = ix.writer()
+        for ls in permutations(domain, 4):
+            w.add_document(text=" ".join(ls), _stored_text=ls)
+        w.commit()
+
+        # Publish only after the index is fully built and committed.
+        _ix = ix
 
     return _ix
 
