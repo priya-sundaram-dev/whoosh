@@ -84,7 +84,7 @@ class ParserBase:
         else:
             return e
 
-    def parse(self, text, dt, pos=0, debug=-9999):
+    def parse(self, text: str, dt, pos: int = 0, debug=-9999):
         raise NotImplementedError
 
     def date_from(self, text, dt=None, pos=0, debug=-9999):
@@ -135,7 +135,7 @@ class Sequence(MultiBase):
             self.sep_expr = None
         self.progressive = progressive
 
-    def parse(self, text, dt, pos=0, debug=-9999):
+    def parse(self, text: str, dt, pos: int = 0, debug=-9999):
         d = adatetime()
         first = True
         foundall = False
@@ -230,7 +230,7 @@ class Combo(Sequence):
         self.min = min
         self.max = max
 
-    def parse(self, text, dt, pos=0, debug=-9999):
+    def parse(self, text: str, dt, pos: int = 0, debug=-9999):
         dates = []
         first = True
 
@@ -286,7 +286,7 @@ class Combo(Sequence):
 class Choice(MultiBase):
     """Returns the date from the first of its sub-elements that matches."""
 
-    def parse(self, text, dt, pos=0, debug=-9999):
+    def parse(self, text: str, dt, pos: int = 0, debug=-9999):
         print_debug(debug, "Choice %s text=%r", self.name, text[pos:])
         for e in self.elements:
             print_debug(debug, "Choice %s trying=%r", self.name, e)
@@ -338,7 +338,7 @@ class Bag(MultiBase):
         self.allof = allof
         self.anyof = anyof
 
-    def parse(self, text, dt, pos=0, debug=-9999):
+    def parse(self, text: str, dt, pos: int = 0, debug=-9999):
         first = True
         d = adatetime()
         seen = [False] * len(self.elements)
@@ -402,7 +402,7 @@ class Optional(ParserBase):
     def __repr__(self):
         return f"{self.__class__.__name__}({self.element!r})"
 
-    def parse(self, text, dt, pos=0, debug=-9999):
+    def parse(self, text: str, dt, pos: int = 0, debug=-9999):
         try:
             d, pos = self.element.parse(text, dt, pos, debug + 1)
         except TimeError:
@@ -425,7 +425,7 @@ class ToEnd(ParserBase):
     def __repr__(self):
         return f"{self.__class__.__name__}({self.element!r})"
 
-    def parse(self, text, dt, pos=0, debug=-9999):
+    def parse(self, text: str, dt, pos: int = 0, debug=-9999):
         try:
             d, pos = self.element.parse(text, dt, pos, debug + 1)
         except TimeError:
@@ -462,7 +462,7 @@ class Regex(ParserBase):
     def __repr__(self):
         return f"<{self.pattern!r}>"
 
-    def parse(self, text, dt, pos=0, debug=-9999):
+    def parse(self, text: str, dt, pos: int = 0, debug=-9999):
         m = self.expr.match(text, pos)
         if not m:
             return (None, None)
@@ -659,7 +659,7 @@ class DateParser:
     def get_parser(self):
         return self.all
 
-    def parse(self, text, dt, pos=0, debug=-9999):
+    def parse(self, text: str, dt, pos: int = 0, debug=-9999):
         parser = self.get_parser()
 
         d, newpos = parser.parse(text, dt, pos=pos, debug=debug)

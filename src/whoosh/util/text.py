@@ -130,8 +130,8 @@ def natural_key(s: str) -> tuple[int | str, ...]:
 
 
 def rcompile(
-    pattern: str | re.Pattern[Any], flags: int = 0, verbose: bool = False
-) -> re.Pattern[Any]:
+    pattern: str | re.Pattern[str], flags: int = 0, verbose: bool = False
+) -> re.Pattern[str]:
     """A wrapper for re.compile that checks whether "pattern" is a regex object
     or a string to be compiled, and automatically adds the re.UNICODE flag.
     """

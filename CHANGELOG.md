@@ -11,7 +11,11 @@ All notable changes to this project are documented here. This project follows
 - Typing: added parameter and return annotations to all public functions in
   `whoosh.util.text` (`byte`, `first_diff`, `prefix_encode`,
   `prefix_encode_all`, `prefix_decode_all`, `natural_key`, `rcompile`)
-  (gh#173, part of gh#121).
+  (gh#173, part of gh#121). `rcompile` now declares `re.Pattern[str]`, which
+  let the checker flag and fix the downstream `expression` parameters in
+  `whoosh.analysis.analyzers` (now `str | re.Pattern[str]`, matching the
+  tokenizers) and the `text`/`pos` parameters of the `whoosh.qparser.dateparse`
+  parser classes.
 
 ## [3.49.7] - 2026-09-03
 
