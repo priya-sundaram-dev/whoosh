@@ -183,20 +183,24 @@ warn_unused_ignores = true
 [tool.ty]
 # TODO: Gradual typing: Revisit these ignores and remove them as the codebase is
 # incrementally typed (gh#121).  Instance counts are a dated snapshot (ty 0.0.74,
-# 2026-08-24) to help contributors pick a tractable rule to clear next -- the
-# single-instance ones (empty-body, parameter-already-assigned) are the
-# smallest starting points (invalid-ignore-comment was cleared in gh#144).  Re-run
+# 2026-09-03) to help contributors pick a tractable rule to clear next; re-run
 # `ty check src/whoosh` with a rule flipped to "warn" to get a fresh count.
+# Note (gh#121): the two smallest rules are dominated by ty limitations, not real
+# bugs -- `missing-argument` is almost entirely bound-method aliasing
+# (`f = self.meth; f(...)`) and `not-subscriptable` is Optional attributes set to
+# None in __init__ then reassigned.  Clearing those means broad annotation work or
+# per-line ignores rather than quick fixes; `invalid-ignore-comment` (cleared in
+# gh#144) and the empty-body/parameter-already-assigned rules were the easy wins.
 rules.call-non-callable = "ignore"  # 20 instances
-rules.invalid-argument-type = "ignore"  # 30 instances
-rules.invalid-assignment = "ignore"  # 21 instances
-rules.invalid-method-override = "ignore"  # 131 instances
-rules.missing-argument = "ignore"  # 12 instances
-rules.not-subscriptable = "ignore"  # 15 instances
-rules.too-many-positional-arguments = "ignore"  # 27 instances
-rules.unresolved-attribute = "ignore"  # 347 instances
-rules.unresolved-import = "ignore"  # 29 instances
-rules.unsupported-operator = "ignore"  # 27 instances
+rules.invalid-argument-type = "ignore"  # 39 instances
+rules.invalid-assignment = "ignore"  # 26 instances
+rules.invalid-method-override = "ignore"  # 139 instances
+rules.missing-argument = "ignore"  # 14 instances (mostly bound-method aliasing, see note)
+rules.not-subscriptable = "ignore"  # 15 instances (mostly Optional-None attrs, see note)
+rules.too-many-positional-arguments = "ignore"  # 26 instances
+rules.unresolved-attribute = "ignore"  # 345 instances
+rules.unresolved-import = "ignore"  # 45 instances
+rules.unsupported-operator = "ignore"  # 26 instances
 
 [tool.pytest]
 # ==========================================================================
