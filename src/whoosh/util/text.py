@@ -25,8 +25,12 @@
 # those of the authors and should not be interpreted as representing official
 # policies, either expressed or implied, of Matt Chaput.
 
+from __future__ import annotations
+
 import codecs
 import re
+from collections.abc import Iterable, Iterator, Sequence
+from typing import Any
 
 # Note: these functions return a tuple of (text, length), so when you call
 # them, you have to add [0] on the end, e.g. str = utf8encode(unicode)[0]
@@ -38,11 +42,11 @@ utf8decode = codecs.getdecoder("utf-8")
 # Prefix encoding functions
 
 
-def byte(num):
+def byte(num: int) -> bytes:
     return bytes((num,))
 
 
-def first_diff(a, b):
+def first_diff(a: Sequence[Any], b: Sequence[Any]) -> int:
     """
     Returns the position of the first differing character in the sequences a
     and b. For example, first_diff('render', 'rending') == 4. This function
@@ -56,17 +60,20 @@ def first_diff(a, b):
     return i
 
 
-def prefix_encode(a, b):
+def prefix_encode(a: str | bytes, b: str | bytes) -> bytes:
     """
     Compresses bytestring b as a byte representing the prefix it shares with a,
     followed by the suffix bytes.
     """
-
+    if isinstance(a, str):
+        a = a.encode("utf-8")
+    if isinstance(b, str):
+        b = b.encode("utf-8")
     i = first_diff(a, b)
     return byte(i) + b[i:]
 
 
-def prefix_encode_all(ls):
+def prefix_encode_all(ls: Iterable[str]) -> Iterator[bytes]:
     """Compresses the given list of (unicode) strings by storing each string
     (except the first one) as an integer (encoded in a byte) representing
     the prefix it shares with its predecessor, followed by the suffix encoded
@@ -76,16 +83,16 @@ def prefix_encode_all(ls):
     last = ""
     for w in ls:
         i = first_diff(last, w)
-        yield chr(i) + w[i:].encode("utf-8")
+        yield byte(i) + w[i:].encode("utf-8")
         last = w
 
 
-def prefix_decode_all(ls):
+def prefix_decode_all(ls: Iterable[bytes]) -> Iterator[str]:
     """Decompresses a list of strings compressed by prefix_encode()."""
 
     last = ""
     for w in ls:
-        i = ord(w[0])
+        i = ord(w[0]) if isinstance(w[0], str) else w[0]
         decoded = last[:i] + w[1:].decode("utf-8")
         yield decoded
         last = decoded
@@ -96,14 +103,14 @@ def prefix_decode_all(ls):
 _nkre = re.compile(r"\D+|\d+", re.UNICODE)
 
 
-def _nkconv(i):
+def _nkconv(i: str) -> int | str:
     try:
         return int(i)
     except ValueError:
         return i.lower()
 
 
-def natural_key(s):
+def natural_key(s: str) -> tuple[int | str, ...]:
     """Converts string ``s`` into a tuple that will sort "naturally" (i.e.,
     ``name5`` will come before ``name10`` and ``1`` will come before ``A``).
     This function is designed to be used as the ``key`` argument to sorting
@@ -122,7 +129,9 @@ def natural_key(s):
 # Regular expression functions
 
 
-def rcompile(pattern, flags=0, verbose=False):
+def rcompile(
+    pattern: str | re.Pattern[str], flags: int = 0, verbose: bool = False
+) -> re.Pattern[str]:
     """A wrapper for re.compile that checks whether "pattern" is a regex object
     or a string to be compiled, and automatically adds the re.UNICODE flag.
     """

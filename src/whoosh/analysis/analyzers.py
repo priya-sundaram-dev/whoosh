@@ -27,6 +27,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -170,7 +171,9 @@ def RegexAnalyzer(expression: str = r"\w+(\.?\w+)*", gaps: bool = False) -> Comp
     return RegexTokenizer(expression=expression, gaps=gaps)
 
 
-def SimpleAnalyzer(expression: str = default_pattern, gaps: bool = False) -> Analyzer:
+def SimpleAnalyzer(
+    expression: str | re.Pattern[str] = default_pattern, gaps: bool = False
+) -> Analyzer:
     """Composes a RegexTokenizer with a LowercaseFilter.
 
     >>> ana = SimpleAnalyzer()
@@ -186,7 +189,7 @@ def SimpleAnalyzer(expression: str = default_pattern, gaps: bool = False) -> Ana
 
 
 def StandardAnalyzer(
-    expression: str = default_pattern,
+    expression: str | re.Pattern[str] = default_pattern,
     stoplist: Collection[str] | None = STOP_WORDS,
     minsize: int = 2,
     maxsize: int | None = None,
@@ -216,7 +219,7 @@ def StandardAnalyzer(
 
 
 def StemmingAnalyzer(
-    expression: str = default_pattern,
+    expression: str | re.Pattern[str] = default_pattern,
     stoplist: Collection[str] | None = STOP_WORDS,
     minsize: int = 2,
     maxsize: int | None = None,
@@ -253,7 +256,7 @@ def StemmingAnalyzer(
 
 
 def CJKAnalyzer(
-    expression: str = default_pattern,
+    expression: str | re.Pattern[str] = default_pattern,
     stoplist: Collection[str] | None = STOP_WORDS,
     gaps: bool = False,
 ) -> Analyzer:
@@ -332,7 +335,7 @@ def FancyAnalyzer(
 
 def LanguageAnalyzer(
     lang: str,
-    expression: str = default_pattern,
+    expression: str | re.Pattern[str] = default_pattern,
     gaps: bool = False,
     cachesize: int | None = 50000,
 ) -> Analyzer:
