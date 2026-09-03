@@ -360,6 +360,69 @@ def test_open_numeric_ranges():
         assert r == [n for n in domain if n <= 500]
 
 
+def test_numeric_range_small_bounds_match_only_in_range():
+    # Regression guard for a genuine correctness bug in the original Whoosh's
+    # NumericRange matching, surfaced by stumpylog/whoosh-compat's differential
+    # suite (DIVERGENCES entry 41): a numeric range touching a small-magnitude
+    # bound (e.g. ``asn:[N TO N]`` for small N), or an ordinary inclusive /
+    # exclusive range whose upper bound crosses a Lucene-style precision-step
+    # tier boundary (``127 == 2**7 - 1``), used to match *every* document
+    # regardless of any document's actual field value. whoosh3 returns only the
+    # documents genuinely in range; this test pins that so the defect can never
+    # regress back in.
+    schema = fields.Schema(asn=fields.NUMERIC(stored=True))
+    ix = RamStorage().create_index(schema)
+    w = ix.writer()
+    for v in (100, 101, 102, 103):  # nothing below 100
+        w.add_document(asn=v)
+    w.commit()
+
+    qp = qparser.QueryParser("asn", schema)
+    with ix.searcher() as s:
+
+        def matched(text):
+            return sorted(h["asn"] for h in s.search(qp.parse(text), limit=None))
+
+        # Small single-value ranges must match nothing, not everything.
+        for n in (0, 5, 10, 15, 20):
+            assert matched(f"asn:[{n} TO {n}]") == []
+        # A single-value range on a real value matches exactly that value.
+        assert matched("asn:[100 TO 100]") == [100]
+        # Inclusive and exclusive ranges crossing the 127 tier boundary stay exact.
+        assert matched("asn:[101 TO 127]") == [101, 102, 103]
+        assert matched("asn:{100 TO 127]") == [101, 102, 103]
+
+
+def test_not_of_nested_empty_group_matches_nothing():
+    # Regression guard for another original-Whoosh defect surfaced by
+    # stumpylog/whoosh-compat's differential suite (DIVERGENCES entry 40): a
+    # ``NOT`` wrapping a group that recursively collapses to empty (nested empty
+    # parens, a boost around one, or a nested ``NOT`` that itself collapses)
+    # matched *every* document in the original Whoosh at nesting depth two or
+    # deeper, an artifact of how its And/Not matchers handled a
+    # structurally-nonempty-but-semantically-empty operand. whoosh3 collapses the
+    # whole shape to a null query at every depth (0 documents), which is the
+    # predictable, consistent answer; pin it here.
+    schema = fields.Schema(content=fields.TEXT(stored=True))
+    ix = RamStorage().create_index(schema)
+    w = ix.writer()
+    for t in ("alpha", "beta", "gamma"):
+        w.add_document(content=t)
+    w.commit()
+
+    qp = qparser.QueryParser("content", schema)
+    with ix.searcher() as s:
+        for text in (
+            "NOT ()",
+            "NOT (())",
+            "NOT ((()))",
+            "NOT ((())^0.5)",
+            "NOT ((NOT ()))",
+        ):
+            r = s.search(qp.parse(text), limit=None)
+            assert len(r) == 0, f"{text!r} matched {len(r)} docs, expected 0"
+
+
 def test_open_date_ranges():
     basedate = datetime(2011, 1, 24, 6, 25, 0, 0, tzinfo=timezone.utc)
     domain = [basedate + timedelta(days=n) for n in range(-20, 20)]
