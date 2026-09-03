@@ -6,6 +6,8 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.49.7] - 2026-09-03
+
 ### Fixed
 
 - Date-range queries whose lower bound is a bare time of day and whose upper
