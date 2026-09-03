@@ -397,7 +397,14 @@ class timespan:
             start_dm = not (start.month is None and start.day is None)
             end_dm = not (end.month is None and end.day is None)
             if end_dm and not start_dm:
-                if start.floor().time() > end.ceil().time():
+                # ``start``/``end`` may already be concrete ``datetime`` objects
+                # here (for example when a bound resolves straight to an instant,
+                # such as ``now`` or a ``-1 week`` offset). Plain ``datetime`` has
+                # no ``floor``/``ceil`` methods, so route both sides through the
+                # module-level helpers, which pass a concrete ``datetime`` through
+                # unchanged. Calling ``start.floor()``/``end.ceil()`` directly
+                # raised ``AttributeError`` on such ranges (e.g. ``[noon TO now]``).
+                if floor(start).time() > ceil(end).time():
                     start.month = basedate.month
                     start.day = basedate.day
                 else:

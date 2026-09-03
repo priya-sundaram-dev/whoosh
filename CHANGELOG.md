@@ -6,6 +6,19 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Fixed
+
+- Date-range queries whose lower bound is a bare time of day and whose upper
+  bound resolves straight to a concrete instant — for example
+  `added:[noon TO now]` or `added:[noon TO -1 week]` — no longer crash the
+  parser with `AttributeError: 'datetime.datetime' object has no attribute
+  'ceil'`. The range-disambiguation step compared `start.floor().time()` with
+  `end.ceil().time()` by calling the `adatetime` methods directly, but a bound
+  that resolves to a plain `datetime` (like `now` or a relative offset) has no
+  such methods. Both sides now go through the module-level `floor()`/`ceil()`
+  helpers, which pass a concrete `datetime` through unchanged, so these
+  ordinary "time-of-day until a fixed instant" ranges resolve correctly.
+
 ### Changed
 
 - Typing: `DocIdSet.__eq__` now narrows its `object` argument to an
