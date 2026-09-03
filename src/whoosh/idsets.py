@@ -297,10 +297,14 @@ class DocIdSet:
     """
 
     def __eq__(self, other: object) -> bool:
-        # Equality is defined element-wise against any iterable of ints; the
-        # ``# type: ignore`` covers the intentionally broad ``object`` param
-        # required to override ``object.__eq__``.
-        for a, b in zip(self, other):  # type: ignore[call-overload]
+        # Equality is defined element-wise against any iterable of ints.
+        # ``other`` is typed ``object`` to satisfy the ``object.__eq__``
+        # override contract; narrow it to an iterable here rather than
+        # suppress the checker. Anything non-iterable is not comparable, so
+        # defer to the runtime (``NotImplemented`` -> identity fallback).
+        if not isinstance(other, Iterable):
+            return NotImplemented
+        for a, b in zip(self, other):
             if a != b:
                 return False
         return True

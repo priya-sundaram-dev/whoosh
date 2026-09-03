@@ -6,6 +6,16 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Changed
+
+- Typing: `DocIdSet.__eq__` now narrows its `object` argument to an
+  `Iterable` (returning `NotImplemented` for non-iterables, the correct
+  `__eq__` contract) instead of carrying a malformed
+  `# type: ignore[call-overload]` comment. Clears the last single-instance
+  `ty` rule (`invalid-ignore-comment`), which is dropped from the `[tool.ty]`
+  ignore list (gh#144, part of gh#121). Comparing an id set with a
+  non-iterable now returns `False` rather than raising `TypeError`.
+
 ## [3.49.6] - 2026-09-02
 
 ### Fixed

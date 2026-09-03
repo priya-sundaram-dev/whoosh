@@ -184,13 +184,12 @@ warn_unused_ignores = true
 # TODO: Gradual typing: Revisit these ignores and remove them as the codebase is
 # incrementally typed (gh#121).  Instance counts are a dated snapshot (ty 0.0.74,
 # 2026-08-24) to help contributors pick a tractable rule to clear next -- the
-# single-instance ones (empty-body, invalid-ignore-comment,
-# parameter-already-assigned) are the smallest starting points.  Re-run
+# single-instance ones (empty-body, parameter-already-assigned) are the
+# smallest starting points (invalid-ignore-comment was cleared in gh#144).  Re-run
 # `ty check src/whoosh` with a rule flipped to "warn" to get a fresh count.
 rules.call-non-callable = "ignore"  # 20 instances
 rules.invalid-argument-type = "ignore"  # 30 instances
 rules.invalid-assignment = "ignore"  # 21 instances
-rules.invalid-ignore-comment = "ignore"  # 1 instance
 rules.invalid-method-override = "ignore"  # 131 instances
 rules.missing-argument = "ignore"  # 12 instances
 rules.not-subscriptable = "ignore"  # 15 instances
