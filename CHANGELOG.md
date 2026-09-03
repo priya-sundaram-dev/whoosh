@@ -6,6 +6,13 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Changed
+
+- Typing: added parameter and return annotations to all public functions in
+  `whoosh.util.text` (`byte`, `first_diff`, `prefix_encode`,
+  `prefix_encode_all`, `prefix_decode_all`, `natural_key`, `rcompile`)
+  (gh#173, part of gh#121).
+
 ## [3.49.7] - 2026-09-03
 
 ### Fixed
