@@ -25,6 +25,8 @@
 # those of the authors and should not be interpreted as representing official
 # policies, either expressed or implied, of Matt Chaput.
 
+from __future__ import annotations
+
 import math
 import struct
 from array import array
@@ -101,7 +103,7 @@ def b(s):
     return s.encode("latin-1")
 
 
-def bits_required(maxnum):
+def bits_required(maxnum: int) -> int:
     """Returns the number of bits required to represent the given (unsigned)
     integer.
     """
@@ -109,7 +111,7 @@ def bits_required(maxnum):
     return max(1, math.ceil(math.log(maxnum, 2)))
 
 
-def typecode_required(maxnum):
+def typecode_required(maxnum: int) -> str:
     if maxnum < 256:
         return "B"
     elif maxnum < 2**16:
@@ -124,7 +126,7 @@ def typecode_required(maxnum):
         return "Q"
 
 
-def max_value(bitcount):
+def max_value(bitcount: int) -> int:
     """Returns the maximum (unsigned) integer representable in the given number
     of bits.
     """
@@ -132,7 +134,7 @@ def max_value(bitcount):
     return ~(~0 << bitcount)
 
 
-def bytes_for_bits(bitcount):
+def bytes_for_bits(bitcount: int) -> int:
     r = int(math.ceil((bitcount + 1) / 8.0))
     return r
 
@@ -147,16 +149,20 @@ _qpack, _qunpack = _qstruct.pack, _qstruct.unpack
 _dpack, _dunpack = _dstruct.pack, _dstruct.unpack
 
 
-def to_sortable(numtype, intsize, signed, x):
+def to_sortable(
+    numtype: type[int | float], intsize: int, signed: bool, x: float
+) -> int:
     if numtype is int:
         if signed:
             x += 1 << intsize - 1
-        return x
+        return int(x)
     else:
-        return float_to_sortable_long(x, signed)
+        return float_to_sortable_long(float(x), signed)
 
 
-def from_sortable(numtype, intsize, signed, x):
+def from_sortable(
+    numtype: type[int | float], intsize: int, signed: bool, x: int
+) -> int | float:
     if numtype is int:
         if signed:
             x -= 1 << intsize - 1
@@ -165,7 +171,7 @@ def from_sortable(numtype, intsize, signed, x):
         return sortable_long_to_float(x, signed)
 
 
-def float_to_sortable_long(x, signed):
+def float_to_sortable_long(x: float, signed: bool) -> int:
     x = _qunpack(_dpack(x))[0]
     if x < 0:
         x ^= 0x7FFFFFFFFFFFFFFF
@@ -175,7 +181,7 @@ def float_to_sortable_long(x, signed):
     return x
 
 
-def sortable_long_to_float(x, signed):
+def sortable_long_to_float(x: int, signed: bool) -> float:
     if signed:
         x -= 1 << 63
     if x < 0:
@@ -266,7 +272,7 @@ def tiered_ranges(numtype, intsize, signed, start, end, shift_step, startexcl, e
 # Float-to-byte encoding/decoding
 
 
-def float_to_byte(value, mantissabits=5, zeroexp=2):
+def float_to_byte(value: float, mantissabits: int = 5, zeroexp: int = 2) -> bytes:
     """Encodes a floating point number in a single byte."""
 
     # Assume int size == float size
@@ -289,7 +295,7 @@ def float_to_byte(value, mantissabits=5, zeroexp=2):
     return b(result)
 
 
-def byte_to_float(b, mantissabits=5, zeroexp=2):
+def byte_to_float(b: bytes | int, mantissabits: int = 5, zeroexp: int = 2) -> float:
     """Decodes a floating point number stored in a single byte."""
     if type(b) is not int:
         b = ord(b)
@@ -605,7 +611,7 @@ _length_byte_cache = array(
 )
 
 
-def length_to_byte(length):
+def length_to_byte(length: int | None) -> int:
     if length is None:
         return 0
     if length >= 106374:

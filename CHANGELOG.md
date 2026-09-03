@@ -15,6 +15,11 @@ All notable changes to this project are documented here. This project follows
   `ty` rule (`invalid-ignore-comment`), which is dropped from the `[tool.ty]`
   ignore list (gh#144, part of gh#121). Comparing an id set with a
   non-iterable now returns `False` rather than raising `TypeError`.
+- Typing: added parameter and return annotations to all public functions in
+  `whoosh.util.numeric` (`bits_required`, `typecode_required`, `max_value`,
+  `bytes_for_bits`, `to_sortable`, `from_sortable`, `float_to_sortable_long`,
+  `sortable_long_to_float`, `float_to_byte`, `byte_to_float`,
+  `length_to_byte`). No runtime behaviour is changed (gh#171, part of gh#121).
 
 ## [3.49.6] - 2026-09-02
 
