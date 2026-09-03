@@ -682,3 +682,25 @@ def test_dangling_separator_does_not_widen():
     # A clean word boundary after a complete date still leaves the trailing
     # token alone rather than being swallowed.
     assert english.date_from("2005-05-10 xyzzy", basedate) is None
+
+
+def test_time_lower_bound_to_concrete_instant_upper():
+    # gh: a range whose start is a bare time of day and whose end resolves
+    # straight to a concrete instant (``now``, or a relative offset such as
+    # ``-1 week``) used to crash the parser with
+    # ``AttributeError: 'datetime.datetime' object has no attribute 'ceil'``.
+    # The disambiguation compared ``start.floor().time()`` with
+    # ``end.ceil().time()`` by calling the ``adatetime`` methods directly, but
+    # the concrete side is a plain ``datetime``. Routing both sides through the
+    # module-level ``floor()``/``ceil()`` helpers passes concrete datetimes
+    # through unchanged, so these ordinary ranges resolve instead of crashing.
+    ts = english.date_from("noon to now", basedate)
+    assert ts.__class__ is timespan
+    # noon today (12:00) through the basedate instant (15:16:06.454).
+    assert ts.start == datetime(2010, 9, 20, 12, 0, 0, 0, tzinfo=timezone.utc)
+    assert ts.end == basedate
+
+    # A relative offset upper bound (also a concrete datetime) works too.
+    ts2 = english.date_from("noon to -1 week", basedate)
+    assert ts2.__class__ is timespan
+    assert ts2.end == basedate - timedelta(weeks=1)
