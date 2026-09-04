@@ -16,6 +16,11 @@ All notable changes to this project are documented here. This project follows
   `whoosh.analysis.analyzers` (now `str | re.Pattern[str]`, matching the
   tokenizers) and the `text`/`pos` parameters of the `whoosh.qparser.dateparse`
   parser classes.
+- Typing: added parameter and return annotations to all public functions in
+  `whoosh.util.varints` (`varint`, `signed_varint`, `varint_to_int`,
+  `decode_signed_varint`, `read_varint`, and the internal `_varint`).
+  `read_varint` declares its `readfn` parameter as
+  `Callable[[int], bytes]` (gh#178, part of gh#121).
 
 ## [3.49.7] - 2026-09-03
 
@@ -2190,4 +2195,3 @@ search` now prints a short summary line to **stderr** — `N matches.` when
 
 Older history from the `whoosh-reloaded` and original Whoosh lines is available
 in the respective repositories' git history and release notes.
-- Add type hints for whoosh.util.varints

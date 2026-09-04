@@ -35,7 +35,7 @@ from collections.abc import Callable
 # noticeable difference.
 
 
-def _varint(i: int ) -> bytes:
+def _varint(i: int) -> bytes:
     a = array("B")
     while (i & ~0x7F) != 0:
         a.append((i & 0x7F) | 0x80)
