@@ -6,6 +6,17 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Fixed
+
+- `CoordMatcher` (used by `OrGroup.factory(scale)`) no longer scores every hit
+  `0.0` when a query resolves to a single term matcher. The SQR coordination
+  factor `(termcount - 1) / termcount` collapses to `0` for a single term —
+  the common case for a single-word query over a `MultifieldParser`, where the
+  term survives in only one field — which zeroed all scores and left ranking in
+  arbitrary docnum order. A single-term query now returns the unmodified score
+  (there is nothing to coordinate over); genuine multi-term coordination
+  penalties are unchanged. Thanks to @bet0x for the detailed root-cause report.
+
 ### Changed
 
 - Typing: added parameter and return annotations to all public functions in

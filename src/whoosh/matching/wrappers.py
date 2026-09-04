@@ -547,8 +547,19 @@ class CoordMatcher(WrappingMatcher):
         scale = self._scale  # Scaling factor
 
         # Gracefully handle no terms
-        if termcount == 0 or termcount == scale:
+        if termcount == 0:
             return 0
+
+        # A coordination penalty only makes sense when there is more than one
+        # term to coordinate over. With a single term the trailing
+        # ``(termcount - 1) / termcount`` factor collapses to 0 and zeroes the
+        # score of *every* hit -- a common surprise for single-word queries
+        # over a MultifieldParser, where the term survives in only one field.
+        # It also divides by zero when ``termcount == scale`` (the default
+        # scale of 1.0 with a single term). In either case there is nothing to
+        # penalize, so return the unmodified score.
+        if termcount <= 1 or termcount == scale:
+            return score
 
         sqr = (score + ((matching - 1) / (termcount - scale) ** 2)) * (
             (termcount - 1) / termcount
