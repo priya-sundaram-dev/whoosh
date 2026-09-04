@@ -26,6 +26,7 @@
 # policies, either expressed or implied, of Matt Chaput.
 
 from array import array
+from collections.abc import Callable
 
 # Varint cache
 
@@ -34,7 +35,7 @@ from array import array
 # noticeable difference.
 
 
-def _varint(i):
+def _varint(i: int) -> bytes:
     a = array("B")
     while (i & ~0x7F) != 0:
         a.append((i & 0x7F) | 0x80)
@@ -47,14 +48,14 @@ _varint_cache_size = 512
 _varint_cache = tuple([_varint(i) for i in range(_varint_cache_size)])
 
 
-def varint(i):
+def varint(i: int) -> bytes:
     """Encodes the given integer into a string of the minimum number  of bytes."""
     if i < len(_varint_cache):
         return _varint_cache[i]
     return _varint(i)
 
 
-def varint_to_int(vi):
+def varint_to_int(vi: bytes) -> int:
     b = ord(vi[0])
     p = 1
     i = b & 0x7F
@@ -67,7 +68,7 @@ def varint_to_int(vi):
     return i
 
 
-def signed_varint(i):
+def signed_varint(i: int) -> bytes:
     """Zig-zag encodes a signed integer into a varint."""
 
     if i >= 0:
@@ -75,7 +76,7 @@ def signed_varint(i):
     return varint((i << 1) ^ (~0))
 
 
-def decode_signed_varint(i):
+def decode_signed_varint(i: int) -> int:
     """Zig-zag decodes an integer value."""
 
     if not i & 1:
@@ -83,7 +84,7 @@ def decode_signed_varint(i):
     return (i >> 1) ^ (~0)
 
 
-def read_varint(readfn):
+def read_varint(readfn: Callable[[int], bytes]) -> int:
     """
     Reads a variable-length encoded integer.
 
