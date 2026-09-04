@@ -191,7 +191,7 @@ warn_unused_ignores = true
 # None in __init__ then reassigned.  Clearing those means broad annotation work or
 # per-line ignores rather than quick fixes; `invalid-ignore-comment` (cleared in
 # gh#144) and the empty-body/parameter-already-assigned rules were the easy wins.
-rules.call-non-callable = "ignore"  # 18 instances (remaining are None/object/str unions, not the analysis pipeline)
+rules.call-non-callable = "ignore"  # 15 instances (remaining are None/object/str unions, not the analysis pipeline)
 rules.invalid-argument-type = "ignore"  # 39 instances
 rules.invalid-assignment = "ignore"  # 26 instances
 rules.invalid-method-override = "ignore"  # 139 instances
