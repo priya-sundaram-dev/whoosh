@@ -8,8 +8,6 @@ All notable changes to this project are documented here. This project follows
 
 ### Changed
 
-- Add type hints for whoosh.util.varints
-
 - Typing: added parameter and return annotations to all public functions in
   `whoosh.util.text` (`byte`, `first_diff`, `prefix_encode`,
   `prefix_encode_all`, `prefix_decode_all`, `natural_key`, `rcompile`)
@@ -27,7 +25,7 @@ All notable changes to this project are documented here. This project follows
   bound resolves straight to a concrete instant — for example
   `added:[noon TO now]` or `added:[noon TO -1 week]` — no longer crash the
   parser with `AttributeError: 'datetime.datetime' object has no attribute
-'ceil'`. The range-disambiguation step compared `start.floor().time()` with
+  'ceil'`. The range-disambiguation step compared `start.floor().time()` with
   `end.ceil().time()` by calling the `adatetime` methods directly, but a bound
   that resolves to a plain `datetime` (like `now` or a relative offset) has no
   such methods. Both sides now go through the module-level `floor()`/`ceil()`
@@ -52,7 +50,6 @@ All notable changes to this project are documented here. This project follows
 ## [3.49.6] - 2026-09-02
 
 ### Fixed
-
 - A double-quoted value on a self-parsing "atomic" field (`BOOLEAN`,
   `NUMERIC`, `DATETIME`, …) is now handed to the field's own `parse_query`,
   exactly like the unquoted and single-quoted forms, instead of being
@@ -60,7 +57,7 @@ All notable changes to this project are documented here. This project follows
   through the field's analyzer: a `BOOLEAN` field has none, so `flag:"true"`
   raised a bare `Exception: … field has no analyzer`, and a `NUMERIC` field's
   identity analyzer produced the raw string term `num:"42"` → `Term("num",
-"42")` that could never match the encoded numeric value (`num:42` and
+  "42")` that could never match the encoded numeric value (`num:42` and
   `num:'42'` both worked). N-gram fields (`NGRAM`/`NGRAMWORDS`) are
   self-parsing too but genuinely tokenize their input, so they keep producing
   `Phrase` queries. Mirrors
@@ -70,7 +67,6 @@ All notable changes to this project are documented here. This project follows
 ## [3.49.5] - 2026-09-02
 
 ### Fixed
-
 - A trailing-star wildcard whose prefix contains a `[` character class no
   longer folds to a `Prefix` query, which silently dropped the class body.
   `[` is one of `Wildcard.SPECIAL_CHARS` (`"*?["`), but both fold sites —
@@ -89,11 +85,10 @@ All notable changes to this project are documented here. This project follows
 ## [3.49.4] - 2026-09-01
 
 ### Fixed
-
 - A truncated date value with a dangling separator no longer silently widens
   into a whole month or year. Two independent code paths shared the defect.
   In the `DateParserPlugin` grammar, the progressive numeric sequence advanced
-  its reported end position past a separator _before_ the element after it was
+  its reported end position past a separator *before* the element after it was
   tried, and still reported having consumed that separator when the element
   failed — so `2005-01-` parsed as all of January 2005 and `2005-01-01T` as
   that whole day, with the leftover fragment ANDed onto the query as stray
@@ -112,7 +107,6 @@ All notable changes to this project are documented here. This project follows
 ## [3.49.3] - 2026-09-01
 
 ### Fixed
-
 - `FieldsPlugin` no longer drops text when a query contains two or more
   consecutive `word:` runs that don't name a real field. `do_fieldnames`
   tracked only the most recently seen rejected candidate, so in a run like
@@ -129,7 +123,7 @@ All notable changes to this project are documented here. This project follows
   (`DIVERGENCES.md`, entry 57).
 - `RangePlugin` now recognizes the `TO` range separator only as a whole word,
   never inside an adjacent token. The tagger's regex matched a bare `[Tt][Oo]`
-  with no word-boundary requirement, so the "to" that _starts_ an end value
+  with no word-boundary requirement, so the "to" that *starts* an end value
   was mistaken for the separator: `[TO today]` misparsed as start=`"TO"`/
   end=`"day"` (instead of an open-start range up to `today`), and
   `[total 5]` — which contains no real separator at all — became a garbage
@@ -144,7 +138,6 @@ All notable changes to this project are documented here. This project follows
 ## [3.49.2] - 2026-09-01
 
 ### Fixed
-
 - `DateParser.date_from` overrides are now honored for bracketed range bounds,
   not just single/keyword values (#161). Previously `DateParserPlugin.range_to_dt`
   reached past the configured parser to the bare grammar object, so any
@@ -163,16 +156,14 @@ All notable changes to this project are documented here. This project follows
 ## [3.49.1] - 2026-08-29
 
 ### Fixed
-
 - `adatetime.date()` raised `TypeError: function takes at most 3 arguments
-(4 given)` on every call — it passed `tzinfo=timezone.utc` to
+  (4 given)` on every call — it passed `tzinfo=timezone.utc` to
   `datetime.date()`, which (unlike `datetime`) accepts no `tzinfo` (a `date`
   is naive by definition). The stray keyword is removed; `adatetime.date()`
   now returns the expected `datetime.date`. Caught by @SantiagoDaleffe while
   clearing the `ty` `unknown-argument` rule (#158).
 
 ### Internal
-
 - Cleared and un-ignored the `ty` `unknown-argument` rule (#158, 10 violations):
   widened the abstract base signatures `IndexWriter.commit`/`cancel` and
   `IndexReader.postings` with `**kwargs: Any` so they honour the arguments their
@@ -196,7 +187,6 @@ All notable changes to this project are documented here. This project follows
 ## [3.49.0] - 2026-08-28
 
 ### Added
-
 - **Parallel-indexing example for free-threaded builds** (`examples/parallel_indexing.py`).
   The blessed fan-out/fan-in pattern the concurrency guide points no-GIL users
   at: split the corpus across worker threads, have each thread build its own
@@ -211,7 +201,6 @@ All notable changes to this project are documented here. This project follows
   guide (`threads.rst`).
 
 ### Internal
-
 - Tightened `ty` static-typing enforcement by clearing and un-ignoring two more
   rules across the query/analysis layers: `no-matching-overload` (#155) and
   `invalid-return-type` (#156, 28 violations). As part of the latter, the
@@ -222,7 +211,6 @@ All notable changes to this project are documented here. This project follows
   short-circuits to a non-`True` result. Thanks to @SantiagoDaleffe for both.
 
 ### Documentation
-
 - Concurrency guide (`threads.rst`) now opens with a per-object quick-reference
   table spelling out what is safe to share across threads: `Index`/`FileIndex`
   and a built `Schema` are shareable; `IndexReader`/`Searcher` are one-per-thread
@@ -236,7 +224,6 @@ All notable changes to this project are documented here. This project follows
 ## [3.48.1] - 2026-08-26
 
 ### Fixed
-
 - Whoosh 2.7.4 → whoosh3 migration regressions in span queries and hits,
   reported by @BenitoKme (#153):
   - Searching with `SpanNot` raised `IndexError: tuple index out of range`
@@ -258,7 +245,6 @@ All notable changes to this project are documented here. This project follows
   the `ty` `not-iterable`/`invalid-raise` rules (#152).
 
 ### Changed
-
 - Type-checking hygiene: the `ty` rules `invalid-raise` and `not-iterable`
   are now enforced instead of ignored. This tightened a few re-raise sites in
   `filestore.py`/`index.py` (`except OSError as e: ... raise` instead of
@@ -268,16 +254,14 @@ All notable changes to this project are documented here. This project follows
 ## [3.48.0] - 2026-08-26
 
 ### Fixed
-
 - `TimeLimitCollector` no longer crashes with `ValueError: signal only works
-in the main thread of the main interpreter` when a search is run from a
+  in the main thread of the main interpreter` when a search is run from a
   worker thread (e.g. a threaded web server). The `SIGALRM` handler is now
   only armed on the main thread; off the main thread the collector falls back
   to its `threading.Timer`, which still enforces the time limit. Surfaced while
   auditing thread-safety under `pytest-run-parallel` (#146).
 
 ### Added
-
 - CI now runs the pure-Python core under [`pytest-run-parallel`] on the
   free-threaded `3.14t` (and, as early-warning signal, `3.15t`) builds, executing
   every test across many worker threads to catch data races the GIL used to hide.
@@ -287,7 +271,6 @@ in the main thread of the main interpreter` when a search is run from a
   for the push toward free-threading readiness (#146).
 
   [`pytest-run-parallel`]: https://github.com/Quansight-Labs/pytest-run-parallel
-
 - Property-based tests for `whoosh.support.base85` covering the invariants the
   module exists for: the alphabet being in ASCII order, fixed-width output, and
   encoded values sorting in the same order as the integers they encode -- the
@@ -295,7 +278,6 @@ in the main thread of the main interpreter` when a search is run from a
   and `sortable_long_to_text` (#139). Thanks @chmm195.
 
 ### Changed
-
 - CI now installs dependencies with [`uv`](https://docs.astral.sh/uv/) (via
   `astral-sh/setup-uv`) across the test, docs, and publish workflows for faster,
   more reproducible installs. `actions/setup-python` still provisions the
@@ -309,7 +291,6 @@ in the main thread of the main interpreter` when a search is run from a
 ## [3.47.0] - 2026-08-25
 
 ### Fixed
-
 - `GroupNode.apply` (and therefore `GroupNode.accept`) no longer raises
   `AttributeError`: a stale positional `self.type` argument referenced a
   non-existent attribute and mis-bound the `nodes`/`boost` parameters. Query
@@ -317,7 +298,6 @@ in the main thread of the main interpreter` when a search is run from a
   `boost` and subnodes (#140). Thanks @SantiagoDaleffe.
 
 ### Added
-
 - Type hints across the `whoosh.index.Index` abstract base class and the
   module-level functions `version_in`, `version`, and `clean_files`. The
   `Index` ABC now advertises a fully-annotated contract (return types on
@@ -327,7 +307,6 @@ in the main thread of the main interpreter` when a search is run from a
   @SantiagoDaleffe for their first contribution!
 
 ### Internal / tooling
-
 - Added the [auto-walrus](https://github.com/MarcoGorelli/auto-walrus)
   pre-commit hook and applied its safe assignment-expression rewrites across
   the codebase; bumped `pyproject-fmt` to v2.28.1 (#136). Thanks @cclauss.
@@ -353,9 +332,8 @@ in the main thread of the main interpreter` when a search is run from a
 ## [3.46.0] - 2026-08-24
 
 ### Added
-
 - `whoosh.mcp` now works across **every current MCP SDK** — the official MCP
-  Python SDK 2.x (`mcp.server.MCPServer`) _and_ 1.x
+  Python SDK 2.x (`mcp.server.MCPServer`) *and* 1.x
   (`mcp.server.fastmcp.FastMCP`), plus the standalone
   [FastMCP](https://github.com/jlowin/fastmcp) 2.x package (`fastmcp.FastMCP`).
   `build_mcp_server()` resolves the server class from whichever is installed;
@@ -363,11 +341,10 @@ in the main thread of the main interpreter` when a search is run from a
   `server.run()` surface Whoosh uses, so no configuration is needed. The `mcp`
   extra is unpinned back to `mcp>=1` (both majors are supported), and a new
   `fastmcp` extra installs the standalone package: `pip install
-"whoosh3[fastmcp]"`. The "no SDK installed" error now points at both options.
+  "whoosh3[fastmcp]"`. The "no SDK installed" error now points at both options.
   Builds on @mayuriphad's 2.x rename fix (#112) by keeping 1.x installs working.
 
 ### Internal / tooling
-
 - Added a `ci:` block to `.pre-commit-config.yaml` in preparation for enabling
   the [pre-commit.ci](https://pre-commit.ci) App: `autofix_prs: false`, weekly
   hook `autoupdate`, and `skip: [zizmor]` (zizmor keeps running in CI). No
@@ -376,11 +353,10 @@ in the main thread of the main interpreter` when a search is run from a
 ## [3.45.0] - 2026-08-24
 
 ### Internal / tooling
-
 - Adopted the modern PEP 639 license declaration in `pyproject.toml` (#130):
   `license` is now the SPDX string `"BSD-2-Clause"` instead of the deprecated
   `{ text = ... }` table, and the redundant `License :: OSI Approved :: BSD
-License` classifier was dropped (a SPDX license expression cannot coexist
+  License` classifier was dropped (a SPDX license expression cannot coexist
   with license classifiers). The build now requires `setuptools>=77`, which
   understands SPDX expressions and emits `License-Expression` metadata. This
   silences the `SetuptoolsDeprecationWarning` seen in the Pages build and keeps
@@ -403,7 +379,6 @@ License` classifier was dropped (a SPDX license expression cannot coexist
   kept as the conventional Sphinx/Read-the-Docs build input. Thanks @cclauss.
 
 ### Removed
-
 - **Dropped support for Python 3.9**, which reached end-of-life in October 2025.
   The minimum supported version is now Python 3.10. `pip` respects
   `requires-python`, so environments still on 3.9 will continue to resolve the
@@ -415,7 +390,6 @@ License` classifier was dropped (a SPDX license expression cannot coexist
 ## [3.44.0] - 2026-08-23
 
 ### Changed
-
 - **`whoosh3[mcp]` now targets the MCP Python SDK 2.x.** The SDK renamed
   `FastMCP` to `MCPServer` (`mcp.server.MCPServer`) in its 2.0 release
   (modelcontextprotocol/python-sdk#1732); `whoosh.mcp` was updated to import and
@@ -427,7 +401,6 @@ License` classifier was dropped (a SPDX license expression cannot coexist
   and @cclauss for the packaging-format catch. Closes #111 (#112).
 
 ### Internal / tooling
-
 - Made the linter gate meaningful. The `ruff check` CI step previously ran with
   `|| true`, so 457 latent findings never failed the build (thanks to @cclauss
   for spotting this in #104). The lint run now passes for real: the ~80 genuine
@@ -451,7 +424,6 @@ License` classifier was dropped (a SPDX license expression cannot coexist
   `docs` with codespell — no functional changes (thanks @cclauss, #114).
 
 ### Testing
-
 - Added a forward-compatibility regression test for `MpWriter` that runs the
   default (`start_method=None`) indexing path under a non-`fork` default
   multiprocessing context. The interpreter default is `fork` on Linux today
@@ -474,7 +446,6 @@ way. No on-disk format change; runtime behaviour of the built-in readers and
 collectors is unchanged.
 
 ### Added
-
 - Type hints for the `MultiReader` and `EmptyReader` concrete readers in
   `whoosh.reading`, completing the concrete-reader scope of the public-API
   typing umbrella (#3): every method on the multi-segment reader (returned by
@@ -514,7 +485,6 @@ collectors is unchanged.
   `collectors.py` is now fully clean (0 errors).
 
 ### Fixed
-
 - `SegmentReader.has_column()` returned the field's `Column` object (or `None`)
   rather than a strict `bool`, contradicting its declared `-> bool` contract on
   the `IndexReader` base class. Callers only used it for truthiness so behaviour
@@ -544,11 +514,9 @@ collectors is unchanged.
 ## [3.42.0] - 2026-08-21
 
 ### Added
-
 - Type hints for `IndexReader.__enter__`/`__exit__` context-manager methods (partial progress on #97). Thanks to @Muhammad08-dot for their first contribution! (#98)
 
 ### Performance
-
 - `whoosh3` codec: raised the small-block compression-skip threshold to a
   measured 80-byte crossover (`COMPRESSION_MIN_SIZE`), so single-posting blocks
   of rare terms are stored uncompressed instead of being expanded by zlib's
@@ -559,7 +527,6 @@ collectors is unchanged.
   tests (#100, closes #99).
 
 ### Fixed
-
 - `whoosh3` codec: corrected a dead-store in `_write_block` where the
   small-block compression skip was immediately overwritten and never took
   effect. Behaviourally a no-op at the current threshold (guaranteed no index
@@ -599,11 +566,11 @@ collectors is unchanged.
     per-position lookup (`pos[s]` instead of `s[pos]`), raising `TypeError`
     when the same token position appeared in more than one segment being
     merged.
-    These were surfaced by type-checking while annotating the module and are now
-    covered by round-trip regression tests (`tests/test_formats_combine.py`) that
-    pin `combine()` behaviour for `Existence`, `Frequency`, `Positions`,
-    `PositionBoosts`, `Characters`, and `CharacterBoosts`. Fix contributed by
-    [@AdvaitVarhade](https://github.com/AdvaitVarhade) (gh#89, closes gh#88).
+  These were surfaced by type-checking while annotating the module and are now
+  covered by round-trip regression tests (`tests/test_formats_combine.py`) that
+  pin `combine()` behaviour for `Existence`, `Frequency`, `Positions`,
+  `PositionBoosts`, `Characters`, and `CharacterBoosts`. Fix contributed by
+  [@AdvaitVarhade](https://github.com/AdvaitVarhade) (gh#89, closes gh#88).
 
 ### Added
 
@@ -763,7 +730,7 @@ collectors is unchanged.
 - `whoosh-mcp` now fails gracefully when the optional `mcp` SDK is not
   installed: it prints a single actionable line
   (`whoosh-mcp: The MCP server requires the 'mcp' package. Install it with:
-pip install "whoosh3[mcp]"`) and exits `1`, instead of dumping a chained
+  pip install "whoosh3[mcp]"`) and exits `1`, instead of dumping a chained
   Python traceback. First impressions matter for the MCP audience trying the
   server for the first time.
 
@@ -2223,3 +2190,4 @@ search` now prints a short summary line to **stderr** — `N matches.` when
 
 Older history from the `whoosh-reloaded` and original Whoosh lines is available
 in the respective repositories' git history and release notes.
+- Add type hints for whoosh.util.varints
