@@ -6,6 +6,10 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Changed
+
+- Added type hints to `whoosh.util.loading` (#180).
+
 ## [3.49.8] - 2026-09-04
 
 ### Fixed

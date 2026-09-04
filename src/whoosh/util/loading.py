@@ -25,7 +25,11 @@
 # those of the authors and should not be interpreted as representing official
 # policies, either expressed or implied, of Matt Chaput.
 
+from __future__ import annotations
+
 import pickle
+from collections.abc import Iterable
+from typing import IO, Any
 
 
 class RenamingUnpickler(pickle.Unpickler):
@@ -33,14 +37,19 @@ class RenamingUnpickler(pickle.Unpickler):
     loading them.
     """
 
-    def __init__(self, f, objmap, shortcuts=None):
+    def __init__(
+        self,
+        f: IO[bytes],
+        objmap: dict[str, str],
+        shortcuts: dict[str, str] | None = None,
+    ) -> None:
         pickle.Unpickler.__init__(self, f)
 
         if shortcuts:
             objmap = {k % shortcuts: v % shortcuts for k, v in objmap.items()}
         self._objmap = objmap
 
-    def find_class(self, modulename, objname):
+    def find_class(self, modulename: str, objname: str) -> Any:
         fqname = f"{modulename}.{objname}"
         if fqname in self._objmap:
             fqname = self._objmap[fqname]
@@ -51,7 +60,11 @@ class RenamingUnpickler(pickle.Unpickler):
         return obj
 
 
-def find_object(name, blacklist=None, whitelist=None):
+def find_object(
+    name: str,
+    blacklist: Iterable[str] | None = None,
+    whitelist: Iterable[str] | None = None,
+) -> Any:
     """Imports and returns an object given a fully qualified name.
 
     >>> find_object("whoosh.analysis.StopFilter")
