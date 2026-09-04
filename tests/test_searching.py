@@ -1674,6 +1674,38 @@ def test_coord():
         assert [hit["id"] for hit in r] == [4, 5, 3, 6, 1, 8, 2, 7]
 
 
+def test_coord_single_term():
+    # A CoordMatcher (OrGroup.factory) must not zero the score of every hit
+    # when the query resolves to a single term matcher -- e.g. a single-word
+    # query over a MultifieldParser where the term survives in only one field.
+    # Regression: the SQR (termcount - 1) / termcount factor collapsed to 0.
+    schema = fields.Schema(
+        heading=fields.TEXT(stored=True), body=fields.TEXT(stored=True)
+    )
+    ix = RamStorage().create_index(schema)
+    with ix.writer() as w:
+        w.add_document(heading="Pods", body="rollout restart the deployment")
+        w.add_document(heading="Plain", body="rollout notes here")
+
+    og = qparser.OrGroup.factory(0.9)
+    qp = qparser.MultifieldParser(["heading", "body"], schema, group=og)
+    q = qp.parse("rollout")
+
+    with ix.searcher() as s:
+        r = s.search(q)
+        assert len(r) == 2
+        # Every hit must be scoreable, not zeroed.
+        assert all(hit.score > 0 for hit in r)
+
+    # A genuine multi-term coordination penalty must still apply: a document
+    # matching both terms should outrank one matching only one term.
+    q2 = qp.parse("rollout restart")
+    with ix.searcher() as s:
+        r = s.search(q2)
+        scores = {hit["heading"]: hit.score for hit in r}
+        assert scores["Pods"] > scores["Plain"]
+
+
 def test_keyword_search():
     schema = fields.Schema(tags=fields.KEYWORD)
     ix = RamStorage().create_index(schema)
