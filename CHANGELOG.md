@@ -6,6 +6,8 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.49.8] - 2026-09-04
+
 ### Fixed
 
 - `CoordMatcher` (used by `OrGroup.factory(scale)`) no longer scores every hit
