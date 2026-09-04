@@ -10,6 +10,14 @@ All notable changes to this project are documented here. This project follows
 
 - Added type hints to `whoosh.util.loading` (#180).
 
+### Fixed
+
+- `examples/custom_analyzers.py` no longer crashes with `UnicodeEncodeError`
+  on consoles whose default encoding can't represent accented characters
+  (e.g. Windows with a GBK code page). The example now switches stdout/stderr
+  to UTF-8 with a backslash-escaping fallback before printing. Thanks to
+  @hellofriend233 for the report.
+
 ## [3.49.8] - 2026-09-04
 
 ### Fixed

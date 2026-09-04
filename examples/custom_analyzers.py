@@ -17,6 +17,8 @@ Run it end to end::
 It uses only the standard library plus Whoosh — no extra dependencies.
 """
 
+import sys
+
 from whoosh.analysis import (
     CharsetFilter,
     LowercaseFilter,
@@ -142,7 +144,27 @@ def demo_in_a_real_index():
     print("  'running/runner/ran', and 'ZURICH' matches 'Zürich'.")
 
 
+def _make_stdout_unicode_safe():
+    """Best-effort switch stdout/stderr to UTF-8.
+
+    This example prints accented characters (café, naïve, Zürich, jalapeño).
+    On consoles whose default encoding can't represent them (e.g. Windows
+    with a GBK/cp1252 code page) that raises ``UnicodeEncodeError``. Prefer
+    real UTF-8 output; fall back to backslash-escaping so the demo never
+    crashes on the text it's meant to showcase.
+    """
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is None:
+            continue
+        try:
+            reconfigure(encoding="utf-8", errors="backslashreplace")
+        except (ValueError, OSError):
+            pass
+
+
 if __name__ == "__main__":
+    _make_stdout_unicode_safe()
     demo_building_blocks()
     demo_accent_folding()
     demo_substitution()
