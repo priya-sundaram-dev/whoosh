@@ -3,6 +3,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator
+
     from whoosh.analysis.analyzers import CompositeAnalyzer
 
 
@@ -165,6 +167,16 @@ class Token:
 
 class Composable:
     is_morph: bool = False
+
+    def __call__(self, value: Any, **kwargs: Any) -> Iterator[Token]:
+        # Composable is the abstract base of the analysis pipeline
+        # (tokenizers, filters and analyzers); every concrete subclass is
+        # callable and yields Tokens. Declaring the protocol here gives type
+        # checkers an accurate signature for composed pipelines -- e.g.
+        # ``CompositeAnalyzer`` chaining ``items[i](...)`` and
+        # ``FieldType.process_text`` calling ``self.analyzer(...)`` (gh#121).
+        # The base itself is never invoked directly.
+        raise NotImplementedError(self.__class__.__name__)
 
     def __or__(self, other: Composable) -> CompositeAnalyzer:
         from whoosh.analysis.analyzers import CompositeAnalyzer
