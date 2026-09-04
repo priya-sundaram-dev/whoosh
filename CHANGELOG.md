@@ -6,6 +6,14 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Changed
+
+- Typing: annotated the `_encode`/`_decode` callable attributes on
+  `FixedEncoding` in `whoosh.util.numlists` (`Callable[[int], bytes]` /
+  `Callable[[bytes], tuple[int]]`), clearing three `call-non-callable`
+  findings (18 → 15, part of gh#121). No runtime change. Thanks to
+  @hellofriend233 (#184).
+
 ## [3.49.9] - 2026-09-04
 
 ### Changed
