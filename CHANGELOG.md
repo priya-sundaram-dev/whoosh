@@ -6,9 +6,15 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.49.9] - 2026-09-04
+
 ### Changed
 
-- Added type hints to `whoosh.util.loading` (#180).
+- Added type hints to `whoosh.util.loading` (#180, #183). Thanks to
+  @hellofriend233 for their first contribution to the fork.
+- Typing: declared the `__call__` protocol on the `Composable` base class so
+  that static checkers recognise every tokenizer, filter, and analyzer as
+  callable (part of gh#121). No runtime behaviour change.
 
 ### Fixed
 
