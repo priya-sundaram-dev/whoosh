@@ -1,4 +1,5 @@
 from array import array
+from collections.abc import Callable
 
 from whoosh.system import (
     emptybytes,
@@ -114,8 +115,8 @@ class NumberEncoding:
 
 
 class FixedEncoding(NumberEncoding):
-    _encode = None
-    _decode = None
+    _encode: Callable[[int], bytes]
+    _decode: Callable[[bytes], tuple[int]]
     size = None
 
     def write_nums(self, f, numbers):
