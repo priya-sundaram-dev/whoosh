@@ -7,6 +7,10 @@ bug reports, reproductions, docs, examples, and code.
 
 - **Be kind.** This is a small, volunteer-scale project. Assume good faith.
   All participation is covered by our [Code of Conduct](CODE_OF_CONDUCT.md).
+- **Want to become a maintainer?** We actively want to raise the project's bus
+  factor above one. [`GOVERNANCE.md`](GOVERNANCE.md) describes the concrete path
+  from contributor to co-maintainer — co-maintainers (especially from projects
+  that depend on Whoosh) are genuinely welcome.
 - **Keep Whoosh pure Python.** No mandatory native dependencies — the
   no-compile install is a headline feature. Optional accelerators, if any, go
   behind extras and must never be required.

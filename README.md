@@ -217,6 +217,12 @@ standard supply-chain hygiene works regardless of who authored a change. See
 [`SECURITY.md`](SECURITY.md#release-integrity--provenance) for how to verify a
 release.
 
+**What if the maintainer disappears?** Whoosh has been abandoned twice; the
+answer to "bus factor of one" is written down in [`GOVERNANCE.md`](GOVERNANCE.md).
+Short version: BSD-licensed with no CLA, a documented and provenance-backed
+release process, and everything in the open — so the project is trivially
+forkable and continuable by anyone, and co-maintainers are actively welcome.
+
 [pep740]: https://peps.python.org/pep-0740/
 
 ## Questions & community
