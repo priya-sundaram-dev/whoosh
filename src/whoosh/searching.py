@@ -208,11 +208,11 @@ class Searcher:
         return self.parent is not None
 
     def get_parent(self):
-        """Returns the parent of this searcher (if has_parent() is True), or
+        """Returns the parent of this searcher (if self.parent is not None), or
         else self.
         """
 
-        if self.has_parent():
+        if self.parent is not None:
             # Call the weak reference to get the parent searcher
             return self.parent()
         else:
