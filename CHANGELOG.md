@@ -8,6 +8,11 @@ All notable changes to this project are documented here. This project follows
 
 ### Changed
 
+- Typing: replaced the indirect `has_parent()` check in
+  `Searcher.get_parent()` with a direct `self.parent is not None` guard so
+  static checkers can narrow the weakref before it is called, clearing one
+  `call-non-callable` finding (15 → 14, part of gh#121). No runtime change.
+  Thanks to @hellofriend233 (#185).
 - Typing: annotated the `_encode`/`_decode` callable attributes on
   `FixedEncoding` in `whoosh.util.numlists` (`Callable[[int], bytes]` /
   `Callable[[bytes], tuple[int]]`), clearing three `call-non-callable`
