@@ -6,6 +6,8 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.50.0] - 2026-09-06
+
 ### Added
 
 - `Searcher.search_range(query, start, end)` and the underlying
