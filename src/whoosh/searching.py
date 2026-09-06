@@ -1829,8 +1829,7 @@ class ResultsPage:
         page.offset = offset
         page.pagelen = max(0, min(end, total) - offset)
 
-        window = end - start
-        if window > 0:
+        if (window := end - start) > 0:
             page.pagecount = int(ceil(total / window))
             page.pagenum = min(page.pagecount, offset // window + 1) or 1
         else:
