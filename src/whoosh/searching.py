@@ -682,6 +682,50 @@ class Searcher:
         results = self.search(query, limit=pagenum * pagelen, **kwargs)
         return ResultsPage(results, pagenum, pagelen)
 
+    def search_range(
+        self,
+        query: Query,
+        start: int,
+        end: int | None = None,
+        **kwargs: Any,
+    ) -> ResultsPage:
+        """Like :meth:`search_page`, but returns the arbitrary half-open
+        window ``results[start:end]`` instead of a fixed page number.
+
+        Whoosh pages are fixed-size windows anchored at offset ``0``, so
+        :meth:`search_page` can only address slices whose ``start`` is an exact
+        multiple of the page length. Reconstructing a page number from an
+        arbitrary ``(start, end)`` slice -- a common pattern in web paginators
+        that hand you two offsets -- silently returns shifted or duplicated
+        rows whenever the start is not aligned (for example a short final page,
+        or any slice where ``start < end - start``). ``search_range`` takes the
+        offsets directly and does the right thing::
+
+            # rows 20..22, even though 20 is not a multiple of 3
+            page = searcher.search_range(myquery, 20, 23)
+            for hit in page:
+                ...
+
+        Additional keyword arguments are passed through to
+        :meth:`Searcher.search` (for example ``sortedby`` or ``filter``); do
+        not pass ``limit``, which is derived from ``end``.
+
+        :param query: the :class:`whoosh.query.Query` object to match.
+        :param start: the 0-based offset of the first hit to return.
+        :param end: the 0-based offset just past the last hit to return, or
+            ``None`` to return every hit from ``start`` onward.
+        :returns: :class:`ResultsPage`
+        """
+
+        if start < 0:
+            raise ValueError("start must be >= 0")
+        if end is not None and end < start:
+            raise ValueError("end must be >= start")
+
+        limit = None if end is None else max(end, 1)
+        results = self.search(query, limit=limit, **kwargs)
+        return ResultsPage.from_range(results, start, end)
+
     def find(self, defaultfield: str, querystring: str, **kwargs: Any) -> Results:
         """Parses ``querystring`` with a default
         :class:`whoosh.qparser.QueryParser` over ``defaultfield`` and runs the
@@ -1746,6 +1790,53 @@ class ResultsPage:
             pagelen = self.total - offset
         self.offset = offset
         self.pagelen = pagelen
+
+    @classmethod
+    def from_range(
+        cls, results: Results, start: int, end: int | None = None
+    ) -> ResultsPage:
+        """Build a :class:`ResultsPage` covering the arbitrary half-open window
+        ``results[start:end]``.
+
+        Unlike the normal constructor, ``start`` need not be a multiple of any
+        page length, so this is safe for slicing results at offsets that do not
+        line up on page boundaries -- the situation that makes reconstructing a
+        page number from ``(start, end)`` return the wrong rows. This is the
+        building block behind :meth:`Searcher.search_range`.
+
+        For :attr:`pagenum` and :attr:`pagecount`, the window length
+        ``end - start`` is used as the nominal page size (so an aligned window
+        reports exactly what :meth:`Searcher.search_page` would).
+
+        :param results: a :class:`~whoosh.searching.Results` object.
+        :param start: the 0-based offset of the first hit in the window.
+        :param end: the 0-based offset just past the last hit, or ``None`` for
+            everything from ``start`` onward.
+        """
+        if start < 0:
+            raise ValueError("start must be >= 0")
+        total = len(results)
+        if end is None:
+            end = total
+        if end < start:
+            raise ValueError("end must be >= start")
+
+        page = cls.__new__(cls)
+        page.results = results
+        page.total = total
+
+        offset = min(start, total)
+        page.offset = offset
+        page.pagelen = max(0, min(end, total) - offset)
+
+        window = end - start
+        if window > 0:
+            page.pagecount = int(ceil(total / window))
+            page.pagenum = min(page.pagecount, offset // window + 1) or 1
+        else:
+            page.pagecount = 1
+            page.pagenum = 1
+        return page
 
     def __getitem__(self, n):
         offset = self.offset

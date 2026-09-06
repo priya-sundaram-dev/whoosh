@@ -259,6 +259,57 @@ def test_pages():
         assert r.pagelen == 2
 
 
+def test_search_range_unaligned():
+    # Regression guard for the arbitrary-offset pagination footgun that
+    # reconstructing a page number from (start, end) gets wrong (see the
+    # long-standing django-haystack Whoosh-backend pagination bug).
+    schema = fields.Schema(id=fields.ID(stored=True), c=fields.TEXT)
+    ix = RamStorage().create_index(schema)
+    w = ix.writer()
+    for i in range(23):
+        w.add_document(id=str(i), c="alfa")
+    w.commit()
+
+    with ix.searcher() as s:
+        q = query.Term("c", "alfa")
+        full = [d["id"] for d in s.search(q, limit=None)]
+        assert len(full) == 23
+
+        # Short, unaligned final page: start=20 is not a multiple of 3.
+        r = s.search_range(q, 20, 23)
+        assert [d["id"] for d in r] == full[20:23]
+        assert r.offset == 20
+        assert r.pagelen == 3
+
+        # start < window length -- the slice that collapses to "page 1".
+        r2 = s.search_range(q, 1, 3)
+        assert [d["id"] for d in r2] == full[1:3]
+        assert r2.offset == 1
+        assert r2.pagelen == 2
+
+        # end past the end of the results clamps cleanly.
+        r3 = s.search_range(q, 22, 100)
+        assert [d["id"] for d in r3] == full[22:]
+        assert r3.pagelen == 1
+
+        # end=None means "everything from start onward".
+        r4 = s.search_range(q, 20)
+        assert [d["id"] for d in r4] == full[20:]
+
+        # An aligned window agrees with search_page.
+        aligned = s.search_range(q, 4, 8)
+        paged = s.search_page(q, 2, pagelen=4)
+        assert [d["id"] for d in aligned] == [d["id"] for d in paged]
+        assert aligned.pagenum == paged.pagenum
+        assert aligned.pagecount == paged.pagecount
+
+        # Guard rails.
+        with pytest.raises(ValueError):
+            s.search_range(q, -1, 5)
+        with pytest.raises(ValueError):
+            s.search_range(q, 5, 2)
+
+
 def test_pages_with_filter():
     from whoosh.scoring import Frequency
 

@@ -6,6 +6,19 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Added
+
+- `Searcher.search_range(query, start, end)` and the underlying
+  `ResultsPage.from_range()` classmethod: retrieve an arbitrary half-open
+  `[start:end]` window of results without reconstructing a page number.
+  `search_page` can only address windows whose start is a multiple of the page
+  length; reconstructing a page number from an unaligned `(start, end)` slice
+  (a short final page, or any slice where `start < end - start`) silently
+  returns shifted or duplicated rows. `search_range` takes the offsets
+  directly and does the right thing — the exact class of bug behind the
+  long-standing django-haystack Whoosh-backend pagination issue. Existing
+  `search_page` behaviour is unchanged.
+
 ### Changed
 
 - Typing: replaced the indirect `has_parent()` check in

@@ -75,6 +75,21 @@ to set a different page length::
 
     results = s.search_page(q, 5, pagelen=20)
 
+``search_page`` addresses fixed-size windows anchored at offset ``0``, so it can
+only reach slices whose start is an exact multiple of the page length. If you
+already have an arbitrary ``(start, end)`` offset pair -- for example from a web
+paginator whose final page is short, or any slice where ``start`` is smaller
+than the window length -- do **not** try to reconstruct a page number from it;
+that quietly returns shifted or duplicated rows. Use ``search_range`` instead,
+which takes the offsets directly::
+
+    # hits 20..22, even though 20 is not a multiple of 3
+    results = s.search_range(q, 20, 23)
+
+Pass ``end=None`` to get every hit from ``start`` onward. ``search_range``
+returns the same :class:`~whoosh.searching.ResultsPage` type as ``search_page``
+and accepts the same extra keyword arguments (``sortedby``, ``filter``, ...).
+
 
 Results object
 ==============
