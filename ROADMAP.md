@@ -371,7 +371,7 @@ About section of the README.)*
       postings-write pipeline dominates build time, so future throughput work
       should target the pipeline (batching, fewer allocations, the length-lookup
       hoist already shipped) rather than the value codec.
-    - **Per-posting field-length lookups.** *(Done — Unreleased.)*
+    - **Per-posting field-length lookups.** *(Done — shipped in 3.39.0.)*
       `FieldWriter.add_postings` used to call `doc_field_length(docnum,
       fieldname)` once per posting, rebuilding the `_lenfield` string and
       re-resolving the length column reader each time. It now binds a per-field
@@ -379,7 +379,7 @@ About section of the README.)*
       (`PerDocumentReader.doc_field_length_reader`, with a fast `whoosh3`
       override) and calls it once per posting — byte-identical output, no
       format change, a few percent off build wall-time.
-    - **Block compression (`zlib.compress`).** *(Documented — Unreleased.)*
+    - **Block compression (`zlib.compress`).** *(Documented — batch guide live since 3.44.0.)*
       The `whoosh3` codec's per-block `zlib` level was already a constructor
       parameter; it is now a documented, supported knob. Pass
       `ix.writer(codec=W3Codec(compression=N))` (0–9) to trade indexing CPU for
