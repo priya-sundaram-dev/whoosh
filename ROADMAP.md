@@ -217,7 +217,7 @@ About section of the README.)*
       most to gain: with the GIL gone, parallel indexing and concurrent search
       across threads can actually scale on real cores, without dropping into C to
       release the GIL. Getting there safely is incremental:
-    - [x] **Race-detection CI (shipped, `[Unreleased]`, #146).** CI now runs the
+    - [x] **Race-detection CI (shipped in 3.48.0, #146).** CI now runs the
           pure-Python core under [`pytest-run-parallel`] on the free-threaded
           `3.14t` build (gating) and `3.15t` (early-warning, non-blocking),
           executing every test across many worker threads to surface data races
@@ -225,7 +225,7 @@ About section of the README.)*
           files directly are marked `@pytest.mark.thread_unsafe` and run serially;
           fixture-based thread-unsafety is auto-detected. This is the regression
           net every later step is built on.
-    - [x] **First real free-threading bug fixed (shipped, `[Unreleased]`, #146).**
+    - [x] **First real free-threading bug fixed (shipped in 3.48.0, #146).**
           `TimeLimitCollector` no longer crashes off the main thread — the
           `SIGALRM` handler is only armed on the main thread and falls back to a
           `threading.Timer` elsewhere. Found by the race-detection job above.
@@ -240,7 +240,7 @@ About section of the README.)*
           the lock-contention helper). Correctness first: any shared mutable
           state the parallel job flags gets fixed or documented, never papered
           over with a lock that reintroduces a bottleneck.
-    - [x] **A worked parallel-indexing example (shipped, `[Unreleased]`).**
+    - [x] **A worked parallel-indexing example (shipped in 3.49.0).**
           `examples/parallel_indexing.py` is the blessed fan-out/fan-in
           pattern: one sub-index per worker thread (single-writer contract kept
           — no shared writer, no lock contention), then merge with
@@ -268,7 +268,7 @@ About section of the README.)*
       version guards. `pip` respects `requires-python`, so deployments still on
       3.9 keep resolving the last 3.9-compatible release (3.44.0) — nothing
       breaks for existing users. Announced in the changelog before it landed.
-- [x] **`whoosh.analysis` typing sweep complete (gh#82, in `[Unreleased]`).**
+- [x] **`whoosh.analysis` typing sweep complete (gh#82, shipped in 3.39.0).**
       The last self-contained analysis module, `whoosh.analysis.intraword`
       (`CompoundWordFilter`, `BiWordFilter`, `ShingleFilter`,
       `IntraWordFilter`), is now typed end-to-end and clean under both `mypy`
