@@ -253,6 +253,18 @@ About section of the README.)*
           overhead, expected and stated); on a free-threaded `3.13t`/`3.14t`
           build the pure-Python indexing scales across cores. Documented in the
           [concurrency guide](https://priya-sundaram-dev.github.io/whoosh/docs/threads.html).
+    - [x] **A worked parallel-search example (Unreleased).** The read-side
+          companion, `examples/parallel_search.py`, fans a batch of queries
+          across a thread pool against one shared read-only index, giving each
+          worker thread its own searcher (created lazily, reused per thread,
+          never shared) — the search-server shape. It ships with the same
+          serial-vs-parallel timing harness and GIL-status report, plus a check
+          that the parallel results are byte-identical to a serial run;
+          `tests/test_example_parallel_search.py` pins that equivalence across
+          worker counts (including more workers than queries and the degenerate
+          single worker). On a free-threaded `3.13t`/`3.14t` build the
+          pure-Python query batch scales across cores. Documented in the
+          [concurrency guide](https://priya-sundaram-dev.github.io/whoosh/docs/threads.html).
 
   [`pytest-run-parallel`]: https://github.com/Quansight-Labs/pytest-run-parallel
 - [x] **Python 3.14 support (3.11.0).** Verified the full suite passes on the

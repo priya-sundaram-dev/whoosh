@@ -170,6 +170,7 @@ reference (all flags, exit codes, and how it maps onto the API):
   [highlighting / search-snippets recipe](examples/highlighting.py), and a
   [custom-analyzers recipe](examples/custom_analyzers.py), a
   [parallel-indexing recipe for free-threaded (no-GIL) builds](examples/parallel_indexing.py), a
+  [parallel-search recipe for free-threaded (no-GIL) builds](examples/parallel_search.py), a
   [signed-number indexing recipe](examples/signed_numbers.py), a
   [custom scoring & sorting recipe](examples/scoring_and_sorting.py), and a
   [FastAPI search API](examples/fastapi_app.py) with upsert/delete/search

@@ -6,6 +6,19 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Added
+
+- `examples/parallel_search.py`: the query-side companion to
+  `examples/parallel_indexing.py`. It runs a batch of queries against one shared
+  read-only index using one searcher per worker thread (created lazily and
+  reused, never shared between threads), with a serial-vs-parallel timing
+  harness, a build GIL-status report, and a check that the parallel results are
+  identical to a serial run. This is the search-server shape: many concurrent
+  read-only requests that scale across cores on free-threaded (`3.13t`/`3.14t`,
+  PEP 703) CPython without any C extension. Covered by
+  `tests/test_example_parallel_search.py`, and documented in the
+  [concurrency guide](https://priya-sundaram-dev.github.io/whoosh/docs/threads.html).
+
 ## [3.50.0] - 2026-09-06
 
 ### Added

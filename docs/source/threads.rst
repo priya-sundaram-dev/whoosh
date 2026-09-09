@@ -198,6 +198,39 @@ that is expected. Run it on a free-threaded build to see the parallel path pull
 ahead as workers increase.
 
 
+Parallel search (free-threaded builds)
+======================================
+
+Searching is CPU-bound *pure-Python* work too — parsing the query, walking
+postings, scoring, and collecting hits. The same free-threading win applies to
+the read side, and it is the classic search-server shape: many concurrent
+read-only requests against one shared index.
+
+A built :class:`~whoosh.index.Index` is read-only and safe to share across
+threads, but a :class:`~whoosh.searching.Searcher` is **not** safe to drive
+from two threads at once (see the quick-reference table above). So the blessed
+pattern is:
+
+1. Build (or open) the index **once** and share that one handle.
+2. Give each worker thread **its own** searcher, opened from the shared index
+   and **reused** for every query that thread handles. Do not open a fresh
+   searcher per query — that throws away the field caches that make search
+   fast — and do not share one searcher between threads.
+3. Fan the query batch out across the pool; collect the results.
+
+Because every searcher is thread-local, no searcher is ever driven by two
+threads at once, so the results are identical to a serial run — correct by
+construction. A complete, runnable implementation with a serial-vs-parallel
+timing harness and a results-equivalence check ships as
+``examples/parallel_search.py``::
+
+    python examples/parallel_search.py --docs 20000 --queries 4000 --workers 4
+
+As with indexing, a GIL build shows a speedup near 1x (thread-pool overhead can
+even make it slightly slower); a free-threaded build lets the query batch scale
+across cores without any C extension.
+
+
 Versioning
 ==========
 
