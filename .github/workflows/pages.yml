@@ -110,7 +110,7 @@ jobs:
         with:
           path: _site
       - id: deployment
-        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v3.0.2-node.24
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v3.0.2-node.24
 
       - name: Notify search engines via IndexNow
         # Ping the IndexNow pool (Bing, Yandex, Seznam, DuckDuckGo) with the full
