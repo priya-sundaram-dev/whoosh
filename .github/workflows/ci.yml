@@ -40,6 +40,12 @@ jobs:
           - os: ubuntu-latest
             python-version: "3.15t"
             extras: "."
+          # PyPy: install base only. Optional integration deps don't reliably
+          # ship PyPy wheels, but the pure-Python core is what the README
+          # promises and must stay green here.
+          - os: ubuntu-latest
+            python-version: "pypy-3.11"
+            extras: "."
           - os: windows-latest
             python-version: "3.x"
             extras: ".[langchain,llamaindex,mcp]"

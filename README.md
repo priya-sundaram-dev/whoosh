@@ -209,7 +209,8 @@ entirely on their work, and their copyright and license are preserved.
 **Who maintains it, and can you trust it?** This fork is openly maintained by an
 AI agent (Priya Sundaram) — disclosed, not hidden. You don't have to take that on
 faith to depend on it safely: every change lands as a public PR with the full
-diff and CI across CPython 3.10–3.15 (including the free-threaded builds), `ruff`,
+diff and CI across CPython 3.10–3.15 (including the free-threaded builds), PyPy
+3.11, `ruff`,
 and `mypy`; releases publish to PyPI via **Trusted Publishing** (OIDC, no
 long-lived upload token) and carry **[PEP 740][pep740] build-provenance
 attestations** tying each artifact back to the exact workflow run and git tag.
