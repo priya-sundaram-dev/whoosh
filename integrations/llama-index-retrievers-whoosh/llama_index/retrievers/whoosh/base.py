@@ -28,7 +28,7 @@ LlamaIndex's ``QueryFusionRetriever``; it does Reciprocal Rank Fusion for you.
 
 from __future__ import annotations
 
-from typing import List, Optional, Sequence
+from collections.abc import Sequence
 
 from llama_index.core.retrievers import BaseRetriever
 from llama_index.core.schema import NodeWithScore, QueryBundle, TextNode
@@ -56,7 +56,7 @@ class WhooshRetriever(BaseRetriever):
         self._k = k
         super().__init__()
 
-    def _retrieve(self, query_bundle: QueryBundle) -> List[NodeWithScore]:
+    def _retrieve(self, query_bundle: QueryBundle) -> list[NodeWithScore]:
         return [
             NodeWithScore(
                 node=TextNode(
@@ -77,11 +77,11 @@ class WhooshRetriever(BaseRetriever):
         cls,
         texts: Sequence[str],
         *,
-        ids: Optional[Sequence[str]] = None,
-        metadatas: Optional[Sequence[dict]] = None,
-        path: Optional[str] = None,
+        ids: Sequence[str] | None = None,
+        metadatas: Sequence[dict] | None = None,
+        path: str | None = None,
         k: int = 4,
-    ) -> "WhooshRetriever":
+    ) -> WhooshRetriever:
         """Build an in-memory (or on-disk) index from parallel lists.
 
         Pass ``path`` to persist the index to a directory; omit it to keep the
@@ -93,6 +93,6 @@ class WhooshRetriever(BaseRetriever):
         return cls(core=core, k=k)
 
     @classmethod
-    def from_index(cls, path: str, *, k: int = 4) -> "WhooshRetriever":
+    def from_index(cls, path: str, *, k: int = 4) -> WhooshRetriever:
         """Open an index previously built with ``from_texts(..., path=...)``."""
         return cls(core=WhooshSearch.open_dir(path), k=k)
