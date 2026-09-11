@@ -3,11 +3,11 @@ build-backend = "hatchling.build"
 requires = [ "hatchling" ]
 
 [project]
-name = "langchain-whoosh"
+name = "llama-index-retrievers-whoosh"
 version = "0.1.0"
-description = "A pure-Python BM25 (lexical) retriever for LangChain, powered by Whoosh."
+description = "A pure-Python BM25 (lexical) retriever for LlamaIndex, powered by Whoosh."
 readme = "README.md"
-keywords = [ "bm25", "langchain", "lexical", "rag", "retriever", "search", "whoosh" ]
+keywords = [ "bm25", "lexical", "llama-index", "llamaindex", "rag", "retriever", "search", "whoosh" ]
 license = { text = "BSD-2-Clause" }
 authors = [ { name = "Priya Sundaram" } ]
 requires-python = ">=3.10"
@@ -24,16 +24,16 @@ classifiers = [
   "Topic :: Text Processing :: Indexing",
 ]
 dependencies = [
-  "langchain-core>=0.3,<1",
+  "llama-index-core>=0.11,<0.13",
   "whoosh3>=3.51",
 ]
 optional-dependencies.test = [ "pytest>=7" ]
 urls.Homepage = "https://github.com/priya-sundaram-dev/whoosh"
 urls.Issues = "https://github.com/priya-sundaram-dev/whoosh/issues"
-urls.Source = "https://github.com/priya-sundaram-dev/whoosh/tree/main/integrations/langchain-whoosh"
+urls.Source = "https://github.com/priya-sundaram-dev/whoosh/tree/main/integrations/llama-index-retrievers-whoosh"
 
 [tool.hatch]
-build.targets.wheel.packages = [ "langchain_whoosh" ]
+build.targets.wheel.packages = [ "llama_index" ]
 
 [tool.pytest]
 ini_options.testpaths = [ "tests" ]

@@ -1,17 +1,17 @@
-"""A LangChain retriever backed by Whoosh BM25 (pure-Python lexical search).
+"""A LlamaIndex retriever backed by Whoosh BM25 (pure-Python lexical search).
 
-LangChain pipelines usually reach for a *vector* store, but dense retrieval has
+LlamaIndex pipelines usually reach for a *vector* index, but dense retrieval has
 a well-known blind spot: it can quietly miss the *exact* tokens that matter most
 (product SKUs, function names, error codes like ``ERR_2043``, gene symbols,
 ticket IDs). A lexical BM25 retriever is the classic complement -- and Whoosh
 gives you one in pure Python, with no server, no native wheels, and an index
 that is just a folder on disk.
 
-``WhooshRetriever`` is a drop-in ``langchain_core.retrievers.BaseRetriever`` you
-can wire into any chain, ``EnsembleRetriever`` (for hybrid search), or LangGraph
-agent exactly like any other retriever::
+``WhooshRetriever`` is a drop-in ``llama_index.core.retrievers.BaseRetriever``
+you can wire into any query engine or a ``QueryFusionRetriever`` (for hybrid
+search) exactly like any other retriever::
 
-    from langchain_whoosh import WhooshRetriever
+    from llama_index.retrievers.whoosh import WhooshRetriever
 
     retriever = WhooshRetriever.from_texts(
         texts=["Whoosh is a pure-Python search library.",
@@ -20,19 +20,18 @@ agent exactly like any other retriever::
         metadatas=[{"src": "readme"}, {"src": "docs"}],
         k=4,
     )
-    docs = retriever.invoke("pure python search")   # -> list[Document]
+    nodes = retriever.retrieve("pure python search")   # -> list[NodeWithScore]
 
 For true *hybrid* search, drop this retriever and your vector retriever into
-LangChain's ``EnsembleRetriever``; it does Reciprocal Rank Fusion for you.
+LlamaIndex's ``QueryFusionRetriever``; it does Reciprocal Rank Fusion for you.
 """
 
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Any
 
-from langchain_core.documents import Document
-from langchain_core.retrievers import BaseRetriever
+from llama_index.core.retrievers import BaseRetriever
+from llama_index.core.schema import NodeWithScore, QueryBundle, TextNode
 
 from whoosh.retrieval import WhooshSearch
 
@@ -40,7 +39,7 @@ __all__ = ["WhooshRetriever"]
 
 
 class WhooshRetriever(BaseRetriever):
-    """A LangChain retriever that ranks documents with Whoosh BM25.
+    """A LlamaIndex retriever that ranks nodes with Whoosh BM25.
 
     Parameters
     ----------
@@ -49,22 +48,25 @@ class WhooshRetriever(BaseRetriever):
         (``WhooshSearch.from_texts(...)`` / ``WhooshSearch.open_dir(path)``) for
         full control, or use :meth:`from_texts` / :meth:`from_index` below.
     k:
-        The maximum number of documents to return per query (default ``4``).
+        The maximum number of nodes to return per query (default ``4``).
     """
 
-    # ``Any`` keeps both pydantic v1 and v2 happy with an arbitrary type.
-    core: Any
-    k: int = 4
+    def __init__(self, core: WhooshSearch, k: int = 4) -> None:
+        self._core = core
+        self._k = k
+        super().__init__()
 
-    def _get_relevant_documents(  # noqa: D401 - langchain-core hook
-        self, query: str, *, run_manager: Any = None
-    ) -> list[Document]:
+    def _retrieve(self, query_bundle: QueryBundle) -> list[NodeWithScore]:
         return [
-            Document(
-                page_content=hit.text,
-                metadata={"id": hit.id, "score": hit.score, **hit.metadata},
+            NodeWithScore(
+                node=TextNode(
+                    text=hit.text,
+                    id_=hit.id,
+                    metadata={"id": hit.id, **hit.metadata},
+                ),
+                score=hit.score,
             )
-            for hit in self.core.search(query, self.k)
+            for hit in self._core.search(query_bundle.query_str, self._k)
         ]
 
     # ------------------------------------------------------------------ #

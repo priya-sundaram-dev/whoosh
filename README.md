@@ -187,9 +187,12 @@ reference (all flags, exit codes, and how it maps onto the API):
   bundled [`whoosh3[langchain]`](src/whoosh/langchain.py) extra — that drops
   Whoosh into any LangChain chain, `EnsembleRetriever`, or LangGraph agent as a
   `BaseRetriever`, and a
-  matching [LlamaIndex integration](src/whoosh/llamaindex.py)
-  (`pip install "whoosh3[llamaindex]"`) that plugs Whoosh into any LlamaIndex
-  query engine or `QueryFusionRetriever` as a `BaseRetriever`
+  matching LlamaIndex integration shipped as the standalone
+  [`llama-index-retrievers-whoosh`](https://pypi.org/project/llama-index-retrievers-whoosh/)
+  package (`pip install llama-index-retrievers-whoosh`, the LlamaIndex-recommended
+  path) — or the bundled [`whoosh3[llamaindex]`](src/whoosh/llamaindex.py) extra —
+  that plugs Whoosh into any LlamaIndex query engine or `QueryFusionRetriever` as
+  a `BaseRetriever`
 - **Roadmap:** [ROADMAP.md](ROADMAP.md)
 - **Changelog:** [CHANGELOG.md](CHANGELOG.md)
 
