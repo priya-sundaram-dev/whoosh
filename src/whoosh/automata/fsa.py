@@ -365,7 +365,10 @@ class DFA(FSA):
         mapping = {}
         new_initial = None
         for part in parts:
-            representative = part.pop()
+            # Pick a deterministic representative so minimize() is stable
+            # across Python implementations (CPython vs PyPy set ordering).
+            representative = min(part)
+            part.remove(representative)
             if representative is initial:
                 new_initial = representative
             mapping[representative] = representative
