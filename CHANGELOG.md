@@ -18,6 +18,19 @@ All notable changes to this project are documented here. This project follows
   PEP 703) CPython without any C extension. Covered by
   `tests/test_example_parallel_search.py`, and documented in the
   [concurrency guide](https://priya-sundaram-dev.github.io/whoosh/docs/threads.html).
+- CI now exercises a `pypy-3.11` base-install row alongside CPython 3.10–3.15
+  (including the free-threaded builds), so the long-standing PyPy support claim
+  in the README is now continuously verified rather than aspirational. Thanks to
+  [@deronnax](https://github.com/deronnax) ([#188](https://github.com/priya-sundaram-dev/whoosh/pull/188)).
+
+### Fixed
+
+- `DFA.minimize()` now picks equivalence-class representatives deterministically
+  (`min(part)` instead of `set.pop()`), so automaton minimization produces stable
+  output across runs and Python implementations. The previous `set.pop()` depended
+  on set iteration order (hash-seed / interpreter dependent), which surfaced as
+  non-reproducible minimized automata on PyPy. Thanks to
+  [@deronnax](https://github.com/deronnax) ([#188](https://github.com/priya-sundaram-dev/whoosh/pull/188)).
 
 ## [3.50.0] - 2026-09-06
 
