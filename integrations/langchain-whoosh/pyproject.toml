@@ -7,7 +7,7 @@ name = "langchain-whoosh"
 version = "0.1.0"
 description = "A pure-Python BM25 (lexical) retriever for LangChain, powered by Whoosh."
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = { text = "BSD-2-Clause" }
 authors = [{ name = "Priya Sundaram" }]
 keywords = ["langchain", "whoosh", "bm25", "retriever", "search", "lexical", "rag"]
@@ -16,6 +16,8 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: BSD License",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Text Processing :: Indexing",
 ]
 dependencies = [
