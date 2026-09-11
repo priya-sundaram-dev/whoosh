@@ -181,9 +181,12 @@ reference (all flags, exit codes, and how it maps onto the API):
   searches a directory of files in one command, and a
   [RAG / hybrid-search retriever](examples/rag_retriever.py) that pairs Whoosh
   BM25 with any vector store via Reciprocal Rank Fusion, and a
-  first-class [LangChain integration](src/whoosh/langchain.py)
-  (`pip install "whoosh3[langchain]"`) that drops Whoosh into any LangChain
-  chain, `EnsembleRetriever`, or LangGraph agent as a `BaseRetriever`, and a
+  first-class LangChain integration shipped as the standalone
+  [`langchain-whoosh`](https://pypi.org/project/langchain-whoosh/) package
+  (`pip install langchain-whoosh`, the LangChain-recommended path) — or the
+  bundled [`whoosh3[langchain]`](src/whoosh/langchain.py) extra — that drops
+  Whoosh into any LangChain chain, `EnsembleRetriever`, or LangGraph agent as a
+  `BaseRetriever`, and a
   matching [LlamaIndex integration](src/whoosh/llamaindex.py)
   (`pip install "whoosh3[llamaindex]"`) that plugs Whoosh into any LlamaIndex
   query engine or `QueryFusionRetriever` as a `BaseRetriever`
