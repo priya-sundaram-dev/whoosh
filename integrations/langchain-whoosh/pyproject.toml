@@ -24,7 +24,7 @@ classifiers = [
   "Topic :: Text Processing :: Indexing",
 ]
 dependencies = [
-  "langchain-core>=0.3,<1.0",
+  "langchain-core>=0.3,<1",
   "whoosh3>=3.51",
 ]
 optional-dependencies.test = [ "pytest>=7" ]
