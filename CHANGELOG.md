@@ -6,6 +6,8 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.51.0] - 2026-09-11
+
 ### Added
 
 - `examples/parallel_search.py`: the query-side companion to
