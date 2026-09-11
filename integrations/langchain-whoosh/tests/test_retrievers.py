@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from langchain_core.documents import Document
 from langchain_core.retrievers import BaseRetriever
-
 from langchain_whoosh import WhooshRetriever
 
 TEXTS = [
@@ -17,9 +16,7 @@ METADATAS = [{"src": "readme"}, {"src": "docs"}, {"src": "wiki"}]
 
 
 def _retriever(k: int = 4) -> WhooshRetriever:
-    return WhooshRetriever.from_texts(
-        texts=TEXTS, ids=IDS, metadatas=METADATAS, k=k
-    )
+    return WhooshRetriever.from_texts(texts=TEXTS, ids=IDS, metadatas=METADATAS, k=k)
 
 
 def test_is_base_retriever():

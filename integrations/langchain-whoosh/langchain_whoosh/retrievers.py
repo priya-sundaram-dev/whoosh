@@ -28,7 +28,8 @@ LangChain's ``EnsembleRetriever``; it does Reciprocal Rank Fusion for you.
 
 from __future__ import annotations
 
-from typing import Any, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 from langchain_core.documents import Document
 from langchain_core.retrievers import BaseRetriever
@@ -78,7 +79,7 @@ class WhooshRetriever(BaseRetriever):
         metadatas: Sequence[dict] | None = None,
         path: str | None = None,
         k: int = 4,
-    ) -> "WhooshRetriever":
+    ) -> WhooshRetriever:
         """Build an in-memory (or on-disk) index from parallel lists.
 
         Pass ``path`` to persist the index to a directory; omit it to keep the
@@ -90,6 +91,6 @@ class WhooshRetriever(BaseRetriever):
         return cls(core=core, k=k)
 
     @classmethod
-    def from_index(cls, path: str, *, k: int = 4) -> "WhooshRetriever":
+    def from_index(cls, path: str, *, k: int = 4) -> WhooshRetriever:
         """Open an index previously built with ``from_texts(..., path=...)``."""
         return cls(core=WhooshSearch.open_dir(path), k=k)
