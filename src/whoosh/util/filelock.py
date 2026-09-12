@@ -37,9 +37,10 @@ import errno
 import os
 import sys
 import time
+from collections.abc import Callable
 
 
-def try_for(fn, timeout=5.0, delay=0.1):
+def try_for(fn: Callable[[], bool], timeout: float = 5.0, delay: float = 0.1) -> bool:
     """Calls ``fn`` every ``delay`` seconds until it returns True or
     ``timeout`` seconds elapse. Returns True if the lock was acquired, or False
     if the timeout was reached.
@@ -61,35 +62,35 @@ def try_for(fn, timeout=5.0, delay=0.1):
 class LockBase:
     """Base class for file locks."""
 
-    def __init__(self, filename):
-        self.fd = None
+    def __init__(self, filename: str) -> None:
+        self.fd: int | None = None
         self.filename = filename
         self.locked = False
 
-    def __del__(self):
+    def __del__(self) -> None:
         if hasattr(self, "fd") and self.fd:
             try:
                 self.release()
             except Exception:
                 pass
 
-    def acquire(self, blocking=False):
+    def acquire(self, blocking: bool = False) -> bool:
         """Acquire the lock. Returns True if the lock was acquired.
 
         :param blocking: if True, call blocks until the lock is acquired.
             This may not be available on all platforms. On Windows, this is
             actually just a delay of 10 seconds, rechecking every second.
         """
-        pass
+        return False
 
-    def release(self):
+    def release(self) -> None:
         pass
 
 
 class FcntlLock(LockBase):
     """File lock based on UNIX-only fcntl module."""
 
-    def acquire(self, blocking=False):
+    def acquire(self, blocking: bool = False) -> bool:
         import fcntl
 
         flags = os.O_CREAT | os.O_WRONLY
@@ -111,7 +112,7 @@ class FcntlLock(LockBase):
             self.fd = None
             return False
 
-    def release(self):
+    def release(self) -> None:
         if self.fd is None:
             raise Exception("Lock was not acquired")
 
@@ -125,7 +126,7 @@ class FcntlLock(LockBase):
 class MsvcrtLock(LockBase):
     """File lock based on Windows-only msvcrt module."""
 
-    def acquire(self, blocking=False):
+    def acquire(self, blocking: bool = False) -> bool:
         import msvcrt
 
         flags = os.O_CREAT | os.O_WRONLY
@@ -145,7 +146,7 @@ class MsvcrtLock(LockBase):
             self.fd = None
             return False
 
-    def release(self):
+    def release(self) -> None:
         import msvcrt
 
         if self.fd is None:
