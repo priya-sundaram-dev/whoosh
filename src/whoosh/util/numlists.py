@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 from array import array
-from collections.abc import Callable
+from collections.abc import Callable, Iterable, Iterator, Sequence
+from typing import TYPE_CHECKING, Union
 
 from whoosh.system import (
     emptybytes,
@@ -11,15 +14,22 @@ from whoosh.system import (
     unpack_ushort_le,
 )
 
+if TYPE_CHECKING:
+    from whoosh.filedb.structfile import StructFile
 
-def delta_encode(nums):
+# An array of numbers may be widened to a Python list when a value overflows
+# every supported array typecode.
+_IntArray = Union["array[int]", "list[int]"]
+
+
+def delta_encode(nums: Iterable[int]) -> Iterator[int]:
     base = 0
     for n in nums:
         yield n - base
         base = n
 
 
-def delta_decode(nums):
+def delta_decode(nums: Iterable[int]) -> Iterator[int]:
     base = 0
     for n in nums:
         base += n
@@ -27,20 +37,20 @@ def delta_decode(nums):
 
 
 class GrowableArray:
-    def __init__(self, inittype="B", allow_longs=True):
-        self.array = array(inittype)
+    def __init__(self, inittype: str = "B", allow_longs: bool = True) -> None:
+        self.array: _IntArray = array(inittype)
         self._allow_longs = allow_longs
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.array!r})"
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.array)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[int]:
         return iter(self.array)
 
-    def _retype(self, maxnum):
+    def _retype(self, maxnum: int) -> None:
         if maxnum < 2**16:
             newtype = "H"
         elif maxnum < 2**31:
@@ -57,26 +67,26 @@ class GrowableArray:
         except ValueError:
             self.array = list(self.array)
 
-    def append(self, n):
+    def append(self, n: int) -> None:
         try:
             self.array.append(n)
         except OverflowError:
             self._retype(n)
             self.array.append(n)
 
-    def extend(self, ns):
+    def extend(self, ns: Iterable[int]) -> None:
         append = self.append
         for n in ns:
             append(n)
 
     @property
-    def typecode(self):
+    def typecode(self) -> str:
         if isinstance(self.array, array):
             return self.array.typecode
         else:
             return "q"
 
-    def to_file(self, dbfile):
+    def to_file(self, dbfile: StructFile) -> None:
         if isinstance(self.array, array):
             dbfile.write_array(self.array)
         else:
@@ -89,23 +99,23 @@ class GrowableArray:
 
 
 class NumberEncoding:
-    maxint = None
+    maxint: int | None = None
 
-    def write_nums(self, f, numbers):
+    def write_nums(self, f: StructFile, numbers: Sequence[int]) -> None:
         raise NotImplementedError
 
-    def read_nums(self, f, n):
+    def read_nums(self, f: StructFile, n: int) -> Iterator[int]:
         raise NotImplementedError
 
-    def write_deltas(self, f, numbers):
+    def write_deltas(self, f: StructFile, numbers: Sequence[int]) -> None:
         return self.write_nums(f, list(delta_encode(numbers)))
 
-    def read_deltas(self, f, n):
+    def read_deltas(self, f: StructFile, n: int) -> Iterator[int]:
         return delta_decode(self.read_nums(f, n))
 
-    def get(self, f, pos, i):
+    def get(self, f: StructFile, pos: int, i: int) -> int | None:
         f.seek(pos)
-        n = None
+        n: int | None = None
         for n in self.read_nums(f, i + 1):
             pass
         return n
@@ -116,24 +126,24 @@ class NumberEncoding:
 
 class FixedEncoding(NumberEncoding):
     _encode: Callable[[int], bytes]
-    _decode: Callable[[bytes], tuple[int]]
-    size = None
+    _decode: Callable[[bytes], tuple[int, ...]]
+    size: int = 0
 
-    def write_nums(self, f, numbers):
+    def write_nums(self, f: StructFile, numbers: Sequence[int]) -> None:
         _encode = self._encode
 
         for n in numbers:
             f.write(_encode(n))
 
-    def read_nums(self, f, n):
+    def read_nums(self, f: StructFile, n: int) -> Iterator[int]:
         _decode = self._decode
 
         for _ in range(n):
-            yield _decode(f.read(self.size))
+            yield _decode(f.read(self.size))[0]
 
-    def get(self, f, pos, i):
+    def get(self, f: StructFile, pos: int, i: int) -> int:
         f.seek(pos + i * self.size)
-        return self._decode(f.read(self.size))
+        return self._decode(f.read(self.size))[0]
 
 
 class ByteEncoding(FixedEncoding):
@@ -161,13 +171,13 @@ class UIntEncoding(FixedEncoding):
 
 
 class Varints(NumberEncoding):
-    maxint = None
+    maxint: int | None = None
 
-    def write_nums(self, f, numbers):
+    def write_nums(self, f: StructFile, numbers: Sequence[int]) -> None:
         for n in numbers:
             f.write_varint(n)
 
-    def read_nums(self, f, n):
+    def read_nums(self, f: StructFile, n: int) -> Iterator[int]:
         for _ in range(n):
             yield f.read_varint()
 
@@ -190,9 +200,9 @@ class Simple16(NumberEncoding):
     maxint = 2**_bitsize - 1
 
     # Number of stored numbers per code
-    _num = [28, 21, 21, 21, 14, 9, 8, 7, 6, 6, 5, 5, 4, 3, 2, 1]
+    _num: list[int] = [28, 21, 21, 21, 14, 9, 8, 7, 6, 6, 5, 5, 4, 3, 2, 1]
     # Number of bits for each number per code
-    _bits = [
+    _bits: list[tuple[int, ...]] = [
         (1,) * 28,
         (2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
         (1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1),
@@ -211,7 +221,7 @@ class Simple16(NumberEncoding):
         (28,),
     ]
 
-    def write_nums(self, f, numbers):
+    def write_nums(self, f: StructFile, numbers: Sequence[int]) -> None:
         _compress = self._compress
 
         i = 0
@@ -220,7 +230,9 @@ class Simple16(NumberEncoding):
             f.write_uint_le(value)
             i += taken
 
-    def _compress(self, inarray, inoffset, n):
+    def _compress(
+        self, inarray: Sequence[int], inoffset: int, n: int
+    ) -> tuple[int, int]:
         _numsize = self._numsize
         _bitsize = self._bitsize
         _num = self._num
@@ -243,7 +255,7 @@ class Simple16(NumberEncoding):
 
         raise Exception
 
-    def read_nums(self, f, n):
+    def read_nums(self, f: StructFile, n: int) -> Iterator[int]:
         _decompress = self._decompress
 
         i = 0
@@ -253,7 +265,7 @@ class Simple16(NumberEncoding):
                 yield v
                 i += 1
 
-    def _decompress(self, value, n):
+    def _decompress(self, value: int, n: int) -> Iterator[int]:
         _numsize = self._numsize
         _bitsize = self._bitsize
         _num = self._num
@@ -267,15 +279,15 @@ class Simple16(NumberEncoding):
             yield v & (0xFFFFFFFF >> (32 - _bits[key][j]))
             bits += _bits[key][j]
 
-    def get(self, f, pos, i):
+    def get(self, f: StructFile, pos: int, i: int) -> int:
         f.seek(pos)
         base = 0
-        value = unpack_uint_le(f.read(4))
+        value = unpack_uint_le(f.read(4))[0]
         key = value >> self._bitsize
         num = self._num[key]
         while i > base + num:
             base += num
-            value = unpack_uint_le(f.read(4))
+            value = unpack_uint_le(f.read(4))[0]
             key = value >> self._bitsize
             num = self._num[key]
 
@@ -291,11 +303,11 @@ class Simple16(NumberEncoding):
 
 
 class GInts(NumberEncoding):
-    maxint = 2**32 - 1
+    maxint: int | None = 2**32 - 1
 
     # Number of future bytes to expect after a "key" byte value of N -- used to
     # skip ahead from a key byte
-    _lens = array(
+    _lens: array[int] = array(
         "B",
         [
             4,
@@ -557,14 +569,14 @@ class GInts(NumberEncoding):
         ],
     )
 
-    def key_to_sizes(self, key):
+    def key_to_sizes(self, key: int) -> list[int]:
         """Returns a list of the sizes of the next four numbers given a key
         byte.
         """
 
         return [(key >> (i * 2) & 3) + 1 for i in range(4)]
 
-    def write_nums(self, f, numbers):
+    def write_nums(self, f: StructFile, numbers: Sequence[int]) -> None:
         buf = emptybytes
         count = 0
         key = 0
@@ -595,7 +607,7 @@ class GInts(NumberEncoding):
             f.write_byte(key)
             f.write(buf)
 
-    def read_nums(self, f, n):
+    def read_nums(self, f: StructFile, n: int) -> Iterator[int]:
         """Read N integers from the bytes stream dbfile. Expects that the file
         is positioned at a key byte.
         """
@@ -611,7 +623,7 @@ class GInts(NumberEncoding):
             elif code == 1:
                 yield f.read_ushort_le()
             elif code == 2:
-                yield unpack_uint_le(f.read(3) + "\x00")[0]
+                yield unpack_uint_le(f.read(3) + b"\x00")[0]
             else:
                 yield f.read_uint_le()
 
