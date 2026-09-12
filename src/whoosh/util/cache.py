@@ -28,17 +28,21 @@
 
 import functools
 from collections import Counter
+from collections.abc import Callable
 from heapq import nsmallest
 from operator import itemgetter
+from typing import Any, TypeVar, cast
+
+_F = TypeVar("_F", bound=Callable[..., Any])
 
 
-def unbound_cache(func):
+def unbound_cache(func: _F) -> _F:
     """Caching decorator with an unbounded cache size."""
 
-    cache = {}
+    cache: dict[tuple[Any, ...], Any] = {}
 
     @functools.wraps(func)
-    def caching_wrapper(*args):
+    def caching_wrapper(*args: Any) -> Any:
         try:
             return cache[args]
         except KeyError:
@@ -46,10 +50,10 @@ def unbound_cache(func):
             cache[args] = result
             return result
 
-    return caching_wrapper
+    return cast("_F", caching_wrapper)
 
 
-def lfu_cache(maxsize=100):
+def lfu_cache(maxsize: int = 100) -> Callable[[_F], _F]:
     """A simple cache that, when the cache is full, deletes the least frequently
     used 10% of the cached values.
 
@@ -63,13 +67,13 @@ def lfu_cache(maxsize=100):
     Access the underlying function with f.__wrapped__.
     """
 
-    def decorating_function(user_function):
+    def decorating_function(user_function: _F) -> _F:
         stats = [0, 0]  # Hits, misses
-        data = {}
-        usecount = Counter()
+        data: dict[tuple[Any, ...], Any] = {}
+        usecount: Counter[tuple[Any, ...]] = Counter()
 
         @functools.wraps(user_function)
-        def wrapper(*args):
+        def wrapper(*args: Any) -> Any:
             try:
                 result = data[args]
                 stats[0] += 1  # Hit
@@ -87,15 +91,15 @@ def lfu_cache(maxsize=100):
                 usecount[args] += 1
             return result
 
-        def cache_info():
+        def cache_info() -> tuple[int, int, int, int]:
             return stats[0], stats[1], maxsize, len(data)
 
-        def cache_clear():
+        def cache_clear() -> None:
             data.clear()
             usecount.clear()
 
-        wrapper.cache_info = cache_info
-        wrapper.cache_clear = cache_clear
-        return wrapper
+        wrapper.cache_info = cache_info  # type: ignore[attr-defined]
+        wrapper.cache_clear = cache_clear  # type: ignore[attr-defined]
+        return cast("_F", wrapper)
 
     return decorating_function
