@@ -29,9 +29,11 @@ jobs:
           # upload to PyPI (flagged by zizmor's cache-poisoning audit).
           enable-cache: false
       - name: Build sdist and wheel
-        run: |
-          uv pip install --system build
-          python -m build
+        # `uv build` builds the sdist first, then the wheel from that sdist
+        # (same order as `python -m build`), writing both to dist/. Drops the
+        # extra `build` install for a small consistency/speed win, no change to
+        # the artifacts we publish.
+        run: uv build
       - name: Check metadata
         run: |
           uv pip install --system twine
