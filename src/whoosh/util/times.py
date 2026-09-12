@@ -25,16 +25,28 @@
 # those of the authors and should not be interpreted as representing official
 # policies, either expressed or implied, of Matt Chaput.
 
+from __future__ import annotations
+
 import calendar
 import copy
+from collections.abc import Collection
 from datetime import date, datetime, timedelta, timezone
+from typing import cast
+
+# Module-level aliases so annotations still resolve to these types inside the
+# ``adatetime`` class, whose ``tuple``/``date`` methods otherwise shadow the
+# builtin ``tuple`` and the imported ``date`` in class scope.
+_Date = date
+_DateTuple = tuple[
+    int | None, int | None, int | None, int | None, int | None, int | None, int | None
+]
 
 
 class TimeError(Exception):
     pass
 
 
-def relative_days(current_wday, wday, dir):
+def relative_days(current_wday: int, wday: int, dir: int) -> int:
     """Returns the number of days (positive or negative) to the "next" or
     "last" of a certain weekday. ``current_wday`` and ``wday`` are numbers,
     i.e. 0 = monday, 1 = tuesday, 2 = wednesday, etc.
@@ -58,14 +70,14 @@ def relative_days(current_wday, wday, dir):
         return (current_wday + 7 - wday) % 7 * -1
 
 
-def timedelta_to_usecs(td):
+def timedelta_to_usecs(td: timedelta) -> int:
     total = td.days * 86400000000  # Microseconds in a day
     total += td.seconds * 1000000  # Microseconds in a second
     total += td.microseconds
     return total
 
 
-def datetime_to_long(dt):
+def datetime_to_long(dt: datetime) -> int:
     """Converts a datetime object to a long integer representing the number
     of microseconds since ``datetime.min``.
     """
@@ -73,7 +85,7 @@ def datetime_to_long(dt):
     return timedelta_to_usecs(dt.replace(tzinfo=None) - dt.min)
 
 
-def long_to_datetime(x):
+def long_to_datetime(x: int) -> datetime:
     """Converts a long integer representing the number of microseconds since
     ``datetime.min`` to a datetime object.
     """
@@ -100,16 +112,24 @@ class adatetime:
         ("year", "month", "day", "hour", "minute", "second", "microsecond")
     )
 
+    year: int | None
+    month: int | None
+    day: int | None
+    hour: int | None
+    minute: int | None
+    second: int | None
+    microsecond: int | None
+
     def __init__(
         self,
-        year=None,
-        month=None,
-        day=None,
-        hour=None,
-        minute=None,
-        second=None,
-        microsecond=None,
-    ):
+        year: int | datetime | None = None,
+        month: int | None = None,
+        day: int | None = None,
+        hour: int | None = None,
+        minute: int | None = None,
+        second: int | None = None,
+        microsecond: int | None = None,
+    ) -> None:
         if isinstance(year, datetime):
             dt = year
             self.year, self.month, self.day = dt.year, dt.month, dt.day
@@ -142,7 +162,7 @@ class adatetime:
             self.hour, self.minute, self.second = hour, minute, second
             self.microsecond = microsecond
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         if other.__class__ is not self.__class__:
             if not is_ambiguous(self) and isinstance(other, datetime):
                 return fix(self) == other
@@ -150,10 +170,10 @@ class adatetime:
                 return False
         return all(getattr(self, unit) == getattr(other, unit) for unit in self.units)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.__class__.__name__}{self.tuple()!r}"
 
-    def tuple(self):
+    def tuple(self) -> _DateTuple:
         """Returns the attributes of the ``adatetime`` object as a tuple of
         ``(year, month, day, hour, minute, second, microsecond)``.
         """
@@ -168,10 +188,10 @@ class adatetime:
             self.microsecond,
         )
 
-    def date(self):
+    def date(self) -> _Date:
         return date(self.year, self.month, self.day)
 
-    def copy(self):
+    def copy(self) -> adatetime:
         return adatetime(
             year=self.year,
             month=self.month,
@@ -182,7 +202,7 @@ class adatetime:
             microsecond=self.microsecond,
         )
 
-    def replace(self, **kwargs):
+    def replace(self, **kwargs: int | None) -> adatetime:
         """Returns a copy of this object with the attributes given as keyword
         arguments replaced.
 
@@ -199,7 +219,7 @@ class adatetime:
                 raise KeyError(f"Unknown argument {key!r}")
         return newadatetime
 
-    def floor(self):
+    def floor(self) -> datetime:
         """Returns a ``datetime`` version of this object with all unspecified
         (None) attributes replaced by their lowest values.
 
@@ -237,7 +257,7 @@ class adatetime:
             ms = 0
         return datetime(y, m, d, h, mn, s, ms, tzinfo=timezone.utc)
 
-    def ceil(self):
+    def ceil(self) -> datetime:
         """Returns a ``datetime`` version of this object with all unspecified
         (None) attributes replaced by their highest values.
 
@@ -275,7 +295,7 @@ class adatetime:
             ms = 999999
         return datetime(y, m, d, h, mn, s, ms, tzinfo=timezone.utc)
 
-    def disambiguated(self, basedate=None):
+    def disambiguated(self, basedate: datetime | None = None) -> datetime | timespan:
         """Returns either a ``datetime`` or unambiguous ``timespan`` version
         of this object.
 
@@ -298,7 +318,7 @@ class adatetime:
             basedate = datetime.now(tz=timezone.utc)
         dt = self
         if not is_ambiguous(dt):
-            return fix(dt)
+            return cast("datetime", fix(dt))
         return timespan(dt, dt).disambiguated(basedate)
 
 
@@ -308,7 +328,10 @@ class adatetime:
 class timespan:
     """A span of time between two ``datetime`` or ``adatetime`` objects."""
 
-    def __init__(self, start, end):
+    start: datetime | adatetime
+    end: datetime | adatetime
+
+    def __init__(self, start: datetime | adatetime, end: datetime | adatetime) -> None:
         """
         :param start: a ``datetime`` or ``adatetime`` object representing the
             start of the time span.
@@ -324,15 +347,17 @@ class timespan:
         self.start = copy.copy(start)
         self.end = copy.copy(end)
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         if other.__class__ is not self.__class__:
             return False
         return self.start == other.start and self.end == other.end
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.start!r}, {self.end!r})"
 
-    def disambiguated(self, basedate=None, debug=0):
+    def disambiguated(
+        self, basedate: datetime | None = None, debug: int = 0
+    ) -> timespan:
         """Returns an unambiguous version of this object.
 
         :param basedate: a ``datetime`` used as the reference point for
@@ -442,19 +467,23 @@ class timespan:
 # Functions for working with datetime/adatetime objects
 
 
-def floor(at):
+def floor(at: datetime | adatetime) -> datetime:
     if isinstance(at, datetime):
         return at
     return at.floor()
 
 
-def ceil(at):
+def ceil(at: datetime | adatetime) -> datetime:
     if isinstance(at, datetime):
         return at
     return at.ceil()
 
 
-def fill_in(at, basedate, units=adatetime.units):
+def fill_in(
+    at: datetime | adatetime,
+    basedate: datetime | adatetime,
+    units: Collection[str] = adatetime.units,
+) -> datetime | adatetime:
     """Returns a copy of ``at`` with any unspecified (None) units filled in
     with values from ``basedate``.
     """
@@ -471,7 +500,7 @@ def fill_in(at, basedate, units=adatetime.units):
     return fix(adatetime(**args))
 
 
-def has_no_date(at):
+def has_no_date(at: datetime | adatetime) -> bool:
     """Returns True if the given object is an ``adatetime`` where ``year``,
     ``month``, and ``day`` are all None.
     """
@@ -481,7 +510,7 @@ def has_no_date(at):
     return at.year is None and at.month is None and at.day is None
 
 
-def has_no_time(at):
+def has_no_time(at: datetime | adatetime) -> bool:
     """Returns True if the given object is an ``adatetime`` where ``hour``,
     ``minute``, ``second`` and ``microsecond`` are all None.
     """
@@ -496,7 +525,7 @@ def has_no_time(at):
     )
 
 
-def is_ambiguous(at):
+def is_ambiguous(at: datetime | adatetime) -> bool:
     """Returns True if the given object is an ``adatetime`` with any of its
     attributes equal to None.
     """
@@ -506,7 +535,7 @@ def is_ambiguous(at):
     return any((getattr(at, attr) is None) for attr in adatetime.units)
 
 
-def is_void(at):
+def is_void(at: datetime | adatetime) -> bool:
     """Returns True if the given object is an ``adatetime`` with all of its
     attributes equal to None.
     """
@@ -516,7 +545,7 @@ def is_void(at):
     return all((getattr(at, attr) is None) for attr in adatetime.units)
 
 
-def fix(at):
+def fix(at: datetime | adatetime) -> datetime | adatetime:
     """If the given object is an ``adatetime`` that is unambiguous (because
     all its attributes are specified, that is, not equal to None), returns a
     ``datetime`` version of it. Otherwise returns the ``adatetime`` object
