@@ -30,12 +30,17 @@ import random
 import sys
 import time
 from bisect import insort
+from collections.abc import Callable
 from functools import wraps
+from typing import Any, TypeVar
+
+_F = TypeVar("_F", bound=Callable[..., Any])
 
 # These must be valid separate characters in CASE-INSENSITIVE filenames
 IDCHARS = "0123456789abcdefghijklmnopqrstuvwxyz"
 
 
+now: Callable[[], float]
 if hasattr(time, "perf_counter"):
     now = time.perf_counter
 elif sys.platform == "win32":
@@ -44,15 +49,15 @@ else:
     now = time.time
 
 
-def random_name(size=28):
+def random_name(size: int = 28) -> str:
     return "".join(random.choice(IDCHARS) for _ in range(size))
 
 
-def random_bytes(size=28):
+def random_bytes(size: int = 28) -> bytes:
     return bytes(random.randint(0, 255) for _ in range(size))
 
 
-def make_binary_tree(fn, args, **kwargs):
+def make_binary_tree(fn: Callable[..., Any], args: list, **kwargs) -> Any:
     """Takes a function/class that takes two positional arguments and a list of
     arguments and returns a binary tree of results/instances.
 
@@ -77,7 +82,7 @@ def make_binary_tree(fn, args, **kwargs):
     )
 
 
-def make_weighted_tree(fn, ls, **kwargs):
+def make_weighted_tree(fn: Callable[..., Any], ls: list, **kwargs) -> Any:
     """Takes a function/class that takes two positional arguments and a list of
     (weight, argument) tuples and returns a huffman-like weighted tree of
     results/instances.
@@ -96,10 +101,10 @@ def make_weighted_tree(fn, ls, **kwargs):
 
 # Fibonacci function
 
-_fib_cache = {}
+_fib_cache: dict[int, int] = {}
 
 
-def fib(n):
+def fib(n: int) -> int:
     """Returns the nth value in the Fibonacci sequence."""
 
     if n <= 2:
@@ -114,7 +119,7 @@ def fib(n):
 # Decorators
 
 
-def synchronized(func):
+def synchronized(func: _F) -> _F:
     """Decorator for storage-access methods, which synchronizes on a threading
     lock. The parent object must have 'is_closed' and '_sync_lock' attributes.
     """
@@ -124,10 +129,10 @@ def synchronized(func):
         with self._sync_lock:
             return func(self, *args, **kwargs)
 
-    return synchronized_wrapper
+    return synchronized_wrapper  # ty: ignore[invalid-return-type]
 
 
-def unclosed(method):
+def unclosed(method: _F) -> _F:
     """
     Decorator to check if the object is closed.
     """
@@ -138,4 +143,4 @@ def unclosed(method):
             raise ValueError("Operation on a closed object")
         return method(self, *args, **kwargs)
 
-    return unclosed_wrapper
+    return unclosed_wrapper  # ty: ignore[invalid-return-type]
