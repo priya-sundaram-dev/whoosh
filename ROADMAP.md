@@ -328,6 +328,24 @@ About section of the README.)*
       that bites downstreams like paperless-ngx and MoinMoin during
       `commit()`/`optimize()` — and the close-then-delete contract is guarded
       by a regression test (`test_index_files_deletable_after_close`).
+- [x] **Standalone integration packages on PyPI (Unreleased).** Following the
+      current LangChain/LlamaIndex guidance that new integrations ship as
+      independent, versioned PyPI packages (rather than living in the framework
+      monorepos or a bundled extra), Whoosh now publishes two thin adapters
+      developed in-repo under `integrations/`:
+      [`langchain-whoosh`](https://pypi.org/project/langchain-whoosh/) (#189)
+      and
+      [`llama-index-retrievers-whoosh`](https://pypi.org/project/llama-index-retrievers-whoosh/)
+      (#190). Each exposes a `WhooshRetriever` at the framework's expected
+      import path, reuses the tested BM25 core, ships `.from_texts()` /
+      `.from_index()` constructors, a quickstart + hybrid-retriever recipe, and
+      an integration-test job that installs the real `langchain-core` /
+      `llama-index-core` on 3.10/3.11/3.13. This keeps the heavy framework
+      dependency fully decoupled from `import whoosh` (guiding principle 3)
+      while making Whoosh installable as a first-class retriever in either
+      ecosystem. The in-repo `whoosh.langchain` / `whoosh.llamaindex` modules
+      remain for the bundled `whoosh3[langchain]` path; the standalone packages
+      are the recommended install for framework users.
 
 ## Next
 

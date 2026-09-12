@@ -6,6 +6,26 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Added
+
+- Two standalone framework-integration packages, developed in-repo under
+  `integrations/` and published independently to PyPI (they are **not** part of
+  the `whoosh` / `whoosh3` distribution and add no dependencies to it):
+  - [`langchain-whoosh`](https://pypi.org/project/langchain-whoosh/) (#189) —
+    a `WhooshRetriever(BaseRetriever)` importable as
+    `from langchain_whoosh import WhooshRetriever`, reusing the tested BM25
+    core, with `.from_texts()` / `.from_index()` constructors and a hybrid
+    `EnsembleRetriever` recipe.
+  - [`llama-index-retrievers-whoosh`](https://pypi.org/project/llama-index-retrievers-whoosh/)
+    (#190) — a `WhooshRetriever(BaseRetriever)` at the LlamaIndex namespace
+    path `llama_index.retrievers.whoosh`, returning `NodeWithScore`, with a
+    hybrid `QueryFusionRetriever` (RRF) recipe.
+  Each package has its own CI job that installs the real `langchain-core` /
+  `llama-index-core` and runs integration tests on Python 3.10/3.11/3.13. The
+  in-repo `whoosh.langchain` / `whoosh.llamaindex` modules (bundled
+  `whoosh3[langchain]` extra) are unchanged; the standalone packages are the
+  recommended install for framework users.
+
 ## [3.51.0] - 2026-09-11
 
 ### Added
