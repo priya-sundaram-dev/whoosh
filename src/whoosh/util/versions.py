@@ -25,12 +25,23 @@
 # those of the authors and should not be interpreted as representing official
 # policies, either expressed or implied, of Matt Chaput.
 
+from __future__ import annotations
+
+import builtins
+import re
+from collections.abc import Callable
+from typing import ClassVar
+
 from whoosh.util.text import rcompile
 
 
 class BaseVersion:
+    # Subclasses provide these class-level attributes.
+    _version_exp: ClassVar[re.Pattern[str]]
+    _parts: ClassVar[list[builtins.tuple[str, Callable[[str], object]]]]
+
     @classmethod
-    def parse(cls, text):
+    def parse(cls, text: str) -> BaseVersion:
         obj = cls()
         if match := cls._version_exp.match(text):
             groupdict = match.groupdict()
@@ -40,41 +51,41 @@ class BaseVersion:
                     setattr(obj, groupname, typ(v))
         return obj
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         vs = ", ".join(repr(getattr(self, slot)) for slot in self.__slots__)
         return f"{self.__class__.__name__}({vs})"
 
-    def tuple(self):
-        return tuple(getattr(self, slot) for slot in self.__slots__)
+    def tuple(self) -> builtins.tuple:
+        return builtins.tuple(getattr(self, slot) for slot in self.__slots__)
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         if not hasattr(other, "tuple"):
             raise ValueError(f"Can't compare {self!r} with {other!r}")
         return self.tuple() == other.tuple()
 
-    def __lt__(self, other):
+    def __lt__(self, other: object) -> bool:
         if not hasattr(other, "tuple"):
             raise ValueError(f"Can't compare {self!r} with {other!r}")
         return self.tuple() < other.tuple()
 
     # It's dumb that you have to define these
 
-    def __gt__(self, other):
+    def __gt__(self, other: object) -> bool:
         if not hasattr(other, "tuple"):
             raise ValueError(f"Can't compare {self!r} with {other!r}")
         return self.tuple() > other.tuple()
 
-    def __ge__(self, other):
+    def __ge__(self, other: object) -> bool:
         if not hasattr(other, "tuple"):
             raise ValueError(f"Can't compare {self!r} with {other!r}")
         return self.tuple() >= other.tuple()
 
-    def __le__(self, other):
+    def __le__(self, other: object) -> bool:
         if not hasattr(other, "tuple"):
             raise ValueError(f"Can't compare {self!r} with {other!r}")
         return self.tuple() <= other.tuple()
 
-    def __ne__(self, other):
+    def __ne__(self, other: object) -> bool:
         if not hasattr(other, "tuple"):
             raise ValueError(f"Can't compare {self!r} with {other!r}")
         return self.tuple() != other.tuple()
@@ -117,8 +128,8 @@ class SimpleVersion(BaseVersion):
         verbose=True,
     )
 
-    # (groupid, method, skippable, default)
-    _parts = [
+    # (groupid, method)
+    _parts: ClassVar[list[builtins.tuple[str, Callable[[str], object]]]] = [
         ("major", int),
         ("minor", int),
         ("release", int),
@@ -126,19 +137,26 @@ class SimpleVersion(BaseVersion):
         ("exnum", int),
     ]
 
-    _ex_bits = {"a": 0, "b": 1, "c": 2, "rc": 10, "z": 15}
-    _bits_ex = {v: k for k, v in _ex_bits.items()}
+    _ex_bits: ClassVar[dict[str, int]] = {"a": 0, "b": 1, "c": 2, "rc": 10, "z": 15}
+    _bits_ex: ClassVar[dict[int, str]] = {v: k for k, v in _ex_bits.items()}
 
     __slots__ = ("major", "minor", "release", "ex", "exnum")
 
-    def __init__(self, major=1, minor=0, release=0, ex="z", exnum=0):
+    def __init__(
+        self,
+        major: int = 1,
+        minor: int = 0,
+        release: int = 0,
+        ex: str = "z",
+        exnum: int = 0,
+    ) -> None:
         self.major = major
         self.minor = minor
         self.release = release
         self.ex = ex
         self.exnum = exnum
 
-    def to_int(self):
+    def to_int(self) -> int:
         assert self.major < 1024
         n = self.major << 34
 
@@ -157,7 +175,7 @@ class SimpleVersion(BaseVersion):
         return n
 
     @classmethod
-    def from_int(cls, n):
+    def from_int(cls, n: int) -> SimpleVersion:
         major = (n & (1023 << 34)) >> 34
         minor = (n & (1023 << 24)) >> 24
         release = (n & (1023 << 14)) >> 14
