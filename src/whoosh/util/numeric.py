@@ -31,6 +31,7 @@ import math
 import struct
 from array import array
 from bisect import bisect_left
+from collections.abc import Iterable, Iterator
 from struct import pack, unpack
 
 from whoosh.system import (
@@ -99,7 +100,7 @@ typecode_unpack = {
 # Functions related to binary representations
 
 
-def b(s):
+def b(s: str) -> bytes:
     return s.encode("latin-1")
 
 
@@ -172,13 +173,14 @@ def from_sortable(
 
 
 def float_to_sortable_long(x: float, signed: bool) -> int:
-    x = _qunpack(_dpack(x))[0]
-    if x < 0:
-        x ^= 0x7FFFFFFFFFFFFFFF
+    # Reinterpret the float's IEEE-754 bits as a signed 64-bit integer.
+    n: int = _qunpack(_dpack(x))[0]
+    if n < 0:
+        n ^= 0x7FFFFFFFFFFFFFFF
     if signed:
-        x += 1 << 63
-    assert x >= 0
-    return x
+        n += 1 << 63
+    assert n >= 0
+    return n
 
 
 def sortable_long_to_float(x: int, signed: bool) -> float:
@@ -186,14 +188,17 @@ def sortable_long_to_float(x: int, signed: bool) -> float:
         x -= 1 << 63
     if x < 0:
         x ^= 0x7FFFFFFFFFFFFFFF
-    x = _dunpack(_qpack(x))[0]
-    return x
+    # Reinterpret the integer's bits back into an IEEE-754 double.
+    f: float = _dunpack(_qpack(x))[0]
+    return f
 
 
 # Functions for generating tiered ranges
 
 
-def split_ranges(intsize, step, start, end):
+def split_ranges(
+    intsize: int, step: int, start: int, end: int
+) -> Iterator[tuple[int, int, int]]:
     """Splits a range of numbers (from ``start`` to ``end``, inclusive)
     into a sequence of trie ranges of the form ``(start, end, shift)``. The
     consumer of these tuples is expected to shift the ``start`` and ``end``
@@ -209,7 +214,7 @@ def split_ranges(intsize, step, start, end):
         diff = 1 << (shift + step)
         mask = ((1 << step) - 1) << shift
 
-        def setbits(x):
+        def setbits(x: int) -> int:
             return x | ((1 << shift) - 1)
 
         haslower = (start & mask) != 0
@@ -243,30 +248,39 @@ def split_ranges(intsize, step, start, end):
         shift += step
 
 
-def tiered_ranges(numtype, intsize, signed, start, end, shift_step, startexcl, endexcl):
+def tiered_ranges(
+    numtype: type[int | float],
+    intsize: int,
+    signed: bool,
+    start: float | None,
+    end: float | None,
+    shift_step: int,
+    startexcl: bool,
+    endexcl: bool,
+) -> Iterable[tuple[int, int, int]]:
     assert numtype in (int, float)
     assert intsize in (8, 16, 32, 64)
 
     # Convert start and end values to sortable ints
     if start is None:
-        start = 0
+        istart = 0
     else:
-        start = to_sortable(numtype, intsize, signed, start)
+        istart = to_sortable(numtype, intsize, signed, start)
         if startexcl:
-            start += 1
+            istart += 1
 
     if end is None:
-        end = 2**intsize - 1
+        iend = 2**intsize - 1
     else:
-        end = to_sortable(numtype, intsize, signed, end)
+        iend = to_sortable(numtype, intsize, signed, end)
         if endexcl:
-            end -= 1
+            iend -= 1
 
     if not shift_step:
-        return ((start, end, 0),)
+        return ((istart, iend, 0),)
 
     # Yield (rstart, rend, shift) ranges for the different resolutions
-    return split_ranges(intsize, shift_step, start, end)
+    return split_ranges(intsize, shift_step, istart, iend)
 
 
 # Float-to-byte encoding/decoding
@@ -297,12 +311,11 @@ def float_to_byte(value: float, mantissabits: int = 5, zeroexp: int = 2) -> byte
 
 def byte_to_float(b: bytes | int, mantissabits: int = 5, zeroexp: int = 2) -> float:
     """Decodes a floating point number stored in a single byte."""
-    if type(b) is not int:
-        b = ord(b)
-    if b == 0:
+    n = b if isinstance(b, int) else ord(b)
+    if n == 0:
         return 0.0
 
-    bits = (b & 0xFF) << (24 - mantissabits)
+    bits = (n & 0xFF) << (24 - mantissabits)
     bits += (63 - zeroexp) << 24
     return unpack("f", pack("i", bits))[0]
 
