@@ -29,20 +29,27 @@ import os.path
 import shutil
 import sys
 import tempfile
+from collections.abc import Iterator
 from contextlib import contextmanager
+from types import TracebackType
+from typing import TYPE_CHECKING, Any
 
 from whoosh.filedb.filestore import FileStorage
 from whoosh.util import now, random_name
+
+if TYPE_CHECKING:
+    from whoosh.index import Index
+    from whoosh.schema import Schema
 
 
 class TempDir:
     def __init__(
         self,
-        basename="",
-        parentdir=None,
-        ext=".whoosh",
-        suppress=frozenset(),
-        keepdir=False,
+        basename: str = "",
+        parentdir: str | None = None,
+        ext: str = ".whoosh",
+        suppress: frozenset[type[BaseException]] = frozenset(),
+        keepdir: bool = False,
     ):
         self.basename = basename or random_name(8)
         self.parentdir = parentdir
@@ -52,15 +59,20 @@ class TempDir:
         self.suppress = suppress
         self.keepdir = keepdir
 
-    def __enter__(self):
+    def __enter__(self) -> str:
         if not os.path.exists(self.dir):
             os.makedirs(self.dir)
         return self.dir
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         pass
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> bool | None:
         self.cleanup()
         if not self.keepdir:
             try:
@@ -79,36 +91,43 @@ class TempDir:
 
 
 class TempStorage(TempDir):
-    def __init__(self, debug=False, **kwargs):
+    def __init__(self, debug: bool = False, **kwargs: Any):
         TempDir.__init__(self, **kwargs)
         self._debug = debug
+        self.store: FileStorage
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         self.store.close()
 
-    def __enter__(self):
+    def __enter__(self) -> FileStorage:
         dirpath = TempDir.__enter__(self)
         self.store = FileStorage(dirpath, debug=self._debug)
         return self.store
 
 
 class TempIndex(TempStorage):
-    def __init__(self, schema, ixname="", storage_debug=False, **kwargs):
+    def __init__(
+        self,
+        schema: "Schema",
+        ixname: str = "",
+        storage_debug: bool = False,
+        **kwargs: Any,
+    ):
         TempStorage.__init__(self, basename=ixname, debug=storage_debug, **kwargs)
         self.schema = schema
 
-    def __enter__(self):
+    def __enter__(self) -> "Index":
         fstore = TempStorage.__enter__(self)
         return fstore.create_index(self.schema, indexname=self.basename)
 
 
-def is_abstract_method(attr):
+def is_abstract_method(attr: Any) -> bool:
     """Returns True if the given object has __isabstractmethod__ == True."""
 
     return hasattr(attr, "__isabstractmethod__") and attr.__isabstractmethod__
 
 
-def check_abstract_methods(base, subclass):
+def check_abstract_methods(base: type, subclass: type) -> None:
     """Raises AssertionError if ``subclass`` does not override a method on
     ``base`` that is marked as an abstract method.
     """
@@ -124,7 +143,7 @@ def check_abstract_methods(base, subclass):
 
 
 @contextmanager
-def timing(name=None):
+def timing(name: str | None = None) -> Iterator[None]:
     t = now()
     yield
     t = now() - t
