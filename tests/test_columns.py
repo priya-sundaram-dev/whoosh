@@ -314,8 +314,20 @@ def test_ref_switch():
             warnings.simplefilter("always")
             rw(65537)
 
-            assert len(w) == 2
-            assert issubclass(w[-1].category, UserWarning)
+            # Count only the column's own "dropped unique value" warnings.
+            # Under interpreters with non-deterministic GC (e.g. PyPy),
+            # unrelated warnings (such as ResourceWarnings from delayed
+            # file finalization) can leak into this recording block, so
+            # asserting on the total count is flaky. Filter to the warning
+            # the column is contractually expected to emit.
+            dropped = [
+                x
+                for x in w
+                if issubclass(x.category, UserWarning)
+                and "dropped unique value" in str(x.message)
+            ]
+            assert len(dropped) == 2
+            assert issubclass(dropped[-1].category, UserWarning)
 
 
 def test_varbytes_offsets():
