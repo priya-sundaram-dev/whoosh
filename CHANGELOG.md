@@ -26,13 +26,42 @@ All notable changes to this project are documented here. This project follows
   `whoosh3[langchain]` extra) are unchanged; the standalone packages are the
   recommended install for framework users.
 
+### Fixed
+
+- `whoosh.util.numlists`: fixed two latent bugs surfaced while adding type
+  annotations to the variable-length number encoders (verified with a
+  write/read roundtrip on all three): `FixedEncoding.read_nums`/`get` and
+  `Simple16.get` returned the raw `Struct.unpack` tuple instead of the `int`
+  (missing `[0]`), violating the `Iterator[int]` contract; and
+  `GInts.read_nums` did `bytes + "\x00"` (a `str`), raising `TypeError` on the
+  3-byte path — now `b"\x00"`. These encoders are not on the default index
+  path, so existing indexes are unaffected. (gh#121)
+
 ### Typing
+
+Ongoing effort (gh#121) to fully annotate the codebase for editor/type-checker
+support, with no runtime behaviour changes unless noted:
 
 - Added type annotations to `whoosh.filedb.structfile` (`StructFile`,
   `BufferFile`, `ChecksumFile`): all `read_*`/`write_*` methods, fixed-width
   number helpers, varint/tagint helpers, string helpers, `write_array`/
-  `read_array`, `write_pickle`/`read_pickle`, and pass-through wrappers. No
-  behaviour changes. (#193)
+  `read_array`, `write_pickle`/`read_pickle`, and pass-through wrappers. (#193)
+- Annotated `whoosh.util.numlists` (632 lines): `delta_encode`/`decode`,
+  `GrowableArray`, and the `NumberEncoding` hierarchy
+  (`Fixed`/`Byte`/`UShort`/`UInt`/`Varints`/`Simple16`/`GInts`). (gh#121)
+- Annotated `whoosh.util.numeric` helpers and fixed 3 latent mypy errors. (gh#121)
+- Annotated `whoosh.util.times` (`adatetime`/`timespan` + datetime
+  helpers). (gh#121)
+- Annotated `whoosh.util.testing` (`TempDir`/`TempStorage`/`TempIndex` +
+  helpers), `whoosh.util.__init__` helpers/decorators, `whoosh.util.cache`
+  (`unbound_cache`/`lfu_cache`), and `whoosh.util.filelock` (`try_for` +
+  `LockBase`/`FcntlLock`/`MsvcrtLock`). (gh#121)
+- Annotated `whoosh.util.versions` (`BaseVersion`/`SimpleVersion`). (gh#186, #191)
+
+### Changed
+
+- Release workflow now builds with `uv build` instead of `python -m build`.
+  (gh#151, #192)
 
 ## [3.51.0] - 2026-09-11
 
