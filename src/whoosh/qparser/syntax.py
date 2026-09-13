@@ -27,6 +27,8 @@
 
 import sys
 import weakref
+from collections.abc import Callable
+from typing import ClassVar
 
 from whoosh import query
 from whoosh.qparser.common import QueryParserError, attach, get_single_text
@@ -199,7 +201,10 @@ class GroupNode(SyntaxNode):
 
     has_boost = True
     merging = True
-    qclass = None
+    # Subclasses override this with a concrete query class (e.g. ``query.And``),
+    # used as a factory whose call signature varies by class. It stays ``None``
+    # on the base class, which does not build a query itself.
+    qclass: ClassVar[Callable[..., query.Query] | None] = None
 
     def __init__(self, nodes=None, boost=1.0, **kwargs):
         self.nodes = nodes or []
@@ -235,6 +240,7 @@ class GroupNode(SyntaxNode):
             if subq is not None:
                 subs.append(subq)
 
+        assert self.qclass is not None
         q = self.qclass(subs, boost=self.boost, **self.kwargs)
         return attach(q, self)
 
@@ -356,6 +362,7 @@ class BinaryGroup(GroupNode):
         elif qb is None:
             q = qa
         else:
+            assert self.qclass is not None
             q = self.qclass(self.nodes[0].query(parser), self.nodes[1].query(parser))
 
         return attach(q, self)
@@ -374,6 +381,7 @@ class Wrapper(GroupNode):
         if not self.nodes:
             return None
         if q := self.nodes[0].query(parser):
+            assert self.qclass is not None
             return attach(self.qclass(q), self)
 
 

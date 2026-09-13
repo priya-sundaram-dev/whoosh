@@ -30,9 +30,17 @@ from __future__ import annotations
 import builtins
 import re
 from collections.abc import Callable
-from typing import ClassVar
+from typing import ClassVar, Protocol, runtime_checkable
 
 from whoosh.util.text import rcompile
+
+
+@runtime_checkable
+class _HasTuple(Protocol):
+    """Anything exposing a ``tuple()`` method, so version objects can be
+    compared against each other (and against duck-typed look-alikes)."""
+
+    def tuple(self) -> builtins.tuple: ...
 
 
 class BaseVersion:
@@ -58,37 +66,34 @@ class BaseVersion:
     def tuple(self) -> builtins.tuple:
         return builtins.tuple(getattr(self, slot) for slot in self.__slots__)
 
-    def __eq__(self, other: object) -> bool:
-        if not hasattr(other, "tuple"):
+    def _other_tuple(self, other: object) -> builtins.tuple:
+        # Narrow ``other`` to something we can compare with. ``isinstance``
+        # against a runtime-checkable Protocol both satisfies the type checker
+        # (``other.tuple`` is now known callable) and preserves the original
+        # duck-typed ``hasattr(other, "tuple")`` behaviour.
+        if not isinstance(other, _HasTuple):
             raise ValueError(f"Can't compare {self!r} with {other!r}")
-        return self.tuple() == other.tuple()
+        return other.tuple()
+
+    def __eq__(self, other: object) -> bool:
+        return self.tuple() == self._other_tuple(other)
 
     def __lt__(self, other: object) -> bool:
-        if not hasattr(other, "tuple"):
-            raise ValueError(f"Can't compare {self!r} with {other!r}")
-        return self.tuple() < other.tuple()
+        return self.tuple() < self._other_tuple(other)
 
     # It's dumb that you have to define these
 
     def __gt__(self, other: object) -> bool:
-        if not hasattr(other, "tuple"):
-            raise ValueError(f"Can't compare {self!r} with {other!r}")
-        return self.tuple() > other.tuple()
+        return self.tuple() > self._other_tuple(other)
 
     def __ge__(self, other: object) -> bool:
-        if not hasattr(other, "tuple"):
-            raise ValueError(f"Can't compare {self!r} with {other!r}")
-        return self.tuple() >= other.tuple()
+        return self.tuple() >= self._other_tuple(other)
 
     def __le__(self, other: object) -> bool:
-        if not hasattr(other, "tuple"):
-            raise ValueError(f"Can't compare {self!r} with {other!r}")
-        return self.tuple() <= other.tuple()
+        return self.tuple() <= self._other_tuple(other)
 
     def __ne__(self, other: object) -> bool:
-        if not hasattr(other, "tuple"):
-            raise ValueError(f"Can't compare {self!r} with {other!r}")
-        return self.tuple() != other.tuple()
+        return self.tuple() != self._other_tuple(other)
 
 
 class SimpleVersion(BaseVersion):

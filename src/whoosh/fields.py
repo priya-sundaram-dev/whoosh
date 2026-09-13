@@ -388,6 +388,8 @@ class FieldType:
         if isinstance(value, (list, tuple)):
             words = value
         else:
+            if not self.analyzer:
+                raise Exception(f"{self.__class__} field has no analyzer")
             words = [token.text for token in self.analyzer(value, no_morph=True)]
 
         return iter(sorted(set(words)))
@@ -422,8 +424,9 @@ class FieldType:
         Clears any cached information in the field and any child objects.
         """
 
-        if self.format and hasattr(self.format, "clean"):
-            self.format.clean()
+        clean = getattr(self.format, "clean", None)
+        if self.format and callable(clean):
+            clean()
 
     # Events
 
@@ -698,7 +701,10 @@ class NUMERIC(FieldType):
         self.sortable_typecode = intcodes[intsizes.index(bits)]
         self._struct = struct.Struct(">" + str(self.sortable_typecode))
 
-        self.numtype = numtype
+        # By this point the ``numtype`` parameter (which accepts str aliases
+        # like "int"/"float") has been normalised to an actual ``int``/``float``
+        # type object, so annotate it as a callable type for the type checker.
+        self.numtype: type = numtype
         self.bits = bits
         self.stored = stored
         self.unique = unique

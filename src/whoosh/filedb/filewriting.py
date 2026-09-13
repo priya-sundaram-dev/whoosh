@@ -189,6 +189,10 @@ class SegmentWriter(SegmentDeletionMixin, IndexWriter):
             if fieldnum != current_fieldnum:
                 current_fieldnum = fieldnum
                 decoder = schema[fieldnum].format.decode_frequency
+            # ``decoder`` is always bound on the first iteration (the initial
+            # ``current_fieldnum is None`` guarantees a field change), so it is
+            # never ``None`` here.
+            assert decoder is not None
 
             postreader = reader.postings(fieldnum, text)
             for docnum, valuestring in postreader.all_items():

@@ -144,10 +144,12 @@ class Categorizer:
         """
 
         # Backwards compatibility
-        if hasattr(self, "key_for_id"):
-            return self.key_for_id(segment_docnum)
-        elif hasattr(self, "key_for_matcher"):
-            return self.key_for_matcher(matcher)
+        key_for_id = getattr(self, "key_for_id", None)
+        key_for_matcher = getattr(self, "key_for_matcher", None)
+        if callable(key_for_id):
+            return key_for_id(segment_docnum)
+        elif callable(key_for_matcher):
+            return key_for_matcher(matcher)
 
         raise NotImplementedError(self.__class__)
 
@@ -166,8 +168,9 @@ class Categorizer:
         """
 
         # Backwards compatibility
-        if hasattr(self, "keys_for_id"):
-            return self.keys_for_id(segment_docnum)
+        keys_for_id = getattr(self, "keys_for_id", None)
+        if callable(keys_for_id):
+            return keys_for_id(segment_docnum)
 
         raise NotImplementedError(self.__class__)
 

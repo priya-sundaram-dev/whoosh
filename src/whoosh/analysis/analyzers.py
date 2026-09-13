@@ -123,8 +123,9 @@ class CompositeAnalyzer(Analyzer):
 
     def clean(self) -> None:
         for item in self.items:
-            if hasattr(item, "clean"):
-                item.clean()
+            clean = getattr(item, "clean", None)
+            if callable(clean):
+                clean()
 
     def has_morph(self) -> bool:
         return any(item.is_morph for item in self.items)

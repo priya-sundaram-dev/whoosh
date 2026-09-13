@@ -1112,6 +1112,11 @@ class GraphWriter:
             if key == lastkey:
                 # If this key is a duplicate, merge its value with the value of
                 # the previous (same) key
+                if self.merge is None:
+                    raise ValueError(
+                        "Two identical keys were inserted but no merge function "
+                        "was provided to combine their values"
+                    )
                 lastnode.value = self.merge(lastnode.value, value)
             else:
                 nodes[prefixlen].set_last_value(key[prefixlen], value)

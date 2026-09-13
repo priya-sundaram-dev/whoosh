@@ -191,9 +191,13 @@ class FieldWriter:
                     return lambda docnum, _fn=fieldname: plain_dfl(docnum, _fn)
         else:
             get_dfl_reader = None
+
         # Per-field bound length accessor, (re)bound whenever the field
-        # changes below so the per-posting call avoids per-field work.
-        field_dfl = None
+        # changes below so the per-posting call avoids per-field work. Starts as
+        # a no-op returning 0 (it is always rebound before the first posting is
+        # processed, since the first item forces a field change).
+        def field_dfl(docnum):
+            return 0
 
         # The fieldname of the previous posting
         lastfn = None

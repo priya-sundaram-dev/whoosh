@@ -211,6 +211,7 @@ class QueryParser:
                 qclass = query.Or
             else:
                 raise QueryParserError(f"Unknown multitoken_query value {spec!r}")
+            assert qclass is not None
             return qclass([termclass(fieldname, t, boost=boost) for t in texts])
 
     def term_query(
