@@ -6,6 +6,8 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.52.0] - 2026-09-13
+
 ### Added
 
 - Two standalone framework-integration packages, developed in-repo under
