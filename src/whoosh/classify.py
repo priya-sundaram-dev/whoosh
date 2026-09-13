@@ -37,7 +37,7 @@ from math import log
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
+    from collections.abc import Callable, ItemsView, Iterable, Sequence
 
     from whoosh.reading import IndexReader
 
@@ -230,19 +230,20 @@ class Expander:
 # Similarity functions
 
 
-def shingles(input, size=2):
-    d = defaultdict(int)
+def shingles(input: Sequence[Any], size: int = 2) -> ItemsView[Any, int]:
+    d: dict[Any, int] = defaultdict(int)
     for shingle in (input[i : i + size] for i in range(len(input) - (size - 1))):
         d[shingle] += 1
     return d.items()
 
 
-def simhash(features, hashbits=32):
+def simhash(features: Iterable[tuple[Any, float]], hashbits: int = 32) -> int:
+    hashfn: Callable[[Any], int]
     if hashbits == 32:
         hashfn = hash
     else:
 
-        def hashfn(s):
+        def hashfn(s: Any) -> int:
             return _hash(s, hashbits)
 
     vs = [0] * hashbits
@@ -261,7 +262,7 @@ def simhash(features, hashbits=32):
     return out
 
 
-def _hash(s, hashbits):
+def _hash(s: str, hashbits: int) -> int:
     # A variable-length version of Python's builtin hash
     if s == "":
         return 0
@@ -277,7 +278,7 @@ def _hash(s, hashbits):
         return x
 
 
-def hamming_distance(first_hash, other_hash, hashbits=32):
+def hamming_distance(first_hash: int, other_hash: int, hashbits: int = 32) -> int:
     x = (first_hash ^ other_hash) & ((1 << hashbits) - 1)
     tot = 0
     while x:
@@ -289,7 +290,14 @@ def hamming_distance(first_hash, other_hash, hashbits=32):
 # Clustering
 
 
-def kmeans(data, k, t=0.0001, distfun=None, maxiter=50, centers=None):
+def kmeans(
+    data: Sequence[float],
+    k: int,
+    t: float = 0.0001,
+    distfun: Callable[[float, float], float] | None = None,
+    maxiter: int = 50,
+    centers: Sequence[float] | None = None,
+) -> tuple[list[int], list[float]]:
     """
     One-dimensional K-means clustering function.
 
@@ -314,13 +322,13 @@ def kmeans(data, k, t=0.0001, distfun=None, maxiter=50, centers=None):
     labels = [0] * n  # output cluster label for each data point
 
     # c1 is an array of len k of the temp centroids
-    c1 = [0] * k
+    c1: list[float] = [0] * k
 
     # choose k initial centroids
     if centers:
-        c = centers
+        c = list(centers)
     else:
-        c = random.sample(data, k)
+        c = random.sample(list(data), k)
 
     niter = 0
     # main loop
@@ -362,7 +370,7 @@ def kmeans(data, k, t=0.0001, distfun=None, maxiter=50, centers=None):
 # Sliding window clusters
 
 
-def two_pass_variance(data):
+def two_pass_variance(data: Sequence[float]) -> float:
     n = 0
     sum1 = 0
     sum2 = 0
@@ -380,7 +388,9 @@ def two_pass_variance(data):
     return variance
 
 
-def weighted_incremental_variance(data_weight_pairs):
+def weighted_incremental_variance(
+    data_weight_pairs: Iterable[tuple[float, float]],
+) -> float:
     mean = 0
     S = 0
     sumweight = 0
@@ -395,7 +405,9 @@ def weighted_incremental_variance(data_weight_pairs):
     return Variance
 
 
-def swin(data, size):
+def swin(
+    data: Sequence[float], size: float
+) -> list[tuple[float, float, int, float]]:
     clusters = []
     for i, left in enumerate(data):
         j = i
