@@ -405,9 +405,7 @@ def weighted_incremental_variance(
     return Variance
 
 
-def swin(
-    data: Sequence[float], size: float
-) -> list[tuple[float, float, int, float]]:
+def swin(data: Sequence[float], size: float) -> list[tuple[float, float, int, float]]:
     clusters = []
     for i, left in enumerate(data):
         j = i
