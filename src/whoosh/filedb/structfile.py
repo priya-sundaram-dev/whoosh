@@ -252,7 +252,7 @@ class StructFile:
 
     def write_byte(self, n: int) -> None:
         """Writes a single byte to the wrapped file, shortcut for
-        ``file.write(chr(n))``.\
+        ``file.write(chr(n))``.
         """
         self.write(pack_byte(n))
 
