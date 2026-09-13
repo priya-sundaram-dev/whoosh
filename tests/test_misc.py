@@ -164,3 +164,12 @@ def test_concurrent_writers_lock():
         w2.cancel()
     finally:
         st.destroy()
+
+
+def test_structfile_str():
+    from io import BytesIO
+
+    from whoosh.filedb.structfile import StructFile
+
+    assert str(StructFile(BytesIO(), name=None)) == ""
+    assert str(StructFile(BytesIO(), name="test")) == "test"
