@@ -57,6 +57,11 @@ support, with no runtime behaviour changes unless noted:
   (`unbound_cache`/`lfu_cache`), and `whoosh.util.filelock` (`try_for` +
   `LockBase`/`FcntlLock`/`MsvcrtLock`). (gh#121)
 - Annotated `whoosh.util.versions` (`BaseVersion`/`SimpleVersion`). (gh#186, #191)
+- Annotated the `whoosh.classify` similarity/clustering helpers
+  (`shingles`/`simhash`/`_hash`/`hamming_distance`/`kmeans` and the
+  variance/sliding-window functions). `kmeans` now copies its `centers`/`data`
+  inputs so the mutated working centroid array is a real `list[float]` rather
+  than aliasing (and mutating) the caller's sequence. (gh#121)
 
 ### Changed
 
