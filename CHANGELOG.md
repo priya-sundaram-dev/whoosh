@@ -26,6 +26,14 @@ All notable changes to this project are documented here. This project follows
   `whoosh3[langchain]` extra) are unchanged; the standalone packages are the
   recommended install for framework users.
 
+### Typing
+
+- Added type annotations to `whoosh.filedb.structfile` (`StructFile`,
+  `BufferFile`, `ChecksumFile`): all `read_*`/`write_*` methods, fixed-width
+  number helpers, varint/tagint helpers, string helpers, `write_array`/
+  `read_array`, `write_pickle`/`read_pickle`, and pass-through wrappers. No
+  behaviour changes. (#193)
+
 ## [3.51.0] - 2026-09-11
 
 ### Added

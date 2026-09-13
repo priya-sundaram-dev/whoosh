@@ -25,11 +25,16 @@
 # those of the authors and should not be interpreted as representing official
 # policies, either expressed or implied, of Matt Chaput.
 
+from __future__ import annotations
+
+import types
 from array import array
+from collections.abc import Callable
 from copy import copy
 from io import BytesIO
 from pickle import dump, load
 from struct import calcsize
+from typing import Any, BinaryIO
 
 from whoosh.system import (
     _FLOAT_SIZE,
@@ -75,7 +80,12 @@ class StructFile:
     "write_varint" and "write_long".
     """
 
-    def __init__(self, fileobj, name=None, onclose=None):
+    def __init__(
+        self,
+        fileobj: BinaryIO,
+        name: str | None = None,
+        onclose: Callable[[StructFile], None] | None = None,
+    ) -> None:
         self.file = fileobj
         self._name = name
         self.onclose = onclose
@@ -85,43 +95,48 @@ class StructFile:
         if self.is_real:
             self.fileno = fileobj.fileno
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self._name!r})"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self._name
 
-    def __enter__(self):
+    def __enter__(self) -> StructFile:
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: types.TracebackType | None,
+    ) -> None:
         self.close()
 
-    def __iter__(self):
+    def __iter__(self) -> Any:
         return iter(self.file)
 
-    def raw_file(self):
+    def raw_file(self) -> BinaryIO:
         return self.file
 
-    def read(self, *args, **kwargs):
+    def read(self, *args: Any, **kwargs: Any) -> Any:
         return self.file.read(*args, **kwargs)
 
-    def readline(self, *args, **kwargs):
+    def readline(self, *args: Any, **kwargs: Any) -> Any:
         return self.file.readline(*args, **kwargs)
 
-    def write(self, *args, **kwargs):
+    def write(self, *args: Any, **kwargs: Any) -> Any:
         return self.file.write(*args, **kwargs)
 
-    def tell(self, *args, **kwargs):
+    def tell(self, *args: Any, **kwargs: Any) -> Any:
         return self.file.tell(*args, **kwargs)
 
-    def seek(self, *args, **kwargs):
+    def seek(self, *args: Any, **kwargs: Any) -> Any:
         return self.file.seek(*args, **kwargs)
 
-    def truncate(self, *args, **kwargs):
+    def truncate(self, *args: Any, **kwargs: Any) -> Any:
         return self.file.truncate(*args, **kwargs)
 
-    def flush(self):
+    def flush(self) -> None:
         """Flushes the buffer of the wrapped file. This is a no-op if the
         wrapped file does not have a flush method.
         """
@@ -129,7 +144,7 @@ class StructFile:
         if hasattr(self.file, "flush"):
             self.file.flush()
 
-    def close(self):
+    def close(self) -> None:
         """Closes the wrapped file."""
 
         if self.is_closed:
@@ -140,13 +155,13 @@ class StructFile:
             self.file.close()
         self.is_closed = True
 
-    def subset(self, offset, length, name=None):
+    def subset(self, offset: int, length: int, name: str | None = None) -> StructFile:
         from whoosh.filedb.compound import SubFile
 
         name = name or self._name
         return StructFile(SubFile(self.file, offset, length), name=name)
 
-    def write_string(self, s):
+    def write_string(self, s: bytes) -> None:
         """Writes a string to the wrapped file. This method writes the length
         of the string first, so you can read the string back without having to
         know how long it was.
@@ -154,59 +169,59 @@ class StructFile:
         self.write_varint(len(s))
         self.write(s)
 
-    def write_string2(self, s):
+    def write_string2(self, s: bytes) -> None:
         self.write(pack_ushort(len(s)) + s)
 
-    def write_string4(self, s):
+    def write_string4(self, s: bytes) -> None:
         self.write(pack_int(len(s)) + s)
 
-    def read_string(self):
+    def read_string(self) -> bytes:
         """Reads a string from the wrapped file."""
         return self.read(self.read_varint())
 
-    def read_string2(self):
+    def read_string2(self) -> bytes:
         line = self.read_ushort()
         return self.read(line)
 
-    def read_string4(self):
+    def read_string4(self) -> bytes:
         line = self.read_int()
         return self.read(line)
 
-    def get_string2(self, pos):
+    def get_string2(self, pos: int) -> tuple[bytes, int]:
         line = self.get_ushort(pos)
         base = pos + _SHORT_SIZE
         return self.get(base, line), base + line
 
-    def get_string4(self, pos):
+    def get_string4(self, pos: int) -> tuple[bytes, int]:
         line = self.get_int(pos)
         base = pos + _INT_SIZE
         return self.get(base, line), base + line
 
-    def skip_string(self):
+    def skip_string(self) -> None:
         line = self.read_varint()
         self.seek(line, 1)
 
-    def write_varint(self, i):
+    def write_varint(self, i: int) -> None:
         """Writes a variable-length unsigned integer to the wrapped file."""
         self.write(varint(i))
 
-    def write_svarint(self, i):
+    def write_svarint(self, i: int) -> None:
         """Writes a variable-length signed integer to the wrapped file."""
         self.write(signed_varint(i))
 
-    def read_varint(self):
+    def read_varint(self) -> int:
         """Reads a variable-length encoded unsigned integer from the wrapped
         file.
         """
         return read_varint(self.read)
 
-    def read_svarint(self):
+    def read_svarint(self) -> int:
         """Reads a variable-length encoded signed integer from the wrapped
         file.
         """
         return decode_signed_varint(read_varint(self.read))
 
-    def write_tagint(self, i):
+    def write_tagint(self, i: int) -> None:
         """Writes a sometimes-compressed unsigned integer to the wrapped file.
         This is similar to the varint methods but uses a less compressed but
         faster format.
@@ -221,7 +236,7 @@ class StructFile:
         else:
             self.write("\xff" + pack_uint(i))
 
-    def read_tagint(self):
+    def read_tagint(self) -> int:
         """Reads a sometimes-compressed unsigned integer from the wrapped file.
         This is similar to the varint methods but uses a less compressed but
         faster format.
@@ -235,51 +250,51 @@ class StructFile:
         else:
             return tb
 
-    def write_byte(self, n):
+    def write_byte(self, n: int) -> None:
         """Writes a single byte to the wrapped file, shortcut for
-        ``file.write(chr(n))``.
+        ``file.write(chr(n))``.\
         """
         self.write(pack_byte(n))
 
-    def read_byte(self):
+    def read_byte(self) -> int:
         return ord(self.read(1))
 
-    def write_pickle(self, obj, protocol=-1):
+    def write_pickle(self, obj: Any, protocol: int = -1) -> None:
         """Writes a pickled representation of obj to the wrapped file."""
         dump(obj, self.file, protocol)
 
-    def read_pickle(self):
+    def read_pickle(self) -> Any:
         """Reads a pickled object from the wrapped file."""
         return load(self.file)
 
-    def write_sbyte(self, n):
+    def write_sbyte(self, n: int) -> None:
         self.write(pack_sbyte(n))
 
-    def write_int(self, n):
+    def write_int(self, n: int) -> None:
         self.write(pack_int(n))
 
-    def write_uint(self, n):
+    def write_uint(self, n: int) -> None:
         self.write(pack_uint(n))
 
-    def write_uint_le(self, n):
+    def write_uint_le(self, n: int) -> None:
         self.write(pack_uint_le(n))
 
-    def write_ushort(self, n):
+    def write_ushort(self, n: int) -> None:
         self.write(pack_ushort(n))
 
-    def write_ushort_le(self, n):
+    def write_ushort_le(self, n: int) -> None:
         self.write(pack_ushort_le(n))
 
-    def write_long(self, n):
+    def write_long(self, n: int) -> None:
         self.write(pack_long(n))
 
-    def write_ulong(self, n):
+    def write_ulong(self, n: int) -> None:
         self.write(pack_ulong(n))
 
-    def write_float(self, n):
+    def write_float(self, n: float) -> None:
         self.write(pack_float(n))
 
-    def write_array(self, arry):
+    def write_array(self, arry: array) -> None:
         if IS_LITTLE:
             arry = copy(arry)
             arry.byteswap()
@@ -288,34 +303,34 @@ class StructFile:
         else:
             self.write(arry.tobytes())
 
-    def read_sbyte(self):
+    def read_sbyte(self) -> int:
         return unpack_sbyte(self.read(1))[0]
 
-    def read_int(self):
+    def read_int(self) -> int:
         return unpack_int(self.read(_INT_SIZE))[0]
 
-    def read_uint(self):
+    def read_uint(self) -> int:
         return unpack_uint(self.read(_INT_SIZE))[0]
 
-    def read_uint_le(self):
+    def read_uint_le(self) -> int:
         return unpack_uint_le(self.read(_INT_SIZE))[0]
 
-    def read_ushort(self):
+    def read_ushort(self) -> int:
         return unpack_ushort(self.read(_SHORT_SIZE))[0]
 
-    def read_ushort_le(self):
+    def read_ushort_le(self) -> int:
         return unpack_ushort_le(self.read(_SHORT_SIZE))[0]
 
-    def read_long(self):
+    def read_long(self) -> int:
         return unpack_long(self.read(_LONG_SIZE))[0]
 
-    def read_ulong(self):
+    def read_ulong(self) -> int:
         return unpack_ulong(self.read(_LONG_SIZE))[0]
 
-    def read_float(self):
+    def read_float(self) -> float:
         return unpack_float(self.read(_FLOAT_SIZE))[0]
 
-    def read_array(self, typecode, length):
+    def read_array(self, typecode: str, length: int) -> array:
         a = array(typecode)
         if self.is_real:
             a.fromfile(self.file, length)
@@ -325,41 +340,46 @@ class StructFile:
             a.byteswap()
         return a
 
-    def get(self, position, length):
+    def get(self, position: int, length: int) -> bytes:
         self.seek(position)
         return self.read(length)
 
-    def get_byte(self, position):
+    def get_byte(self, position: int) -> int:
         return unpack_byte(self.get(position, 1))[0]
 
-    def get_sbyte(self, position):
+    def get_sbyte(self, position: int) -> int:
         return unpack_sbyte(self.get(position, 1))[0]
 
-    def get_int(self, position):
+    def get_int(self, position: int) -> int:
         return unpack_int(self.get(position, _INT_SIZE))[0]
 
-    def get_uint(self, position):
+    def get_uint(self, position: int) -> int:
         return unpack_uint(self.get(position, _INT_SIZE))[0]
 
-    def get_ushort(self, position):
+    def get_ushort(self, position: int) -> int:
         return unpack_ushort(self.get(position, _SHORT_SIZE))[0]
 
-    def get_long(self, position):
+    def get_long(self, position: int) -> int:
         return unpack_long(self.get(position, _LONG_SIZE))[0]
 
-    def get_ulong(self, position):
+    def get_ulong(self, position: int) -> int:
         return unpack_ulong(self.get(position, _LONG_SIZE))[0]
 
-    def get_float(self, position):
+    def get_float(self, position: int) -> float:
         return unpack_float(self.get(position, _FLOAT_SIZE))[0]
 
-    def get_array(self, position, typecode, length):
+    def get_array(self, position: int, typecode: str, length: int) -> array:
         self.seek(position)
         return self.read_array(typecode, length)
 
 
 class BufferFile(StructFile):
-    def __init__(self, buf, name=None, onclose=None):
+    def __init__(
+        self,
+        buf: bytes | bytearray | memoryview,
+        name: str | None = None,
+        onclose: Callable[[StructFile], None] | None = None,
+    ) -> None:
         self._buf = buf
         self._name = name
         self.file = BytesIO(buf)
@@ -368,7 +388,7 @@ class BufferFile(StructFile):
         self.is_real = False
         self.is_closed = False
 
-    def close(self):
+    def close(self) -> None:
         """Closes the file and releases the underlying buffer.
 
         For memoryview-backed buffers (e.g. slices of an mmap in a
@@ -397,14 +417,14 @@ class BufferFile(StructFile):
                 pass
         self.is_closed = True
 
-    def subset(self, position, length, name=None):
+    def subset(self, position: int, length: int, name: str | None = None) -> BufferFile:
         name = name or self._name
         return BufferFile(self.get(position, length), name=name)
 
-    def get(self, position, length):
+    def get(self, position: int, length: int) -> bytes:
         return bytes(self._buf[position : position + length])
 
-    def get_array(self, position, typecode, length):
+    def get_array(self, position: int, typecode: str, length: int) -> array:
         a = array(typecode)
         a.frombytes(self.get(position, length * _SIZEMAP[typecode]))
         if IS_LITTLE:
@@ -413,27 +433,27 @@ class BufferFile(StructFile):
 
 
 class ChecksumFile(StructFile):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         StructFile.__init__(self, *args, **kwargs)
         self._check = 0
         self._crc32 = __import__("zlib").crc32
 
-    def __iter__(self):
+    def __iter__(self) -> Any:
         for line in self.file:
             self._check = self._crc32(line, self._check)
             yield line
 
-    def seek(self, *args):
+    def seek(self, *args: Any) -> None:
         raise Exception("Cannot seek on a ChecksumFile")
 
-    def read(self, *args, **kwargs):
+    def read(self, *args: Any, **kwargs: Any) -> bytes:
         b = self.file.read(*args, **kwargs)
         self._check = self._crc32(b, self._check)
         return b
 
-    def write(self, b):
+    def write(self, b: bytes) -> None:
         self._check = self._crc32(b, self._check)
         self.file.write(b)
 
-    def checksum(self):
+    def checksum(self) -> int:
         return self._check & 0xFFFFFFFF
