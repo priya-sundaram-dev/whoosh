@@ -99,7 +99,7 @@ class StructFile:
         return f"{self.__class__.__name__}({self._name!r})"
 
     def __str__(self) -> str:
-        return self._name
+        return self._name if self._name is not None else ""
 
     def __enter__(self) -> StructFile:
         return self
