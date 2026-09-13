@@ -62,6 +62,13 @@ support, with no runtime behaviour changes unless noted:
   variance/sliding-window functions). `kmeans` now copies its `centers`/`data`
   inputs so the mutated working centroid array is a real `list[float]` rather
   than aliasing (and mutating) the caller's sequence. (gh#121)
+- Cleared the `call-non-callable` rule from the `ty` ignore list: all 20
+  reported cases were fixed with real annotations/idioms — `hasattr`-guarded
+  optional callables now use the `callable(getattr(...))` idiom, `BaseVersion`
+  comparisons narrow via a `_HasTuple` Protocol, `GroupNode.qclass` and
+  `NUMERIC.numtype` got honest type annotations, and a few control-flow-
+  guaranteed local callables were narrowed with asserts or a real default.
+  No runtime behaviour change. (gh#121)
 
 ### Changed
 
