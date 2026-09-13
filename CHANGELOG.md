@@ -50,6 +50,13 @@ All notable changes to this project are documented here. This project follows
 Ongoing effort (gh#121) to fully annotate the codebase for editor/type-checker
 support, with no runtime behaviour changes unless noted:
 
+- Cleared four `unsupported-operator` cases with real invariant assertions and a
+  narrowing `cast` (no runtime behaviour change): `whoosh.util.times` now
+  `assert`s that both range years are concrete before the year-swap arithmetic
+  (they are always filled in by the disambiguation block above), and
+  `whoosh.query.qcore.Query.all_tokens` documents that an optional `boost`
+  attribute is always a float when present. (gh#121)
+
 - Added type annotations to `whoosh.filedb.structfile` (`StructFile`,
   `BufferFile`, `ChecksumFile`): all `read_*`/`write_*` methods, fixed-width
   number helpers, varint/tagint helpers, string helpers, `write_array`/

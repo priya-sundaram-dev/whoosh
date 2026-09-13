@@ -447,8 +447,12 @@ class timespan:
             #   after the start
             # - If a year was specified for both, just swap the start and end
             if start_year_was_amb:
+                # By this point the disambiguation block above has filled in a
+                # concrete year on both sides, so ``end.year`` is never ``None``.
+                assert end.year is not None
                 start.year = end.year - 1
             elif end_year_was_amb:
+                assert start.year is not None
                 end.year = start.year + 1
             else:
                 start, end = end, start

@@ -31,7 +31,7 @@ from __future__ import annotations
 import copy
 from array import array
 from operator import methodcaller
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from whoosh import matching
 from whoosh.reading import TermNotFound
@@ -466,7 +466,9 @@ class Query:
         if self.is_leaf():
             yield from self.tokens(boost)
         else:
-            boost *= self.boost if hasattr(self, "boost") else 1.0
+            # Not every Query subclass carries a ``boost`` attribute (hence the
+            # ``hasattr`` guard); when it does, it is always a float.
+            boost *= cast("float", self.boost) if hasattr(self, "boost") else 1.0
             for child in self.children():
                 yield from child.all_tokens(boost)
 
