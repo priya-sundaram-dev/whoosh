@@ -230,11 +230,11 @@ class StructFile:
         # Store numbers 0-253 in one byte. Byte 254 means "an unsigned 16-bit
         # int follows." Byte 255 means "An unsigned 32-bit int follows."
         if i <= 253:
-            self.write(chr(i))
+            self.write(bytes([i]))
         elif i <= 65535:
-            self.write("\xfe" + pack_ushort(i))
+            self.write(b"\xfe" + pack_ushort(i))
         else:
-            self.write("\xff" + pack_uint(i))
+            self.write(b"\xff" + pack_uint(i))
 
     def read_tagint(self) -> int:
         """Reads a sometimes-compressed unsigned integer from the wrapped file.

@@ -173,3 +173,19 @@ def test_structfile_str():
 
     assert str(StructFile(BytesIO(), name=None)) == ""
     assert str(StructFile(BytesIO(), name="test")) == "test"
+
+
+def test_structfile_tagint_roundtrip():
+    from io import BytesIO
+
+    from whoosh.filedb.structfile import StructFile
+
+    # write_tagint uses a 1-byte form for 0-253, a 0xfe marker + uint16 up to
+    # 65535, and a 0xff marker + uint32 above that.  Exercise each branch and
+    # its boundaries to guard against the bytes/str regression (the method used
+    # str literals that raised TypeError on the binary wrapped file).
+    for value in (0, 5, 253, 254, 1000, 65535, 65536, 100000, 2**31):
+        buf = BytesIO()
+        StructFile(buf).write_tagint(value)
+        buf.seek(0)
+        assert StructFile(buf).read_tagint() == value

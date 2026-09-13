@@ -28,6 +28,14 @@ All notable changes to this project are documented here. This project follows
 
 ### Fixed
 
+- `whoosh.filedb.structfile`: `StructFile.write_tagint` was a Python-2 relic
+  that wrote `str` to the binary wrapped file — `self.write(chr(i))` and
+  `self.write("\xfe" + pack_ushort(i))` both raised `TypeError` on every code
+  path (1-byte, `uint16`, and `uint32`). Now writes `bytes` (`bytes([i])`,
+  `b"\xfe" + ...`, `b"\xff" + ...`), matching the byte-oriented `read_tagint`.
+  Added a round-trip regression test across all three branches and their
+  boundaries. This helper is not on the default index path, so existing indexes
+  are unaffected. (gh#121)
 - `whoosh.util.numlists`: fixed two latent bugs surfaced while adding type
   annotations to the variable-length number encoders (verified with a
   write/read roundtrip on all three): `FixedEncoding.read_nums`/`get` and
