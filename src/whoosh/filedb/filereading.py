@@ -147,6 +147,7 @@ class SegmentReader(IndexReader):
     @protected
     def has_vector(self, docnum, fieldnum):
         self._open_vectors()
+        assert self.vectorindex is not None
         return (docnum, fieldnum) in self.vectorindex
 
     @protected

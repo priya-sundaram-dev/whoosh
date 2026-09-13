@@ -43,7 +43,7 @@ from whoosh.system import emptybytes
 from whoosh.util import random_name
 
 
-def memoryview_(source, offset=None, length=None):
+def memoryview_(source, offset: int = 0, length: int = 0):
     mv = memoryview(source)
     if offset or length:
         return mv[offset : offset + length]

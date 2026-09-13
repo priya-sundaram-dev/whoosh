@@ -202,7 +202,7 @@ class MultiTerm(qcore.Query):
     def simplify(self, ixreader: IndexReader) -> qcore.Query:
         fieldname = self.field()
 
-        if fieldname not in ixreader.schema:
+        if fieldname is None or fieldname not in ixreader.schema:
             return qcore.NullQuery()
         field = ixreader.schema[fieldname]
 

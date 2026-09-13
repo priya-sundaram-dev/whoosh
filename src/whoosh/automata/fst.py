@@ -379,6 +379,7 @@ class Node:
     def __contains__(self, key):
         if self._edges is None:
             self._load()
+        assert self._edges is not None
         return key in self._edges
 
     def _load(self):

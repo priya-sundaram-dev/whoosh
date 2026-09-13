@@ -297,7 +297,7 @@ class Matcher:
         while self.is_active() and self.id() < id:
             self.next()
 
-    def skip_to_quality(self, minquality: float) -> None:
+    def skip_to_quality(self, minquality: float) -> int:
         """Moves this matcher to the next block with greater than the given
         minimum quality value.
         """

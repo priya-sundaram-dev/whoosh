@@ -56,6 +56,18 @@ support, with no runtime behaviour changes unless noted:
   (they are always filled in by the disambiguation block above), and
   `whoosh.query.qcore.Query.all_tokens` documents that an optional `boost`
   attribute is always a float when present. (gh#121)
+- Cleared eleven more `unsupported-operator` cases (25 → 12 remaining) with
+  correct fixes rather than ignores (no runtime behaviour change): the base
+  `matching.mcore.Matcher.skip_to_quality` is now annotated `-> int` (every
+  concrete override returns the skipped-block count that
+  `Collector` accumulates); `filedb.compound`/`filedb.filestore`
+  `memoryview_` gained `int` defaults on its `offset`/`length` slice
+  arguments; `util.numlists.FixedEncoding.read_nums` seeds its rolling `key`
+  with `0` before the guaranteed first-iteration reload; `query.terms` guards
+  the optional `field()` name before a `Schema` membership test; and
+  `filedb.filereading`, `automata.fst`, and `codec.whoosh2` assert their
+  lazily-loaded `vectorindex`/`_edges`/`_vectors` are populated by the
+  immediately-preceding open/load call. (gh#121)
 
 - Added type annotations to `whoosh.filedb.structfile` (`StructFile`,
   `BufferFile`, `ChecksumFile`): all `read_*`/`write_*` methods, fixed-width

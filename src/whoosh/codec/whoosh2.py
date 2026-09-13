@@ -1217,6 +1217,7 @@ class W2PerDocReader(base.PerDocumentReader):
                 self._prep_vectors()
             except (NameError, OSError):
                 return False
+        assert self._vectors is not None
         return (docnum, fieldname) in self._vectors
 
     def vector(self, docnum, fieldname, format_):

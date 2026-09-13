@@ -613,7 +613,9 @@ class GInts(NumberEncoding):
         """
 
         count = 0
-        key = None
+        # `key` is always (re)assigned from the stream when ``count == 0``,
+        # which is true on the first iteration, before it is read below.
+        key = 0
         for _ in range(n):
             if count == 0:
                 key = f.read_byte()

@@ -203,7 +203,7 @@ rules.not-subscriptable = "ignore"  # 15 instances (mostly Optional-None attrs, 
 rules.too-many-positional-arguments = "ignore"  # 26 instances
 rules.unresolved-attribute = "ignore"  # 345 instances
 rules.unresolved-import = "ignore"  # 45 instances
-rules.unsupported-operator = "ignore"  # 25 instances
+rules.unsupported-operator = "ignore"  # 12 instances
 
 [tool.pytest]
 # ==========================================================================
