@@ -6,6 +6,9 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Fixed
+- Companion integration packages `langchain-whoosh` and `llama-index-retrievers-whoosh` released **0.1.1**: widened host-library version caps (`langchain-core<2`, `llama-index-core<0.15`) so they install cleanly on current LangChain 1.x / LlamaIndex 0.14.x. The 0.1.0 caps (`<1.0` / `<0.13`) forced a downgrade or failed to resolve. Package code is unchanged (tests pass on the current majors).
+
 ## [3.52.0] - 2026-09-13
 
 ### Added
