@@ -3,4 +3,4 @@
 from llama_index.retrievers.whoosh.base import WhooshRetriever
 
 __all__ = ["WhooshRetriever"]
-__version__ = "0.1.0"
+__version__ = "0.1.1"

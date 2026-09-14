@@ -5,4 +5,4 @@ from __future__ import annotations
 from langchain_whoosh.retrievers import WhooshRetriever
 
 __all__ = ["WhooshRetriever"]
-__version__ = "0.1.0"
+__version__ = "0.1.1"
