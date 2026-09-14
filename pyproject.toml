@@ -183,7 +183,7 @@ warn_unused_ignores = true
 [tool.ty]
 # TODO: Gradual typing: Revisit these ignores and remove them as the codebase is
 # incrementally typed (gh#121).  Instance counts are a dated snapshot (ty 0.0.74,
-# 2026-09-03) to help contributors pick a tractable rule to clear next; re-run
+# 2026-09-14) to help contributors pick a tractable rule to clear next; re-run
 # `ty check src/whoosh` with a rule flipped to "warn" to get a fresh count.
 # Note (gh#121): the two smallest rules are dominated by ty limitations, not real
 # bugs -- `missing-argument` is almost entirely bound-method aliasing
@@ -195,14 +195,14 @@ warn_unused_ignores = true
 # rewritten to the `callable(getattr(...))` idiom, abstract `qclass`/`numtype`
 # class attributes were given honest annotations, and control-flow-guaranteed
 # local callables were narrowed with asserts / a real default value.
-rules.invalid-argument-type = "ignore"  # 39 instances
-rules.invalid-assignment = "ignore"  # 26 instances
-rules.invalid-method-override = "ignore"  # 139 instances
+rules.invalid-argument-type = "ignore"  # 50 instances
+rules.invalid-assignment = "ignore"  # 33 instances
+rules.invalid-method-override = "ignore"  # 142 instances
 rules.missing-argument = "ignore"  # 14 instances (mostly bound-method aliasing, see note)
 rules.not-subscriptable = "ignore"  # 15 instances (mostly Optional-None attrs, see note)
 rules.too-many-positional-arguments = "ignore"  # 26 instances
-rules.unresolved-attribute = "ignore"  # 345 instances
-rules.unresolved-import = "ignore"  # 45 instances
+rules.unresolved-attribute = "ignore"  # 344 instances
+rules.unresolved-import = "ignore"  # 46 instances
 rules.unsupported-operator = "ignore"  # 12 instances
 
 [tool.pytest]
