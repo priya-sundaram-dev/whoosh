@@ -135,6 +135,54 @@ def test_iso8601_through_full_parser(t=english):
     )
 
 
+def test_month_precision_colon_time_not_misread(t=english):
+    # Regression (issue #196): a colon time-of-day appended to a month- or
+    # year-precision numeric date must NOT be mis-bound as "day + hour". The
+    # ISO-8601 improvement (#? / 021e580c) made the numeric grammar reachable
+    # first, and its former blanket "[- .:/tT]*" separator let a ":" act as the
+    # day->hour boundary, so "2026-08 15:00" silently resolved to the 15th at
+    # midnight. The date and date<->time-boundary separators now exclude ":",
+    # so such a value fails to consume to the end and falls through (None)
+    # rather than producing a wrong range.
+    for bad in (
+        "2026-08 15:00",
+        "2026-08 15:00:00",
+        "2026/08 15:00",
+        "2026 08 15:00",
+        "2026.08 15:00",
+    ):
+        assert t.date_from(bad, basedate) is None, bad
+
+    # The full date + time-of-day forms that the ISO fix intentionally enabled
+    # must keep working (a real day is present, so the time attaches cleanly).
+    assert_datespan(
+        t.date_from("2026-08-10 15:00", basedate),
+        datetime(2026, 8, 10, 15, 0, 0, 0, tzinfo=timezone.utc),
+        datetime(2026, 8, 10, 15, 0, 59, 999999, tzinfo=timezone.utc),
+    )
+    # Compact / dot / space date+time forms must be preserved (no ":" present).
+    assert_adatetime(
+        english.simple.date_from("2005051001", basedate),
+        year=2005,
+        month=5,
+        day=10,
+        hour=1,
+    )
+    assert_adatetime(
+        english.simple.date_from("2005.05.10.01", basedate),
+        year=2005,
+        month=5,
+        day=10,
+        hour=1,
+    )
+    assert_adatetime(
+        english.simple.date_from("2005 05 10", basedate),
+        year=2005,
+        month=5,
+        day=10,
+    )
+
+
 def test_time(t=english.time):
     assert_adatetime(t.date_from("13:05", basedate), hour=13, minute=5)
     assert t.date_from("28:91", basedate) is None

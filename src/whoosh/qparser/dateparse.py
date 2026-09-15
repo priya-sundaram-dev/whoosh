@@ -635,18 +635,51 @@ class DateParser:
         simple_second = "(?P<second>[0-5][0-9])"
         simple_usec = "(?P<microsecond>[0-9]{6})"
 
-        tup = (
-            simple_year,
-            simple_month,
-            simple_day,
-            simple_hour,
-            simple_minute,
-            simple_second,
-            simple_usec,
+        # The numeric ("simple") grammar is expressed as a *date* sub-sequence
+        # and a *time* sub-sequence joined by a date<->time boundary. The
+        # separators use different character classes on purpose (issue #196):
+        #
+        #   * date components (year/month/day) may be separated by "-", "/",
+        #     ".", or whitespace, or run together compactly ("20050510") -- but
+        #     NOT by ":", which belongs to the time.
+        #   * the date<->time boundary may be whitespace, "T"/"t" (ISO-8601),
+        #     "-", "/", "." or nothing ("2005051001", "2005.05.10.01") -- but
+        #     again NOT ":".
+        #   * time components (hour/minute/second/usec) may be separated by
+        #     ":", ".", whitespace, or run together compactly ("1500").
+        #
+        # Crucially, a time-of-day may only follow a date that reached **day**
+        # precision (the datetime form requires year+month+day). A month- or
+        # year-precision value therefore cannot absorb a trailing time: for
+        # "2026-08 15:00" the datetime form fails (no day before the time) and
+        # the date-only form consumes just "2026-08 15" (mis-taking 15 as the
+        # day), leaving ":00" dangling so the whole value fails to reach the
+        # end and correctly falls through instead of silently resolving to the
+        # 15th at midnight. This also prevents a bad month like "2005 19 32"
+        # (month 19 rejected -> only the year matches) from having "19 32"
+        # re-read as a 19:32 time.
+        date_tup = (simple_year, simple_month, simple_day)
+        time_tup = (simple_hour, simple_minute, simple_second, simple_usec)
+        # Full year+month+day date (all three required) so a time can attach.
+        simple_full_date = Sequence(
+            date_tup, sep="[-/. ]*", name="simple_full_date", progressive=False
         )
-        # Accept ISO-8601 style separators, including the "T" that separates the
-        # date and time parts (e.g. "2023-05-17T14:30:00").
-        simple_seq = Sequence(tup, sep="[- .:/tT]*", name="simple", progressive=True)
+        simple_time = Sequence(
+            time_tup, sep="[:. ]*", name="simple_time", progressive=True
+        )
+        simple_datetime = Sequence(
+            (simple_full_date, simple_time),
+            sep="[-/.tT ]*",
+            name="simple_datetime",
+            progressive=False,
+        )
+        # Date only: year required, month/day optional, no trailing time.
+        simple_date = Sequence(
+            date_tup, sep="[-/. ]*", name="simple_date", progressive=True
+        )
+        simple_seq = Choice(
+            (simple_datetime, simple_date), name="simple"
+        )
         self.simple = Sequence((simple_seq, "(?=(\\s|$))"), sep="")
 
         self.setup()
