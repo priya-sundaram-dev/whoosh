@@ -183,6 +183,49 @@ def test_month_precision_colon_time_not_misread(t=english):
     )
 
 
+def test_time_on_dayless_period_rejected(t=english):
+    # Regression (issue #196, shape 2): a time-of-day pinned onto a month- or
+    # year-precision date (no day) has no single meaning. Upstream Whoosh 2.x
+    # silently floor()/ceil()'d it into a period-wide span with the time pinned
+    # to both ends ("august 2026 15:00" -> [2026-08-01 15:00, 2026-08-31
+    # 15:00:59]), matching neither "all of August" nor "15:00 every day". We now
+    # reject such a value as an unparseable date (None), matching the
+    # whoosh-compat rule (stumpylog/whoosh-compat#69).
+    for bad in (
+        "august 2026 15:00",
+        "aug 2026 15:00",
+        "oct 2026 5pm",
+        "2026 23:59",
+        "feb 3pm",
+    ):
+        assert t.date_from(bad, basedate) is None, bad
+
+    # Bare times set no explicit year/month, so the basedate supplies the day
+    # and they must keep resolving to a span on the basedate.
+    assert_datespan(
+        t.date_from("3pm", basedate),
+        datetime(2010, 9, 20, 15, 0, 0, 0, tzinfo=timezone.utc),
+        datetime(2010, 9, 20, 15, 59, 59, 999999, tzinfo=timezone.utc),
+    )
+    assert_datespan(
+        t.date_from("12:30:45", basedate),
+        datetime(2010, 9, 20, 12, 30, 45, 0, tzinfo=timezone.utc),
+        datetime(2010, 9, 20, 12, 30, 45, 999999, tzinfo=timezone.utc),
+    )
+    # A full date + time (real day present) must still resolve to an instant.
+    assert_datespan(
+        t.date_from("2026-08-10 15:00", basedate),
+        datetime(2026, 8, 10, 15, 0, 0, 0, tzinfo=timezone.utc),
+        datetime(2026, 8, 10, 15, 0, 59, 999999, tzinfo=timezone.utc),
+    )
+    # A day-less period WITHOUT a time is unaffected (proper period span).
+    assert_datespan(
+        t.date_from("august 2026", basedate),
+        datetime(2026, 8, 1, 0, 0, 0, 0, tzinfo=timezone.utc),
+        datetime(2026, 8, 31, 23, 59, 59, 999999, tzinfo=timezone.utc),
+    )
+
+
 def test_time(t=english.time):
     assert_adatetime(t.date_from("13:05", basedate), hour=13, minute=5)
     assert t.date_from("28:91", basedate) is None

@@ -6,6 +6,23 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Changed
+- `whoosh.qparser.dateparse` (`DateParserPlugin`): a time-of-day pinned onto a
+  **month- or year-precision date with no day** is now rejected as an
+  unparseable date instead of silently widening to a period-wide range (#196,
+  shape 2). For example `added:"august 2026 15:00"` (and `2026 23:59`,
+  `oct 2026 5pm`, `feb 3pm`) used to `floor()`/`ceil()` into
+  `[2026-08-01 15:00, 2026-08-31 15:00:59]` — pinning the time to both ends of
+  the whole month, a range that means neither "all of August" nor "15:00 on
+  every day of August" (behavior inherited from upstream Whoosh 2.x). Such a
+  value now resolves to an error/`_NullQuery`. **Behavior break:** a stored
+  query relying on the old period-wide span will now match nothing; write the
+  intended range explicitly (`added:[2026-08-01 to 2026-08-31]`) or include a
+  day (`added:"2026-08-10 15:00"`). Bare times (`3pm`, `12:30:45`) and day-less
+  periods without a time (`august 2026`, `2026`) are unaffected. Adopts the rule
+  from [`stumpylog/whoosh-compat`](https://github.com/stumpylog/whoosh-compat)#69;
+  thanks @stumpylog. This completes #196 (shape 1 shipped in 3.52.1).
+
 ## [3.52.1] - 2026-09-15
 
 ### Fixed

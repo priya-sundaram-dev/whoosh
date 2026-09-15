@@ -56,6 +56,45 @@ def print_debug(level, msg, *args):
         print(("  " * (level - 1)) + (msg % args))
 
 
+def _time_on_dayless_period(at):
+    """Return True if ``at`` is an ``adatetime`` that pins a time-of-day onto a
+    month- or year-precision date with no day.
+
+    Such a value (e.g. ``august 2026 15:00`` -> ``adatetime(2026, 8, None, 15,
+    0, ...)``) has no single meaning: upstream Whoosh silently ``floor()``/
+    ``ceil()`` it into a period-wide span with the time pinned to both ends
+    (``[2026-08-01 15:00, 2026-08-31 15:00:59]``), which matches neither "all of
+    August" nor "15:00 on every day of August". We treat it as an unparseable
+    date instead (issue #196, shape 2; matches the whoosh-compat rule in
+    stumpylog/whoosh-compat#69).
+
+    Bare times (``3pm``, ``12:30:45``) are unaffected because they set no
+    explicit year or month — the basedate supplies the full day.
+    """
+    if not isinstance(at, adatetime):
+        return False
+    has_time = any(
+        getattr(at, unit) is not None
+        for unit in ("hour", "minute", "second", "microsecond")
+    )
+    if not has_time or at.day is not None:
+        return False
+    return at.year is not None or at.month is not None
+
+
+def _reject_dayless_time(d):
+    """Return True if ``d`` (an ``adatetime`` or ``timespan``) should be treated
+    as an unparseable date because it pins a time onto a day-less period.
+
+    Applied to both single values and range bounds so the rule is consistent.
+    """
+    if _time_on_dayless_period(d):
+        return True
+    if isinstance(d, timespan):
+        return _time_on_dayless_period(d.start) or _time_on_dayless_period(d.end)
+    return False
+
+
 # Parser element objects
 
 
@@ -694,6 +733,8 @@ class DateParser:
         parser = self.get_parser()
 
         d, newpos = parser.parse(text, dt, pos=pos, debug=debug)
+        if _reject_dayless_time(d):
+            return (None, None)
         if isinstance(d, (adatetime, timespan)):
             d = d.disambiguated(dt)
 
@@ -721,6 +762,8 @@ class DateParser:
             parser = ToEnd(parser)
 
         d = parser.date_from(text, basedate, pos=pos, debug=debug)
+        if _reject_dayless_time(d):
+            return None
         if disambiguate and isinstance(d, (adatetime, timespan)):
             d = d.disambiguated(basedate)
         return d
