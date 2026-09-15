@@ -677,9 +677,7 @@ class DateParser:
         simple_date = Sequence(
             date_tup, sep="[-/. ]*", name="simple_date", progressive=True
         )
-        simple_seq = Choice(
-            (simple_datetime, simple_date), name="simple"
-        )
+        simple_seq = Choice((simple_datetime, simple_date), name="simple")
         self.simple = Sequence((simple_seq, "(?=(\\s|$))"), sep="")
 
         self.setup()
