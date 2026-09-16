@@ -6,6 +6,8 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.53.0] - 2026-09-16
+
 ### Changed
 - `whoosh.qparser.dateparse` (`DateParserPlugin`): a time-of-day pinned onto a
   **month- or year-precision date with no day** is now rejected as an
