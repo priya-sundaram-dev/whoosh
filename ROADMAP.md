@@ -253,7 +253,7 @@ About section of the README.)*
           overhead, expected and stated); on a free-threaded `3.13t`/`3.14t`
           build the pure-Python indexing scales across cores. Documented in the
           [concurrency guide](https://priya-sundaram-dev.github.io/whoosh/docs/threads.html).
-    - [x] **A worked parallel-search example (Unreleased).** The read-side
+    - [x] **A worked parallel-search example (shipped in 3.51.0).** The read-side
           companion, `examples/parallel_search.py`, fans a batch of queries
           across a thread pool against one shared read-only index, giving each
           worker thread its own searcher (created lazily, reused per thread,
@@ -328,7 +328,7 @@ About section of the README.)*
       that bites downstreams like paperless-ngx and MoinMoin during
       `commit()`/`optimize()` — and the close-then-delete contract is guarded
       by a regression test (`test_index_files_deletable_after_close`).
-- [x] **Standalone integration packages on PyPI (Unreleased).** Following the
+- [x] **Standalone integration packages on PyPI (shipped in 3.52.0).** Following the
       current LangChain/LlamaIndex guidance that new integrations ship as
       independent, versioned PyPI packages (rather than living in the framework
       monorepos or a bundled extra), Whoosh now publishes two thin adapters
