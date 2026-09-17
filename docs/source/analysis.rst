@@ -80,6 +80,38 @@ See the :mod:`whoosh.analysis` module for information on the available analyzers
 tokenizers, and filters shipped with Whoosh.
 
 
+Indexing signed numbers (leading ``+``/``-``)
+=============================================
+
+Like the standard analyzers in Lucene and most full-text engines, Whoosh's
+default tokenizer treats a leading ``+`` or ``-`` as punctuation and drops it,
+so ``"-100"`` and ``"100"`` produce the same term. This is usually what you
+want for prose, but it means signed numbers in a ``TEXT`` field are not
+distinguishable::
+
+    >>> from whoosh.analysis import RegexTokenizer
+    >>> [t.text for t in RegexTokenizer()(u"balance -100 usd")]
+    ['balance', '100', 'usd']
+
+If the sign carries meaning (prices, deltas, temperatures, offsets), the most
+robust option is to store the value in a dedicated numeric field
+(:class:`whoosh.fields.NUMERIC`), which preserves the sign and enables range
+queries.
+
+If you specifically need signed numbers as *text* terms, give
+``RegexTokenizer`` an expression that attaches a sign only when it is
+immediately followed by a digit. Attaching the sign to digits only keeps
+hyphenated words ("state-of-the-art") splitting exactly as before, which the
+naive ``[+-]?\w+`` pattern does *not*::
+
+    >>> signed = RegexTokenizer(expression=r"[+-]?\d[\d.]*\d|[+-]?\d|[\w*]+(\.?[\w*]+)*")
+    >>> [t.text for t in signed(u"balance -100 usd, state-of-the-art v3.14")]
+    ['balance', '-100', 'usd', 'state', 'of', 'the', 'art', 'v3.14']
+
+Use that tokenizer in an analyzer the usual way, e.g.
+``signed | LowercaseFilter()``.
+
+
 Using analyzers
 ===============
 
