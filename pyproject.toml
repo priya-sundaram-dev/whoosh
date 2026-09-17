@@ -9,7 +9,20 @@ description = """\
   on Python 3.10-3.14.\
   """
 readme = "README.md"
-keywords = [ "bm25", "full-text", "index", "search", "spell", "text" ]
+keywords = [
+  "autocomplete",
+  "bm25",
+  "full-text",
+  "fuzzy-search",
+  "index",
+  "information-retrieval",
+  "inverted-index",
+  "search",
+  "search-engine",
+  "spell",
+  "text",
+  "whoosh",
+]
 license = "BSD-2-Clause"
 maintainers = [
   { name = "Priya Sundaram" },
