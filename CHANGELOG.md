@@ -6,6 +6,19 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.53.1] - 2026-09-18
+
+### Fixed
+- `whoosh.lang.phonetic`: the Soundex helpers no longer raise on input that
+  contains no encodable letters (#197). `soundex_en()` raised `TypeError`
+  (`None + str`) for any word with no A–Z letters (digits, punctuation, or
+  non-Latin scripts such as Cyrillic/CJK) and now returns `""`; `soundex_ar()`
+  raised `UnboundLocalError` on a character outside its Arabic code map (it
+  referenced an unbound local) — unmapped characters are now skipped — and
+  raised `IndexError` on an empty word (`word[0]`) and now returns `"0"`.
+  Soundex output for valid input is unchanged (e.g. `Robert -> r01063`). Added
+  `tests/test_phonetic.py`.
+
 ## [3.53.0] - 2026-09-16
 
 ### Changed
