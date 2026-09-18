@@ -47,6 +47,7 @@ Contents
     schema
     indexing
     searching
+    tuning
     parsing
     querylang
     dates

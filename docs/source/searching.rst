@@ -163,6 +163,10 @@ A weighting model is a :class:`~whoosh.scoring.WeightingModel` subclass with a
 ``scorer()`` method that produces a "scorer" instance. This instance has a
 method that takes the current matcher and returns a floating point score.
 
+For a practical, worked walkthrough of *changing* the ranking -- field boosts,
+BM25F's ``B``/``K1`` parameters, per-field ``MultiWeighting``, and query-time
+term boosts -- see :doc:`tuning`.
+
 Sorting
 -------
 
