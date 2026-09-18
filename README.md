@@ -47,8 +47,12 @@ find a search library that's alive again.
   annotated today, with coverage expanding each release.
 
 **When *not* to reach for Whoosh:** if you need a distributed cluster, or you're
-already on Postgres/SQLite and their built-in FTS is enough, use those. Whoosh
-shines when you want good search *inside* a Python process without extra infra.
+already on Postgres/SQLite and their built-in FTS is enough, use those. And if
+you're indexing tens of millions of documents or need the lowest possible query
+latency, a native-code engine (e.g. Rust's [Tantivy](https://github.com/quickwit-oss/tantivy))
+will outrun pure Python — that's the honest tradeoff for the no-native-deps,
+no-infra install. Whoosh shines when you want good search *inside* a Python
+process without extra infra, on corpora up to the low millions of documents.
 
 ## Install
 
