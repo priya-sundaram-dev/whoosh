@@ -10,12 +10,12 @@ import re
 english_codes = "01230120022455012623010202"
 
 
-def soundex_en(word):
+def soundex_en(word: str) -> str:
     # digits holds the soundex values for the alphabet
     r = ""
     if word:
         # Remember first character
-        fc = None
+        fc: str | None = None
         prevcode = None
         for char in word.lower():
             c = ord(char)
@@ -28,8 +28,12 @@ def soundex_en(word):
                     r += code
                 prevcode = code
 
-        # Replace first digit with first alpha character
-        r = fc + r[1:]
+        # Replace first digit with first alpha character. If the word had no
+        # a-z letters at all (digits, punctuation, or non-Latin script) then
+        # ``fc`` is None and ``r`` is still "" -- return "" rather than raising
+        # ``None + str`` (soundex helpers crash on unencodable input).
+        if fc is not None:
+            r = fc + r[1:]
 
     return r
 
@@ -52,7 +56,7 @@ _esp_codes = (
 _esp_codes = tuple((re.compile(pat), repl) for pat, repl in _esp_codes)
 
 
-def soundex_esp(word):
+def soundex_esp(word: str) -> str:
     word = word.lower()
     r = ""
 
@@ -97,7 +101,9 @@ for chars, code in {
         _arabic_codes[char] = code
 
 
-def soundex_ar(word):
+def soundex_ar(word: str) -> str:
+    if not word:
+        return "0"
     if word[0] in "\u0627\u0623\u0625\u0622":
         word = word[1:]
 
@@ -106,8 +112,13 @@ def soundex_ar(word):
     if len(word) > 1:
         # Discard the first character
         for char in word[1:]:
-            if char in _arabic_codes:
-                code = _arabic_codes.get(char, "0")
+            # Skip characters that aren't in the code map. (Previously an
+            # unmapped first character left ``code`` unbound and raised
+            # UnboundLocalError; unmapped characters after a mapped one were
+            # already no-ops, so ignoring them preserves the coding.)
+            if char not in _arabic_codes:
+                continue
+            code = _arabic_codes[char]
             # Don't append the code if it's the same as the previous
             if code != prevcode:
                 # If the code is a 0 (vowel), don't process it
