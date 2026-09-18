@@ -168,37 +168,21 @@ reference (all flags, exit codes, and how it maps onto the API):
   - [Spelling, "did you mean?", and fuzzy search](https://priya-sundaram-dev.github.io/whoosh/whoosh-spelling-fuzzy-did-you-mean.html)
     — typo tolerance: suggestions, query correction, and fuzzy matching
 - **Docs site:** https://priya-sundaram-dev.github.io/whoosh/ (rebuilt; work in progress)
-- **Examples:** the [`examples/`](examples/) directory, including a
-  reproducible [benchmark vs SQLite FTS5](examples/benchmark_vs_sqlite.py)
-  a [did-you-mean / spell-check demo](examples/did_you_mean.py), a
-  [search-as-you-type / autocomplete example](examples/autocomplete.py), a
-  [faceted-navigation / filter-sidebar recipe](examples/faceted_search.py), a
-  [highlighting / search-snippets recipe](examples/highlighting.py), and a
-  [custom-analyzers recipe](examples/custom_analyzers.py), a
-  [parallel-indexing recipe for free-threaded (no-GIL) builds](examples/parallel_indexing.py), a
-  [parallel-search recipe for free-threaded (no-GIL) builds](examples/parallel_search.py), a
-  [signed-number indexing recipe](examples/signed_numbers.py), a
-  [custom scoring & sorting recipe](examples/scoring_and_sorting.py), and a
-  [FastAPI search API](examples/fastapi_app.py) with upsert/delete/search
-  endpoints, the same API built on [Flask](examples/flask_app.py) and on
-  [Django](examples/django_app.py) (portable full-text search without
-  PostgreSQL), and a
-  [command-line folder-search tool](examples/search_cli.py) that indexes and
-  searches a directory of files in one command, and a
-  [RAG / hybrid-search retriever](examples/rag_retriever.py) that pairs Whoosh
-  BM25 with any vector store via Reciprocal Rank Fusion, and a
-  first-class LangChain integration shipped as the standalone
-  [`langchain-whoosh`](https://pypi.org/project/langchain-whoosh/) package
-  (`pip install langchain-whoosh`, the LangChain-recommended path) — or the
-  bundled [`whoosh3[langchain]`](src/whoosh/langchain.py) extra — that drops
-  Whoosh into any LangChain chain, `EnsembleRetriever`, or LangGraph agent as a
-  `BaseRetriever`, and a
-  matching LlamaIndex integration shipped as the standalone
+- **Examples:** the [`examples/`](examples/README.md) directory — 24 runnable,
+  self-contained scripts grouped by topic (core search features, performance,
+  web apps & CLI, and AI/LLM integrations), each of which builds a small index,
+  runs, and cleans up after itself. See [`examples/README.md`](examples/README.md)
+  for the full index. Highlights: a reproducible
+  [benchmark vs SQLite FTS5](examples/benchmark_vs_sqlite.py), a
+  [faceted-navigation recipe](examples/faceted_search.py), a
+  [FastAPI search API](examples/fastapi_app.py) (also on
+  [Flask](examples/flask_app.py) and [Django](examples/django_app.py)), a
+  [command-line folder-search tool](examples/search_cli.py), and a
+  [RAG / hybrid-search retriever](examples/rag_retriever.py). First-class
+  LangChain and LlamaIndex integrations ship as the standalone
+  [`langchain-whoosh`](https://pypi.org/project/langchain-whoosh/) and
   [`llama-index-retrievers-whoosh`](https://pypi.org/project/llama-index-retrievers-whoosh/)
-  package (`pip install llama-index-retrievers-whoosh`, the LlamaIndex-recommended
-  path) — or the bundled [`whoosh3[llamaindex]`](src/whoosh/llamaindex.py) extra —
-  that plugs Whoosh into any LlamaIndex query engine or `QueryFusionRetriever` as
-  a `BaseRetriever`
+  packages (or the bundled `whoosh3[langchain]` / `whoosh3[llamaindex]` extras).
 - **Roadmap:** [ROADMAP.md](ROADMAP.md)
 - **Changelog:** [CHANGELOG.md](CHANGELOG.md)
 
