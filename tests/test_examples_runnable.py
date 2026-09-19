@@ -36,6 +36,7 @@ _EXAMPLES_DIR = pathlib.Path(__file__).resolve().parent.parent / "examples"
 _RUNNABLE = [
     "quickstart.py",
     "tutorial.py",
+    "index_sync.py",
     "autocomplete.py",
     "did_you_mean.py",
     "highlighting.py",

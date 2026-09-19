@@ -6,6 +6,9 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Documentation
+- Added `examples/index_sync.py`, a runnable example demonstrating how to keep a Whoosh index in sync with changing source data: upserts with `update_document`, deletions with `delete_by_term`, and a 3-pass directory reconciliation function based on stored modification times (#199). Added the script to `examples/README.md` and the `test_examples_runnable.py` smoke test suite.
+
 ### Typing
 - `whoosh.index`: added parameter type annotations for the seven `Index` abstract base class methods (`add_field`, `remove_field`, `field_length`, `max_field_length`, `reader`, `delete_by_term`, and `delete_by_query`) matching concrete implementations (#198).
 
