@@ -20,6 +20,12 @@ line in the module docstring.
 | --- | --- |
 | [`quickstart.py`](quickstart.py) | Index a few documents and search them — the smallest complete program. |
 | [`tutorial.py`](tutorial.py) | The whole "Whoosh in 5 minutes" tutorial as one runnable script. |
+
+## Index management
+
+| Example | What it shows |
+| --- | --- |
+| [`index_sync.py`](index_sync.py) | Keep an index in sync with changing data: upserts, deletes, and folder reconciliation. |
 | [`resource_management.py`](resource_management.py) | Closing indexes, readers, and searchers cleanly (and why it matters). |
 
 ## Core search features
