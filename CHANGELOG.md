@@ -1706,7 +1706,9 @@ terms, so it has no top terms to list; try a TEXT field` and exits `2`.
   whole matcher and dropped every subsequent, legitimately-parented match. The
   matcher now skips orphan children and continues. The same guard was added to
   `NestedParent.deletion_docs()` (which had a latent `range(None, ...)` crash on
-  the same input) (gh#31).
+  the same input) (gh#31; this also resolves the long-standing upstream report
+  whoosh-community#573, where an unrelated matching document indexed before a
+  group made `NestedParent` return zero results).
 
 ## [3.14.0] - 2026-07-17
 
@@ -2288,7 +2290,8 @@ search` now prints a short summary line to **stderr** — `N matches.` when
   override, so _every_ matching document came back regardless of the filter.
   The allow/restrict logic (and `filtered_count` bookkeeping) now lives in
   `FilterCollector.matches()`, so the filter is honored no matter what outer
-  collector wraps it. Added a regression test.
+  collector wraps it. Added a regression test. (Resolves the long-standing
+  upstream report whoosh-community#567.)
 - Sorting or faceting by a sortable/column field returned **scrambled** results
   after documents were added through a `BufferedWriter` (the quasi-real-time
   writer). Root cause: `BufferedWriter` opens a fresh short-lived per-document

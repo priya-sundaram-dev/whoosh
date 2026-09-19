@@ -421,9 +421,10 @@ def test_nested_skip():
 
 
 def test_nested_parent_orphan_child_gh31():
-    # Regression for gh#31: a document that matches the child query but does not
-    # belong to any parent group (an "orphan") must not cause the NestedParent
-    # matcher to silently drop every subsequently-parented match.
+    # Regression for gh#31 (and upstream whoosh-community#573): a document that
+    # matches the child query but does not belong to any parent group (an
+    # "orphan") must not cause the NestedParent matcher to silently drop every
+    # subsequently-parented match.
     schema = fields.Schema(
         kind=fields.ID(stored=True),
         name=fields.ID(stored=True),

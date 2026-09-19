@@ -36,7 +36,8 @@ def test_filter_that_matches_no_document():
 
 
 def test_filter_honored_inside_timelimit():
-    # Regression: a FilterCollector's allow/restrict set must still be honored
+    # Regression (upstream whoosh-community#567): a FilterCollector's
+    # allow/restrict set must still be honored
     # when it is wrapped by a TimeLimitCollector. TimeLimitCollector iterates
     # its child's matches() and calls collect() itself, bypassing any
     # collect_matches() override on the collector it wraps -- so the filtering
