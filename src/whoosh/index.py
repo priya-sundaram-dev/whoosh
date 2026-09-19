@@ -44,8 +44,9 @@ from whoosh.legacy import toc_loaders
 from whoosh.system import _FLOAT_SIZE, _INT_SIZE, _LONG_SIZE
 
 if TYPE_CHECKING:
-    from whoosh.fields import Schema
+    from whoosh.fields import FieldType, Schema
     from whoosh.filedb.filestore import Storage
+    from whoosh.query import Query
     from whoosh.reading import IndexReader
     from whoosh.searching import Searcher
     from whoosh.writing import IndexWriter
@@ -239,7 +240,7 @@ class Index:
         """
         pass
 
-    def add_field(self, fieldname, fieldspec) -> None:
+    def add_field(self, fieldname: str, fieldspec: FieldType) -> None:
         """Adds a field to the index's schema.
 
         :param fieldname: the name of the field to add.
@@ -251,7 +252,7 @@ class Index:
         w.add_field(fieldname, fieldspec)
         w.commit()
 
-    def remove_field(self, fieldname) -> None:
+    def remove_field(self, fieldname: str) -> None:
         """Removes the named field from the index's schema. Depending on the
         backend implementation, this may or may not actually remove existing
         data for the field from the index. Optimizing the index should always
@@ -332,7 +333,7 @@ class Index:
 
         return Searcher(self.reader(), fromindex=self, **kwargs)
 
-    def field_length(self, fieldname) -> int:
+    def field_length(self, fieldname: str) -> int:
         """Returns the total length of the field across all documents."""
 
         r = self.reader()
@@ -341,7 +342,7 @@ class Index:
         finally:
             r.close()
 
-    def max_field_length(self, fieldname) -> int:
+    def max_field_length(self, fieldname: str) -> int:
         """Returns the maximum length of the field across all documents."""
 
         r = self.reader()
@@ -350,7 +351,7 @@ class Index:
         finally:
             r.close()
 
-    def reader(self, reuse=None) -> IndexReader:
+    def reader(self, reuse: IndexReader | None = None) -> IndexReader:
         """Returns an IndexReader object for this index.
 
         :param reuse: an existing reader. Some implementations may recycle
@@ -369,12 +370,14 @@ class Index:
         """
         raise NotImplementedError
 
-    def delete_by_term(self, fieldname, text, searcher=None) -> None:
+    def delete_by_term(
+        self, fieldname: str, text: str, searcher: Searcher | None = None
+    ) -> None:
         w = self.writer()
         w.delete_by_term(fieldname, text, searcher=searcher)
         w.commit()
 
-    def delete_by_query(self, q, searcher=None) -> None:
+    def delete_by_query(self, q: Query, searcher: Searcher | None = None) -> None:
         w = self.writer()
         w.delete_by_query(q, searcher=searcher)
         w.commit()

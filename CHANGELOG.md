@@ -6,6 +6,9 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Typing
+- `whoosh.index`: added parameter type annotations for the seven `Index` abstract base class methods (`add_field`, `remove_field`, `field_length`, `max_field_length`, `reader`, `delete_by_term`, and `delete_by_query`) matching concrete implementations (#198).
+
 ## [3.53.1] - 2026-09-18
 
 ### Fixed
