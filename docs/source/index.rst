@@ -37,6 +37,7 @@ Contents
 
     releases/index
     quickstart
+    faq
     migrating
     cli
     comparison

@@ -7,6 +7,15 @@ All notable changes to this project are documented here. This project follows
 ## [Unreleased]
 
 ### Documentation
+- Added a **FAQ / troubleshooting** page (`docs/source/faq.rst`) collecting the
+  questions and error messages that come up most often — `pip install whoosh`
+  resolving to the old 2.7.4, `LockError` from a second writer, a searcher not
+  seeing freshly committed documents (snapshot semantics / `refresh()`),
+  "no results" from an analyzer mismatch (hand-built `Term` bypassing analysis),
+  `run` not matching `running` without a `StemmingAnalyzer`, case-sensitive
+  `ID`/`KEYWORD` fields, and numeric/date range queries needing the right field
+  type. Every snippet is verified against the current release. Linked into the
+  docs toctree right after the quickstart.
 - Added `examples/index_sync.py`, a runnable example demonstrating how to keep a Whoosh index in sync with changing source data: upserts with `update_document`, deletions with `delete_by_term`, and a 3-pass directory reconciliation function based on stored modification times (#199). Added the script to `examples/README.md` and the `test_examples_runnable.py` smoke test suite.
 
 ### Typing
