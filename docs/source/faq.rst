@@ -194,6 +194,35 @@ numerically. With the right field type, ranges work through the parser::
 For dates, add the ``DateParserPlugin`` so natural-language ranges parse. See the
 `dates guide <https://priya-sundaram-dev.github.io/whoosh/docs/dates.html>`_.
 
+Negative numbers lose their sign in a ``TEXT`` field
+----------------------------------------------------
+
+The default tokenizer used by every stock analyzer matches on ``\w+``, which does
+**not** include ``-`` or ``+``. A leading sign is dropped, so in a ``TEXT`` field
+``-100`` and ``100`` index to the same token::
+
+    from whoosh.analysis import RegexTokenizer
+    [t.text for t in RegexTokenizer()("balance -100 usd")]   # -> ['balance', '100', 'usd']
+
+This is expected for prose (you rarely want ``-`` glued onto words), but it
+surprises people indexing prices, deltas or temperatures. Two fixes, depending on
+what you need:
+
+* **You want to filter or range on the number** — store it in a
+  :class:`~whoosh.fields.NUMERIC` field (use ``signed=True`` for negatives). Then
+  ``NumericRange`` and ``price:[lo to hi]`` compare numerically, which is what you
+  almost always want for quantities::
+
+      schema = Schema(id=ID(stored=True), delta=NUMERIC(signed=True, stored=True))
+
+* **You genuinely want the signed token searchable as text** — give the field a
+  tokenizer whose pattern keeps the sign::
+
+      from whoosh.analysis import RegexTokenizer
+      signed = RegexTokenizer(r"[-+]?\w+(\.?\w+)*")
+      schema = Schema(note=TEXT(analyzer=signed))
+      [t.text for t in signed("balance -100 usd")]   # -> ['balance', '-100', 'usd']
+
 
 Still stuck?
 ============
