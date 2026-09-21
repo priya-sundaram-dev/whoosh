@@ -817,9 +817,8 @@ def test_stats_reports_segments_and_deletions(corpus, capsys):
         run(["index", corpus, "--update"])
     capsys.readouterr()
 
-    payload = json.loads(
-        (run(["stats", corpus, "--json"]), capsys.readouterr().out)[1]
-    )
+    run(["stats", corpus, "--json"])
+    payload = json.loads(capsys.readouterr().out)
     assert payload["segment_count"] >= 2
     assert payload["deleted_count"] >= 1
     # Human-readable output mentions the deleted docs.
