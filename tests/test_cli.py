@@ -797,6 +797,53 @@ def test_stats_json_output(corpus, capsys):
     assert payload["size_bytes"] > 0
     names = {f["name"] for f in payload["fields"]}
     assert {"path", "title", "body", "mtime"} <= names
+    # Segment diagnostics (gh#54): a freshly built index is a single segment
+    # with no deletions.
+    assert payload["segment_count"] == 1
+    assert payload["deleted_count"] == 0
+    assert sum(payload["segment_doc_counts"]) == payload["doc_count_all"]
+
+
+def test_stats_reports_segments_and_deletions(corpus, capsys):
+    """Repeated --update passes create extra segments and leave deleted docs
+    on disk; stats should surface both (gh#54)."""
+    run(["index", corpus])
+    # Touch files and re-index incrementally a few times to force new segments
+    # and superseded (deleted) postings.
+    for _ in range(3):
+        (corpus / "alpha.txt").write_text(
+            "The quick brown fox again.\n", encoding="utf-8"
+        )
+        run(["index", corpus, "--update"])
+    capsys.readouterr()
+
+    payload = json.loads(
+        (run(["stats", corpus, "--json"]), capsys.readouterr().out)[1]
+    )
+    assert payload["segment_count"] >= 2
+    assert payload["deleted_count"] >= 1
+    # Human-readable output mentions the deleted docs.
+    run(["stats", corpus])
+    text = capsys.readouterr().out
+    assert "segments:" in text
+    assert "deleted:" in text
+
+
+def test_index_optimize_merges_to_single_segment(corpus, capsys):
+    """`whoosh index --update --optimize` merges segments and reclaims deleted
+    documents (gh#54)."""
+    run(["index", corpus])
+    for _ in range(3):
+        (corpus / "alpha.txt").write_text("changed body.\n", encoding="utf-8")
+        run(["index", corpus, "--update"])
+    capsys.readouterr()
+
+    assert run(["index", corpus, "--update", "--optimize"]) == 0
+    capsys.readouterr()
+    run(["stats", corpus, "--json"])
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["segment_count"] == 1
+    assert payload["deleted_count"] == 0
 
 
 def test_stats_top_terms_orders_by_frequency(term_index, capsys):

@@ -239,7 +239,7 @@ def cmd_index(args: argparse.Namespace) -> int:
             for gone in set(indexed) - seen:
                 writer.delete_by_term("path", gone)
                 removed += 1
-        writer.commit()
+        writer.commit(optimize=getattr(args, "optimize", False))
     except Exception:
         writer.cancel()
         raise
@@ -511,6 +511,17 @@ def cmd_stats(args: argparse.Namespace) -> int:
     with ix.reader() as r:
         doc_count = r.doc_count()
         doc_count_all = r.doc_count_all()
+        # Segment-level diagnostics (gh#54): a Whoosh index is stored as one or
+        # more segments; many small segments slow searches down (each is read
+        # separately) until they are merged by 'optimize'. Deleted documents
+        # stay on disk until the segment they live in is rewritten. Surfacing
+        # both makes "why is my index slow / why isn't disk shrinking after
+        # deletes" diagnosable without dropping into the Python API.
+        leaf_readers = [lr for lr, _ in r.leaf_readers()]
+        segment_count = len(leaf_readers)
+        segment_docs = [lr.doc_count_all() for lr in leaf_readers]
+        has_deletions = r.has_deletions()
+    deleted_count = doc_count_all - doc_count
 
     schema = ix.schema
     fields = [(name, type(schema[name]).__name__) for name in schema.names()]
@@ -535,6 +546,9 @@ def cmd_stats(args: argparse.Namespace) -> int:
             "index_dir": index_dir,
             "doc_count": doc_count,
             "doc_count_all": doc_count_all,
+            "deleted_count": deleted_count,
+            "segment_count": segment_count,
+            "segment_doc_counts": segment_docs,
             "fields": [{"name": n, "type": t} for n, t in fields],
             "size_bytes": total_bytes,
             "index_files": file_count,
@@ -551,7 +565,22 @@ def cmd_stats(args: argparse.Namespace) -> int:
     print(f"  fields:      {len(fields)}")
     for name, ftype in fields:
         print(f"    - {name} ({ftype})")
+    seg_line = f"  segments:    {segment_count}"
+    if segment_count > 1:
+        seg_line += f"  ({'+'.join(str(n) for n in segment_docs)} docs)"
+    print(seg_line)
+    if has_deletions:
+        print(
+            f"  deleted:     {deleted_count} document(s) still on disk"
+            " (reclaimed on merge/optimize)"
+        )
     print(f"  size on disk: {_human_bytes(total_bytes)}  ({file_count} files)")
+    if segment_count >= 10:
+        print(
+            f"  note: {segment_count} segments is a lot; run 'whoosh index "
+            "--optimize' (or writer.commit(optimize=True)) to merge them and "
+            "speed up searches."
+        )
     if latest_mtime:
         stamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(latest_mtime))
         print(f"  last updated: {stamp}")
@@ -675,6 +704,14 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         dest="follow_symlinks",
         help="follow symlinked directories when indexing (off by default)",
+    )
+    pi.add_argument(
+        "--optimize",
+        action="store_true",
+        help="merge the index down to a single segment on commit "
+        "(faster searches, reclaims space from deleted docs). Combine "
+        "with --update to optimize in place when 'whoosh stats' reports "
+        "many segments.",
     )
     pi.set_defaults(func=cmd_index)
 

@@ -6,6 +6,19 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Added
+- `whoosh stats` now reports **segment-level diagnostics** (#54): the number of
+  segments the index is stored in (with per-segment doc counts when there is
+  more than one) and how many deleted documents are still on disk waiting to be
+  reclaimed. When an index has accumulated 10+ segments it prints a hint to run
+  `whoosh index --optimize`. These fields (`segment_count`,
+  `segment_doc_counts`, `deleted_count`) are also included in the `--json`
+  output. This makes the two most common "why is my index slow / why isn't disk
+  usage shrinking after deletes?" questions diagnosable from the command line.
+- `whoosh index --optimize` merges the index down to a single segment on commit
+  (faster searches, reclaims space from deleted documents). Combine with
+  `--update` to optimize an existing index in place.
+
 ### Documentation
 - Added a **FAQ / troubleshooting** page (`docs/source/faq.rst`) collecting the
   questions and error messages that come up most often — `pip install whoosh`

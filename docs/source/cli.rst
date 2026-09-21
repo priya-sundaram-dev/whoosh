@@ -92,6 +92,24 @@ walk in circles::
 
     $ whoosh index ~/notes --follow-symlinks
 
+.. _cli-optimize:
+
+Optimizing an index
+-------------------
+
+Every ``whoosh index`` / ``--update`` run appends a new segment, and updated or
+deleted documents leave their old data behind until a segment is rewritten.
+Over time an index can accumulate many small segments (slower searches) and
+dead documents (wasted disk). Pass ``--optimize`` to merge everything down to a
+single segment on commit, which speeds up searches and reclaims the space::
+
+    $ whoosh index ~/notes --update --optimize
+
+Optimizing rewrites the whole index, so it costs more than an ordinary
+incremental update — run it occasionally (say, from a nightly job) rather than
+on every write. ``whoosh stats`` tells you when it is worth doing: watch the
+``segments`` and ``deleted`` lines.
+
 
 Search a folder
 ===============
@@ -234,18 +252,37 @@ health into a script::
 
     $ whoosh stats ~/notes
     Index: /home/you/notes/.whoosh_index
-      documents:   128
+      documents:   128  (131 incl. deleted)
       fields:      4
         - body (TEXT)
         - mtime (NUMERIC)
         - path (ID)
         - title (TEXT)
+      segments:    3  (120+8+3 docs)
+      deleted:     3 document(s) still on disk (reclaimed on merge/optimize)
       size on disk: 2.1 MB  (7 files)
       last updated: 2026-07-15 12:56:46
 
+The ``segments`` and ``deleted`` lines are diagnostics for the two questions
+that come up most often once an index is in daily use. A Whoosh index is stored
+as one or more *segments*; every incremental write adds a new one, and searches
+read each segment separately, so an index that has grown to many small segments
+gets slower. Deleting or updating a document only marks the old copy deleted —
+its data stays on disk until the segment is rewritten. If ``stats`` shows a lot
+of segments (it prints a hint at 10+) or a large deleted count, merge them with
+``whoosh index --optimize`` (see :ref:`optimizing an index <cli-optimize>`
+below), which rewrites the index into a single segment and reclaims the space::
+
+    $ whoosh index ~/notes --update --optimize
+    $ whoosh stats ~/notes
+    ...
+      segments:    1
+      ...
+
 Add ``--json`` for machine-readable output (document count, fields with their
-types, size in bytes, and last-modified timestamp), which parses cleanly with
-tools like ``jq``::
+types, segment count, per-segment doc counts, deleted-document count, size in
+bytes, and last-modified timestamp), which parses cleanly with tools like
+``jq``::
 
     $ whoosh stats ~/notes --json
 
