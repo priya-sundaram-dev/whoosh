@@ -6,6 +6,8 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+## [3.54.0] - 2026-09-21
+
 ### Added
 - `whoosh stats` now reports **segment-level diagnostics** (#54): the number of
   segments the index is stored in (with per-segment doc counts when there is
