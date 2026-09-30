@@ -445,22 +445,24 @@ class IndexWriter:
         raise NotImplementedError
 
     @abstractmethod
-    def add_reader(self, reader):
+    def add_reader(self, reader: IndexReader) -> None:
         raise NotImplementedError
 
-    def _doc_boost(self, fields, default=1.0):
+    def _doc_boost(self, fields: dict[str, Any], default: float = 1.0) -> float:
         if "_boost" in fields:
             return float(fields["_boost"])
         else:
             return default
 
-    def _field_boost(self, fields, fieldname, default=1.0):
+    def _field_boost(
+        self, fields: dict[str, Any], fieldname: str, default: float = 1.0
+    ) -> float:
         if (boostkw := f"_{fieldname}_boost") in fields:
             return float(fields[boostkw])
         else:
             return default
 
-    def _unique_fields(self, fields):
+    def _unique_fields(self, fields: dict[str, Any]) -> list[str]:
         # Check which of the supplied fields are unique
         unique_fields = [
             name
