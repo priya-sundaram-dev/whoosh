@@ -439,7 +439,7 @@ class RefBytesColumn(Column):
     # columns), so we have to say that the column type is not reversible
     reversible = False
 
-    def __init__(self, fixedlen=0, default=None):
+    def __init__(self, fixedlen: int = 0, default: bytes | None = None) -> None:
         """
         :param fixedlen: an optional fixed length for the values. If you
             specify a number other than 0, the column will require all values
@@ -458,14 +458,16 @@ class RefBytesColumn(Column):
             raise ValueError
         self._default = default
 
-    def writer(self, dbfile):
+    def writer(self, dbfile: StructFile) -> ColumnWriter:
         return self.Writer(dbfile, self._fixedlen, self._default)
 
-    def reader(self, dbfile, basepos, length, doccount):
+    def reader(
+        self, dbfile: StructFile, basepos: int, length: int, doccount: int
+    ) -> ColumnReader:
         return self.Reader(dbfile, basepos, length, doccount, self._fixedlen)
 
     class Writer(ColumnWriter):
-        def __init__(self, dbfile, fixedlen, default):
+        def __init__(self, dbfile: StructFile, fixedlen: int, default: bytes) -> None:
             self._dbfile = dbfile
             self._fixedlen = fixedlen
             self._default = default
@@ -478,10 +480,10 @@ class RefBytesColumn(Column):
             self._uniques = {default: 0}
             self._count = 0
 
-        def __repr__(self):
+        def __repr__(self) -> str:
             return "<RefBytes.Writer>"
 
-        def fill(self, docnum):
+        def fill(self, docnum: int) -> None:
             if docnum > self._count:
                 if self._refs is not None:
                     self._refs.extend(0 for _ in range(docnum - self._count))
@@ -490,7 +492,7 @@ class RefBytesColumn(Column):
                     for _ in range(docnum - self._count):
                         dbfile.write_ushort(0)
 
-        def add(self, docnum, v):
+        def add(self, docnum: int, v: bytes) -> None:
             dbfile = self._dbfile
             refs = self._refs
             self.fill(docnum)
@@ -519,7 +521,7 @@ class RefBytesColumn(Column):
 
             self._count = docnum + 1
 
-        def _write_uniques(self, typecode):
+        def _write_uniques(self, typecode: str) -> None:
             dbfile = self._dbfile
             fixedlen = self._fixedlen
             uniques = self._uniques
@@ -532,7 +534,7 @@ class RefBytesColumn(Column):
                     dbfile.write_varint(len(v))
                 dbfile.write(v)
 
-        def finish(self, doccount):
+        def finish(self, doccount: int) -> None:
             dbfile = self._dbfile
             refs = self._refs
             self.fill(doccount)
@@ -546,7 +548,14 @@ class RefBytesColumn(Column):
             dbfile.write_byte(ord(typecode))
 
     class Reader(ColumnReader):
-        def __init__(self, dbfile, basepos, length, doccount, fixedlen):
+        def __init__(
+            self,
+            dbfile: StructFile,
+            basepos: int,
+            length: int,
+            doccount: int,
+            fixedlen: int,
+        ) -> None:
             self._dbfile = dbfile
             self._basepos = basepos
             self._doccount = doccount
@@ -561,10 +570,10 @@ class RefBytesColumn(Column):
             dbfile.seek(basepos + doccount * self._itemsize)
             self._uniques = self._read_uniques()
 
-        def __repr__(self):
+        def __repr__(self) -> str:
             return "<RefBytes.Reader>"
 
-        def _read_uniques(self):
+        def _read_uniques(self) -> list[bytes]:
             dbfile = self._dbfile
             fixedlen = self._fixedlen
 
@@ -577,12 +586,12 @@ class RefBytesColumn(Column):
                 uniques.append(dbfile.read(length))
             return uniques
 
-        def __getitem__(self, docnum):
+        def __getitem__(self, docnum: int) -> bytes:
             pos = self._basepos + docnum * self._itemsize
             ref = self._unpack(self._dbfile.get(pos, self._itemsize))[0]
             return self._uniques[ref]
 
-        def __iter__(self):
+        def __iter__(self) -> Iterator[bytes]:
             get = self._dbfile.get
             basepos = self._basepos
             uniques = self._uniques
